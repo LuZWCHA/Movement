@@ -1,14 +1,39 @@
 package com.nowandfuture.mod.network;
 
+import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.network.message.DivBytesMessage;
+import com.nowandfuture.mod.network.message.MovementMessage;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.server.management.PlayerChunkMapEntry;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.relauncher.Side;
 
 public enum NetworkHandler {
     INSTANCE;
+    private final SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel(Movement.MODID);
 
     NetworkHandler(){
+        int baseId = 0;
+        channel.registerMessage(MovementMessage.RenamePrefabMessage.class,MovementMessage.RenamePrefabMessage.class, baseId++,Side.SERVER);
+        channel.registerMessage(DivBytesMessage.class,DivBytesMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.FloatDataSyncMessage.class,MovementMessage.FloatDataSyncMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.StringDataSyncMessage.class,MovementMessage.StringDataSyncMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.IntDataSyncMessage.class,MovementMessage.IntDataSyncMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.VoidMessage.class,MovementMessage.VoidMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.NBTMessage.class,MovementMessage.NBTMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(MovementMessage.LongDataMessage.class,MovementMessage.LongDataMessage.class,baseId++,Side.SERVER);
 
     }
 
@@ -17,8 +42,81 @@ public enum NetworkHandler {
 
     }
 
-    public void sendMessage(String message){
+    public void sendClientCommandMessage(String message){
         Minecraft.getMinecraft().player.sendMessage(new TextComponentString(message));
+    }
+
+    public void sendClientChatMessage(String message){
+        Minecraft.getMinecraft().player.sendChatMessage(message);
+    }
+
+    public void sendMessageToDim(IMessage msg, int dim) {
+        channel.sendToDimension(msg, dim);
+    }
+
+    public void sendMessageAroundPos(IMessage msg, int dim, BlockPos pos) {
+
+        channel.sendToAllAround(msg, new NetworkRegistry.TargetPoint(dim, pos.getX(), pos.getY(), pos.getZ(), 2.0D));
+    }
+
+    public void sendMessageToPlayer(IMessage msg, EntityPlayerMP player) {
+        channel.sendTo(msg, player);
+    }
+
+    public void sendMessageToAll(IMessage msg) {
+        channel.sendToAll(msg);
+    }
+
+    public void sendMessageToServer(IMessage msg) {
+        channel.sendToServer(msg);
+    }
+
+    public void sendMessageToAllTracking(IMessage msg,Entity entity) {
+        channel.sendToAllTracking(msg, entity);
+    }
+
+    public void sendMessageToAllTracking(IMessage msg,NetworkRegistry.TargetPoint point) {
+        channel.sendToAllTracking(msg,point);
+    }
+
+    public static World getServerWorld(MessageContext context) {
+         return context.getServerHandler().player.world;
+    }
+
+    public static EntityPlayerMP getServerPlayer(MessageContext context) {
+        return context.getServerHandler().player;
+    }
+
+
+    public static void syncToTrackingClients(MessageContext context,TileEntity tileEntity) {
+        syncToTrackingClients(context, tileEntity,tileEntity.getUpdatePacket());
+    }
+
+    public static void syncToTrackingClients(MessageContext context,TileEntity tileEntity,SPacketUpdateTileEntity customPacket) {
+        World world = getServerWorld(context);
+        syncToTrackingClients(world,tileEntity,customPacket);
+    }
+
+    public static void syncToTrackingClients(World world,TileEntity tileEntity,SPacketUpdateTileEntity customPacket) {
+        if (!world.isRemote) {
+            PlayerChunkMapEntry trackingEntry = ((WorldServer)world).getPlayerChunkMap()
+                    .getEntry(tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4);
+            if (trackingEntry != null) {
+                for (EntityPlayerMP player : trackingEntry.getWatchingPlayers()) {
+                    if(customPacket != null)
+                        player.connection.sendPacket(customPacket);
+                }
+            }
+        }
+    }
+
+    public static void syncToOnePlayer(EntityPlayerMP player,TileEntity tileEntity) {
+        if (!player.world.isRemote) {
+            SPacketUpdateTileEntity packet = tileEntity.getUpdatePacket();
+
+            if(packet != null)
+                player.connection.sendPacket(packet);
+        }
     }
 
 }

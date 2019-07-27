@@ -19,7 +19,7 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
     public interface ConstructListener{
         void onError(Exception e);
         void onStart();
-        void onCompleted();
+        void onCompleted(AbstractPrefab prefab);
     }
 
     @Override
@@ -42,6 +42,26 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         return prefab.getTransformedBasePos();
     }
 
+    @Override
+    public String getName() {
+        return prefab.getName();
+    }
+
+    @Override
+    public int getPrefabMaxNum() {
+        return prefab.getPrefabMaxNum();
+    }
+
+    @Override
+    public Vector3f getTransformedPos() {
+        return prefab.getTransformedPos();
+    }
+
+    @Override
+    public int getConstructBlockIndex() {
+        return prefab.getConstructBlockIndex();
+    }
+
     public Vector3f getTransformedPos(Vector3f vector3f){
         return prefab.getTransformedPos(vector3f);
     }
@@ -57,7 +77,7 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
     }
 
     @Override
-    public void renderPre(float p) {
+    public void renderPre(double p) {
         prefab.renderPre(p);
     }
 
@@ -65,7 +85,16 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         prefab.renderPost(p);
     }
 
-    public MultiThreadPrefabWrapper(AbstractPrefab prefab){
+    public MultiThreadPrefabWrapper(){
+        super();
+    }
+
+    public void set(AbstractPrefab prefab){
+        this.prefab = prefab;
+        constructLocalWorldThread = new ConstructLocalWorldThread(prefab);
+    }
+
+    protected MultiThreadPrefabWrapper(AbstractPrefab prefab){
         super(prefab.getActrualWorld(), prefab.getBasePos(), prefab.size);
         this.prefab = prefab;
         constructLocalWorldThread = new ConstructLocalWorldThread(prefab);
@@ -110,14 +139,16 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         prefab.readFromNBT(nbt);
     }
 
-    @Override
-    public void render(float p) {
-        prefab.render(p);
-    }
 
     @Override
     public World getActrualWorld() {
         return prefab.getActrualWorld();
+    }
+
+    @Override
+    public void setReady(boolean ready) {
+        if(prefab != null)
+            prefab.setReady(ready);
     }
 
     @Override
@@ -128,29 +159,89 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         constructLocalWorldThread.start();
     }
 
-    private static class ConstructLocalWorldThread extends  Thread{
+    public boolean tryStopConstruct(){
+        if(isConstructing()){
+            if(constructLocalWorldThread.constructListener != null) {
+                constructLocalWorldThread.constructListener.onError(new ForceStopException());
+                constructLocalWorldThread.constructListener = null;
+            }
+            constructLocalWorldThread.interrupt();
+            constructLocalWorldThread.prefab = null;
+            constructLocalWorldThread = null;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isConstructing(){
+        return constructLocalWorldThread != null && constructLocalWorldThread.isConstructing();
+    }
+
+    @Override
+    public boolean isLocalWorldInit() {
+        return prefab.isLocalWorldInit();
+    }
+
+    @Override
+    public boolean isReady() {
+        return prefab.isReady();
+    }
+
+    public double getProgress(){
+        AbstractPrefab prefab = constructLocalWorldThread.prefab;
+        return prefab == null ? 0d : ((double) prefab.getConstructBlockIndex())/prefab.getPrefabMaxNum();
+    }
+
+    public static class ForceStopException extends Exception{
+        public ForceStopException(){
+
+        }
+    }
+
+    private static class ConstructLocalWorldThread extends Thread{
 
         private ConstructListener constructListener;
         private AbstractPrefab prefab;
+        private boolean isConstructing;
 
         ConstructLocalWorldThread(AbstractPrefab prefab){
             this.prefab = prefab;
+            this.isConstructing = false;
         }
 
         @Override
         public void run() {
             try {
-                if(constructListener != null)
+                if(constructListener != null) {
                     constructListener.onStart();
+                }
+
+                prefab.setReady(false);
+                isConstructing = true;
                 prefab.constructLocalWoldFromActrualWorld();
-                if(constructListener != null)
-                    constructListener.onCompleted();
-            }catch (InterruptedException e){
-                if(constructListener != null)
+                prefab.diffuseLight();
+                isConstructing = false;
+                prefab.setReady(true);
+
+                if(constructListener != null) {
+                    constructListener.onCompleted(prefab);
+                }
+            }catch (Exception e){
+                isConstructing = false;
+                if(prefab != null)
+                    prefab.setReady(false);
+
+                if(constructListener != null) {
                     constructListener.onError(e);
+                }
+            }finally {
+                isConstructing = false;
             }
         }
 
+        public boolean isConstructing() {
+            return isConstructing;
+        }
     }
 
 }

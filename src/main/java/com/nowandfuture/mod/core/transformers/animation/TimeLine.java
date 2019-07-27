@@ -7,8 +7,6 @@ import java.io.Serializable;
 
 public class TimeLine {
 
-    private static final long serialVersionUID = 137898973180339733L;
-
     public final String NBT_ANM_LINE_ENABLE = "LineEnable";
     public final String NBT_ANM_LINE_TOTAL = "TotalTick";
     public final String NBT_ANM_LINE_TICK = "Tick";
@@ -49,6 +47,19 @@ public class TimeLine {
         }
     }
 
+    @Override
+    protected TimeLine clone(){
+        return new TimeLine(this);
+    }
+
+    private TimeLine(TimeLine timeLine) {
+        this.enable = timeLine.enable;
+        this.totalTick = timeLine.totalTick;
+        this.tick = timeLine.tick;
+        this.step = timeLine.step;
+        this.mode = timeLine.mode;
+    }
+
     public TimeLine(){
         enable = false;
         step = DEFAULT_STEP;
@@ -58,7 +69,7 @@ public class TimeLine {
     }
 
     public double getProgress(float p){
-        if(mode == Mode.STOP || step == 0) return (float)tick/(float)totalTick;
+        if(mode == Mode.STOP || step == 0 || !enable) return (float)tick/(float)totalTick;
 
         long nextTick = update(tick,totalTick,step,mode,true);
         if(mode == Mode.CYCLE_RESTART && nextTick < tick)
@@ -67,7 +78,7 @@ public class TimeLine {
     }
 
     public double getFixedTick(float p){
-        if(mode == Mode.STOP || step == 0) return tick;
+        if(mode == Mode.STOP || step == 0 || !enable) return tick;
 
         long nextTick = update(tick,totalTick,step,mode,true);
 
@@ -84,13 +95,14 @@ public class TimeLine {
     }
 
     public boolean update(){
+        long temp = this.tick;
         if(enable)
             this.tick = update(tick,totalTick,step,mode,false);
-        return enable;
+        return temp != this.tick;
     }
 
     private long update(long tick , long totalTick , int step, Mode mode, boolean test){
-        if(mode == Mode.STOP || step == 0) return tick;
+        if(mode == Mode.STOP || step == 0 || !enable) return tick;
 
         switch (mode){
             case CYCLE_RESTART:
@@ -115,11 +127,13 @@ public class TimeLine {
                 break;
             case ONE_TIME:
                 if(tick + step >= totalTick) {
+                    tick = totalTick;
                     if(!test)
-                        this.mode = Mode.STOP;
+                        this.enable = false;
                 }else if(tick + step <= 0){
+                    tick = 0;
                     if(!test)
-                        this.mode = Mode.STOP;
+                        this.enable = false;
                 }else{
                     tick += step;
                 }
@@ -132,7 +146,7 @@ public class TimeLine {
                 }else if(tick + step <= 0){
                     tick = 0;
                     if(!test)
-                        this.mode = Mode.STOP;
+                        this.enable = false;
                 }else{
                     tick += step;
                 }
@@ -155,7 +169,7 @@ public class TimeLine {
         return tick;
     }
 
-    public TimeLine setTick(int tick) {
+    public TimeLine setTick(long tick) {
         this.tick = tick;
         return this;
     }
@@ -178,12 +192,22 @@ public class TimeLine {
         return this;
     }
 
+    public int getStep() {
+        return step;
+    }
+
     public TimeLine setMode(Mode mode) {
         this.mode = mode;
         return this;
     }
 
+    public Mode getMode() {
+        return mode;
+    }
+
     public void start(){
+        if(mode == Mode.STOP)
+            mode = Mode.CYCLE_RESTART;
         enable = true;
     }
 
@@ -216,9 +240,9 @@ public class TimeLine {
     public NBTTagCompound serializeNBT(NBTTagCompound compound){
         compound.setLong(NBT_ANM_LINE_TICK,tick);
         compound.setLong(NBT_ANM_LINE_TOTAL,totalTick);
-        compound.setInteger(NBT_ANM_LINE_MODE,mode.modeValue);
-        compound.setBoolean(NBT_ANM_LINE_ENABLE,enable);
         compound.setInteger(NBT_ANM_LINE_STEP,step);
+        compound.setBoolean(NBT_ANM_LINE_ENABLE,enable);
+        compound.setInteger(NBT_ANM_LINE_MODE,mode.modeValue);
         return compound;
     }
 

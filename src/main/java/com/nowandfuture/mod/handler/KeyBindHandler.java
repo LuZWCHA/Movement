@@ -23,21 +23,11 @@ public class KeyBindHandler {
     public static final KeyBinding S = new KeyBinding("spawn test",KEY_S,MODID);
 
     public static void init(){
-        ClientRegistry.registerKeyBinding(C);
-        ClientRegistry.registerKeyBinding(S);
+
     }
 
     @SubscribeEvent
     public void keyDown(InputEvent.KeyInputEvent event){
-        if(C.isPressed()){
-            ModuleManager.INSTANCE.constructTest(Minecraft.getMinecraft().player);
-        }
-        if(S.isPressed()){
-            ModuleManager.INSTANCE.spawnTest(Minecraft.getMinecraft().player);
-        }
-        if(L.isPressed()){
-            RenderHandler.setPosAndSize(Minecraft.getMinecraft().player.getPosition(),new BlockPos(4,4,4));
-            RenderHandler.toggleShow();
-        }
+
     }
 }

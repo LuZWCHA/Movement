@@ -1,10 +1,13 @@
 package com.nowandfuture.mod.core.prefab;
 
+import com.nowandfuture.mod.Movement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexBuffer;
+import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.init.Blocks;
 import org.lwjgl.opengl.GL11;
 
@@ -23,10 +26,15 @@ public class BlockRenderHelper {
 
     private int lastIndexInRenderList;
     private BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
-    private BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+
+    private BufferBuilder bufferBuilder = new BufferBuilder(2097152);
+    private WorldVertexBufferUploader worldVertexBufferUploader = new WorldVertexBufferUploader();
+
     private final Object locker = new Object();
 
-    private boolean isLightChanging = true;
+    private boolean init = false;
+
+    private boolean isLightChanging = false;
 
     enum State{
         IDLE,
@@ -40,10 +48,14 @@ public class BlockRenderHelper {
     }
 
     public void init(){
-        listNum = (int) Math.ceil((double)localWorld.getBlockNum()/(double)perListSize);
+        Movement.logger.info("size:" + localWorld.getRenderBlocks().size());
+        Movement.logger.info("per size:" + perListSize);
+
+        listNum = (int) Math.ceil((double)localWorld.getRenderBlocks().size()/(double)perListSize);
         listStartIndex = GLAllocation.generateDisplayLists(listNum);
         currentIndex = 0;
         lastIndexInRenderList = 0;
+        init = true;
     }
 
     @Deprecated
@@ -62,12 +74,12 @@ public class BlockRenderHelper {
         if(localWorld == null || localWorld.getBlockNum() <= 0)
             return;
 
-        if(displayListState.equals(State.IDLE)) init();
+        synchronized (locker) {
+            if(displayListState.equals(State.IDLE)) init();
 
-        if(isLightChanging)
-            render2();
-        else {
-            synchronized (locker) {
+            if(isLightChanging)
+                renderWithLight();
+            else {
                 preRender();
                 render();
                 postRender();
@@ -76,12 +88,18 @@ public class BlockRenderHelper {
     }
 
     private void preRender(){
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-
+//        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+//        Movement.logger.info("preRender:"+ displayListState + "," + currentIndex + "," + listNum);
         if(displayListState.equals(State.WORKING)){
-            for(int i=listStartIndex;i<listStartIndex + currentIndex;++i) GL11.glCallList(i);
+            for(int i=listStartIndex;i<listStartIndex + currentIndex;++i) {
+                GL11.glCallList(i);
+//                Movement.logger.info("call list:"+ i);
+            }
         }else if(displayListState.equals(State.FINISHED)){
-            for(int i=listStartIndex;i<listStartIndex + listNum;++i) GL11.glCallList(i);
+            for(int i=listStartIndex;i<listStartIndex + listNum;++i) {
+                GL11.glCallList(i);
+//                Movement.logger.info("call list:"+ i);
+            }
         }
 
     }
@@ -127,17 +145,14 @@ public class BlockRenderHelper {
     }
 
     private void render(){
-
         if(displayListState.equals(State.IDLE) || displayListState.equals(State.WORKING) ){
-            GlStateManager.glNewList(listStartIndex + currentIndex, GL11.GL_COMPILE_AND_EXECUTE);
             render1();
-            GlStateManager.glEndList();
-            currentIndex ++;
+
         }
     }
 
     private void render1(){
-
+        GlStateManager.glNewList(listStartIndex + currentIndex, GL11.GL_COMPILE);
         GlStateManager.pushMatrix();
 
         bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
@@ -147,24 +162,30 @@ public class BlockRenderHelper {
         {
             if(i + lastIndexInRenderList >= size) break;
             LocalWorld.LocalBlock wrapBlock = localWorld.getRenderBlocks().get(i + lastIndexInRenderList);
-            Block b = wrapBlock.blockState.getBlock();
-            if(b==Blocks.AIR)continue;
 
             dispatcher.renderBlock(wrapBlock.blockState,wrapBlock.pos,localWorld,bufferBuilder);
         }
         lastIndexInRenderList += i;
 
-        Tessellator.getInstance().draw();
+        bufferBuilder.finishDrawing();
+        worldVertexBufferUploader.draw(bufferBuilder);
 
         GlStateManager.popMatrix();
+        GlStateManager.glEndList();
+        currentIndex ++;
+    }
+
+    private void renderWithLight(){
+//        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+        render2();
+//        Minecraft.getMinecraft().entityRenderer.disableLightmap();
     }
 
     private void render2(){
-        int size = localWorld.getRenderBlocks().size();
+        final int size = localWorld.getRenderBlocks().size();
 
         GlStateManager.pushMatrix();
         bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
 
         for(int i=0; i < size; ++i)
         {
@@ -175,14 +196,14 @@ public class BlockRenderHelper {
             dispatcher.renderBlock(wrapBlock.blockState,wrapBlock.pos,localWorld,bufferBuilder);
         }
 
-        Tessellator.getInstance().draw();
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+        bufferBuilder.finishDrawing();
+        worldVertexBufferUploader.draw(bufferBuilder);
 
         GlStateManager.popMatrix();
     }
 
     private void postRender(){
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+//        Minecraft.getMinecraft().entityRenderer.disableLightmap();
 
         if((displayListState.equals(State.WORKING) || displayListState.equals(State.IDLE)) && currentIndex >= listNum) {
             displayListState = State.FINISHED;
@@ -195,11 +216,17 @@ public class BlockRenderHelper {
     }
 
     public void clear(){
-        GLAllocation.deleteDisplayLists(listStartIndex,listNum);
         displayListState = State.IDLE;
         lastIndexInRenderList = 0;
         currentIndex = 0;
         listNum = 0;
+        init = false;
+        GLAllocation.deleteDisplayLists(listStartIndex,listNum);
+
+    }
+
+    public boolean isInit() {
+        return init;
     }
 
     public void setLightChanging(boolean lightChanging) {
@@ -208,6 +235,22 @@ public class BlockRenderHelper {
                 isLightChanging = lightChanging;
                 clear();
                 init();
+            }
+        }
+    }
+
+    static class RenderThread extends Thread{
+
+        private BlockRenderHelper helper;
+
+        public void setHelper(BlockRenderHelper helper) {
+            this.helper = helper;
+        }
+
+        @Override
+        public void run() {
+            if(helper != null){
+                helper.render1();
             }
         }
     }

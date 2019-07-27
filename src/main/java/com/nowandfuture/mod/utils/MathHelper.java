@@ -55,7 +55,6 @@ public class MathHelper {
 
     public static double angleTwoVec3(Vec3d a, Vec3d b)
     {
-
         return Math.acos( clamp(a.normalize().dotProduct(b.normalize())) );
     }
 
@@ -135,13 +134,22 @@ public class MathHelper {
         );
     }
 
-
-    public static float fixrot(float rot, float prevrot)
-    {
-        if(rot - prevrot>180f)prevrot += 360f;
-        else if(rot - prevrot<-180f)prevrot -= 360f;
-        return prevrot;
+    public static boolean approximate(double a,double b,double accuracy){
+        return Math.abs(a - b) < accuracy;
     }
-        
+
+    public static int getIntHighBits(int data,int bit){
+        return data >>> (32 - bit);
+    }
+
+    public static int getIntLowBits(int data,int bit){
+        int mark = 0xFFFFFFFF;
+        mark >>>= (32 - bit);
+        return data & mark;
+    }
+
+    public static int getIntMiddleBits(int data,int bitStart ,int length){
+        return getIntHighBits(data << bitStart,length);
+    }
     
 }

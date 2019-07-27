@@ -1,10 +1,12 @@
 package com.nowandfuture.mod;
 
+import com.nowandfuture.mod.handler.GuiHandler;
 import com.nowandfuture.mod.setup.IProxy;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.apache.logging.log4j.Logger;
 
 import static com.nowandfuture.mod.Movement.MODID;
@@ -37,17 +39,6 @@ public class Movement {
         public void init(FMLInitializationEvent event)
         {
             proxy.init(event);
+            NetworkRegistry.INSTANCE.registerGuiHandler(this,new GuiHandler());
         }
-
-//        @SubscribeEvent
-//        public void registerBlocks(RegistryEvent.Register<Block> blockRegister){
-//            TestBlock testBlock = new TestBlock();
-//            blockRegister.getRegistry().register(testBlock);
-//
-//
-//        }
-//
-//        public void registerItem(RegistryEvent.Register<Item> itemRegister){
-//            //itemRegister.getRegistry().register(new Item());
-//        }
 }

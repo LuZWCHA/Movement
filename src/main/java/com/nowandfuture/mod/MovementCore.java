@@ -9,7 +9,7 @@ import java.util.Map;
 public class MovementCore implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{"com.nowandfuture.asm.GlobalRenderClassTransformer"};
+        return new String[]{"com.nowandfuture.asm.EntityRendererClassTransformer","com.nowandfuture.asm.RenderGlobalClassTransformer"};
     }
 
     @Override

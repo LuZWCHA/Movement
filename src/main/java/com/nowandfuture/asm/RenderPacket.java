@@ -3,8 +3,9 @@ package com.nowandfuture.asm;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
+//unused
+@Deprecated
 public class RenderPacket extends TransPacket {
     public static final String TARGET_CLASS = "net.minecraft.client.renderer.EntityRenderer";
 
@@ -38,7 +39,7 @@ public class RenderPacket extends TransPacket {
                             this.mv.visitVarInsn(FLOAD, 2);
                             this.mv.visitMethodInsn(INVOKESTATIC, "com/nowandfuture/asm/RenderHook", "render", "(IF)V", false);
 //                            this.mv.visitVarInsn(Opcodes.FLOAD, 2);
-//                            this.mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/nowandfuture/asm/RenderHook", "render", "(F)V", false);
+//                            this.mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/nowandfuture/asm/RenderHook", "build", "(F)V", false);
                             FMLLog.log.info("success Inject");
                             return;
                         }

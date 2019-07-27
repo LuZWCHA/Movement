@@ -56,8 +56,17 @@ public class LinearTransformNode extends AbstractTransformNode<LinearTransformNo
 
         public Vec3d curPos;
 
+        @Override
+        public KeyFrame<LinearTransformNode> clone() {
+            LinearKeyFrame keyFrame = new LinearKeyFrame();
+            keyFrame.setBeginTick(this.getBeginTick());
+            keyFrame.curPos = new Vec3d(curPos.x,curPos.y,curPos.z);
+            return keyFrame;
+        }
+
         public LinearKeyFrame(){
             type = 0;
+            curPos = new Vec3d(0,0,0);
         }
 
         public LinearKeyFrame(Vec3d curPos) {

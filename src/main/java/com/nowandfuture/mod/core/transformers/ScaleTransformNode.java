@@ -45,8 +45,17 @@ public class ScaleTransformNode extends AbstractTransformNode<ScaleTransformNode
 
         public float scale;
 
+        @Override
+        public KeyFrame<ScaleTransformNode> clone() {
+            ScaleKeyFrame scaleKeyFrame = new ScaleKeyFrame();
+            scaleKeyFrame.setBeginTick(getBeginTick());
+            scaleKeyFrame.scale = scale;
+            return scaleKeyFrame;
+        }
+
         public ScaleKeyFrame(){
             type = 2;
+            scale = 1;
         }
 
         public ScaleKeyFrame(float scale){

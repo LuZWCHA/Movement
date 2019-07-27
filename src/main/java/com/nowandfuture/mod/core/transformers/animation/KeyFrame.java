@@ -6,8 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.io.Serializable;
 import java.util.Objects;
 
-public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Serializable,Comparable<KeyFrame> {
-    private static final long serialVersionUID = -1765955595746454563L;
+public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Comparable<KeyFrame> {
     public final static String NBT_ATTRIBUTE_TICK = "BeginTick";
 
     public enum KeyFrameType{
@@ -25,6 +24,8 @@ public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Serializabl
     //shoudong baozheng type xiangtong
     protected int type;
     private long beginTick;
+
+    public abstract KeyFrame<T> clone();
 
     protected KeyFrame(){
         type = -1;
@@ -76,5 +77,9 @@ public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Serializabl
             }
             return null;
         }
+    }
+
+    public int getType() {
+        return type;
     }
 }

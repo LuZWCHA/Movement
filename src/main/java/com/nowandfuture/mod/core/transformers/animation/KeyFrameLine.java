@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.transformers.animation;
 
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 
@@ -18,7 +19,22 @@ public class KeyFrameLine extends TimeLine {
     private Map<KeyFrame.KeyFrameType,TimeSection> sections;
 
     public KeyFrameLine(){
+        super();
         init();
+    }
+
+    public KeyFrameLine clone(){
+        KeyFrameLine clone = new KeyFrameLine();
+        clone.setEnable(isEnable());
+        clone.setTotalTick(getTotalTick());
+        clone.setTick(getTick());
+        clone.setStep(getStep());
+        clone.setMode(getMode());
+        keyFrames.forEach((type, keyFrames) ->
+                keyFrames.forEach(keyFrame -> {
+            clone.addKeyFrame(type,keyFrame.clone());
+        }));
+        return clone;
     }
 
     private void init(){
@@ -35,10 +51,6 @@ public class KeyFrameLine extends TimeLine {
     }
 
     public TimeSection getSection(KeyFrame.KeyFrameType keyType){
-//        TimeSection section = sections.get(keyType);
-//        if(section == null || !section.isInSection(getTick())){
-//            sections.put(keyType,getCurSection(keyType));
-//        }
         return sections.get(keyType);
     }
 
@@ -65,40 +77,103 @@ public class KeyFrameLine extends TimeLine {
         return keyFrames.get(keyType);
     }
 
-    public void addKeyFrames(KeyFrame.KeyFrameType keyType ,KeyFrame keyFrame){
+    public Optional<KeyFrame> getKeyFrame(KeyFrame.KeyFrameType keyType ,long time){
+        for (KeyFrame kf :
+                getKeyFrames(keyType)) {
+            if (time == kf.getBeginTick()){
+                return Optional.of(kf);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<KeyFrame> getKeyFrameNearest(KeyFrame.KeyFrameType keyType ,long time,float acc){
+        for (KeyFrame kf :
+                getKeyFrames(keyType)) {
+            if (MathHelper.approximate(time,kf.getBeginTick(),acc)){
+                return Optional.of(kf);
+            }
+        }
+        return Optional.empty();
+    }
+
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    public KeyFrameLine addKeyFrame(KeyFrame.KeyFrameType keyType , KeyFrame... keyFrames){
+        for (KeyFrame kf :
+                keyFrames) {
+            fixKeyFrame(kf);
+
+            getKeyFrames(keyType).add(kf);
+        }
+        updateSections(true);
+        return this;
+    }
+
+    public KeyFrameLine addKeyFrame(KeyFrame.KeyFrameType keyType , KeyFrame keyFrame){
         fixKeyFrame(keyFrame);
 
         getKeyFrames(keyType).add(keyFrame);
+        updateSections(true);
+        return this;
     }
 
-    public void addKeyFrames(KeyFrame.KeyFrameType keyType ,KeyFrame keyFrame,long time){
+    public KeyFrameLine addKeyFrame(KeyFrame.KeyFrameType keyType , KeyFrame keyFrame, long time){
         keyFrame.setBeginTick(time);
         fixKeyFrame(keyFrame);
 
         getKeyFrames(keyType).add(keyFrame);
+        updateSections(true);
+        return this;
     }
 
-    public void deleteKeyFrame(KeyFrame.KeyFrameType keyType ,KeyFrame keyFrame){
+    public KeyFrameLine deleteKeyFrame(KeyFrame.KeyFrameType keyType ,KeyFrame keyFrame){
         getKeyFrames(keyType).remove(keyFrame);
+        updateSections(true);
+        return this;
     }
 
-    public void deleteKeyFrame(KeyFrame.KeyFrameType keyType ,long time){
+    public KeyFrameLine deleteKeyFrame(KeyFrame.KeyFrameType keyType ,long time){
         getKeyFrames(keyType).removeIf(new Predicate<KeyFrame>() {
             @Override
             public boolean test(KeyFrame keyFrame) {
                 return keyFrame.getBeginTick() == time;
             }
         });
+        updateSections(true);
+        return this;
     }
 
-    public void deleteAll(KeyFrame.KeyFrameType keyType){
+    public KeyFrameLine deleteKeyFrameNearest(KeyFrame.KeyFrameType keyType ,long time,float acc){
+
+        getKeyFrames(keyType)
+                .removeIf(new Predicate<KeyFrame>() {
+                    @Override
+                    public boolean test(KeyFrame keyFrame) {
+                        return MathHelper.approximate(keyFrame.getBeginTick(),time,acc);
+                    }
+                });
+        updateSections(true);
+        return this;
+    }
+
+    public KeyFrameLine deleteAll(KeyFrame.KeyFrameType keyType){
         getKeyFrames(keyType).clear();
+        updateSections(true);
+        return this;
+    }
+
+    public void reset(){
+        init();
     }
 
     private void fixKeyFrame(KeyFrame keyFrame){
         if(keyFrame.getBeginTick() < 0 ) keyFrame.setBeginTick(0);
         if(keyFrame.getBeginTick() > getTotalTick()) keyFrame.setBeginTick(getTotalTick());
     }
+
+    //-----------------------------------------------------------------------------------------------------------
 
     private TimeSection getCurSection(long curTick,SortedSet<KeyFrame> list){
 
@@ -166,23 +241,37 @@ public class KeyFrameLine extends TimeLine {
         }
 
         super.deserializeNBT(compound);
+
+        updateSections(true);
     }
 
     @Override
     public boolean update() {
-        super.update();
+        boolean change = super.update();
 
-        if(isEnable())
-            updateSections();
-        return isEnable();
+        if(change) {
+            updateSections(false);
+            return true;
+        }
+        return false;
     }
 
-    private void updateSections(){
+    public boolean update(long tick) {
+
+        if(tick != getTick()) {
+            setTick(tick);
+            updateSections(false);
+            return true;
+        }
+        return false;
+    }
+
+    private void updateSections(boolean force){ ;
         TimeSection section;
         for (KeyFrame.KeyFrameType kt :
                 KeyFrame.KeyFrameType.values()) {
             section = sections.get(kt);
-            if(section == null || !section.isInSection(getTick())){
+            if(force || section == null || !section.isInSection(getTick())){
                 sections.put(kt,getCurSection(kt));
             }
         }

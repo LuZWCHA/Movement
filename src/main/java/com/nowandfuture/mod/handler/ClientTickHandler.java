@@ -19,7 +19,7 @@ public class ClientTickHandler {
         if(clientTickEvent.phase == TickEvent.Phase.START){
 
         }else {
-            //TimeLineManager.INSTANCE.update();
+
         }
     }
 }

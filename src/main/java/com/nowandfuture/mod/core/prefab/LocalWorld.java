@@ -1,9 +1,9 @@
 package com.nowandfuture.mod.core.prefab;
 
-import com.nowandfuture.mod.core.entities.TileEntityMovementModule;
+import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
+import com.nowandfuture.mod.core.selection.OBBounding;
 import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Matrix4f;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
@@ -19,11 +19,12 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static com.nowandfuture.mod.core.client.renders.CubesBuilder.CUBE_SIZE;
 
 public class LocalWorld implements IBlockAccess {
     private World parentWorld;
@@ -35,16 +36,13 @@ public class LocalWorld implements IBlockAccess {
         return parentWorldPos;
     }
 
+    //get point zero transformed
     public Vector3f getTransformedPos() {
         return getTransformedPos(new Vector3f(0,0,0));
     }
 
     public Vector3f getTransformedPos(Vector3f pos) {
-        Vector4f vector4f = new Vector4f();
-        Matrix4f.transform(modelMatrix,
-                new Vector4f(pos.x,pos.y,pos.z,1),
-                vector4f);
-        return (new Vector3f(vector4f));
+        return OBBounding.transform(pos,modelMatrix);
     }
 
     public void setParentWorldPos(BlockPos parentWorldPos) {
@@ -63,9 +61,7 @@ public class LocalWorld implements IBlockAccess {
         return get(pos).orElse(Blocks.AIR.getDefaultState()).isBlockNormalCube();
     }
 
-    // TODO: 2019/6/28 finish the light inside localworld
     public static class LocalBlock {
-        public int light;
         public IBlockState blockState;
         public BlockPos pos;
         public LocalBlock(BlockPos pos, IBlockState blockState){this.pos = pos;this.blockState = blockState;}
@@ -77,13 +73,16 @@ public class LocalWorld implements IBlockAccess {
     private IBlockState[][][] blocks;
     private Vec3i size;
     private List<LocalBlock> renderBlocks;
+    private int[][][] lightMap;
 
     private int blockNum;
-//    private int nowBlockArrayIndex;
 
-    public int getAllBlockNum()
-    {
+    public int getAllBlockNum() {
         return size.getX() * size.getY() * size.getZ();
+    }
+
+    public Vec3i getSize() {
+        return size;
     }
 
     public int getBlockNum() {
@@ -98,7 +97,7 @@ public class LocalWorld implements IBlockAccess {
         return renderBlocks;
     }
 
-    public LocalWorld stream(LocalWorldSearch localWorldSearch)   {
+    public LocalWorld stream(LocalWorldSearch localWorldSearch) {
         for(int i=0;i<size.getX();++i)
             for(int j=0;j<size.getY();++j)
                 for(int k=0;k<size.getZ();++k) {
@@ -106,6 +105,22 @@ public class LocalWorld implements IBlockAccess {
                     TileEntity tileEntity = tileEntities.get(pos);
 
                     localWorldSearch.search(pos,blocks[i][j][k],tileEntity);
+                }
+        return this;
+    }
+
+    public LocalWorld streamCube(BlockPos cubePos,LocalWorldSearch localWorldSearch){
+        final int x = cubePos.getX() * CUBE_SIZE;
+        final int y = cubePos.getY() * CUBE_SIZE;
+        final int z = cubePos.getZ() * CUBE_SIZE;
+
+        for(int i = x;i< x + CUBE_SIZE;++i)
+            for(int j = y;j<y + CUBE_SIZE;++j)
+                for(int k = z;k<z + CUBE_SIZE;++k) {
+                    BlockPos pos = new BlockPos(i,j,k);
+                    TileEntity tileEntity = tileEntities.get(pos);
+
+                    localWorldSearch.search(pos,get(pos).orElse(Blocks.AIR.getDefaultState()),tileEntity);
                 }
         return this;
     }
@@ -140,10 +155,15 @@ public class LocalWorld implements IBlockAccess {
         return Optional.empty();
     }
 
+    public IBlockState get(int x,int y,int z){
+        return blocks[x][y][z];
+    }
+
     private void allocBlockArray(int x, int y, int z)
     {
         blockNum = 0;
         blocks = new IBlockState[x][y][z];
+        lightMap = new int[x][y][z];
         toAir(x, y, z);
     }
 
@@ -154,8 +174,10 @@ public class LocalWorld implements IBlockAccess {
     private void toAir(int x, int y, int z){
         for(int i=0;i<x;++i)
             for(int j=0;j<y;++j)
-                for(int k=0;k<z;++k)
+                for(int k=0;k<z;++k) {
                     blocks[i][j][k] = Blocks.AIR.getDefaultState();
+                    lightMap[i][j][k] = -1;
+                }
     }
 
     public boolean addBlockStateSafely(BlockPos blockPos,IBlockState blockState){
@@ -210,7 +232,7 @@ public class LocalWorld implements IBlockAccess {
     }
 
     public boolean isBaned(TileEntity entity){
-        return entity instanceof TileEntityMovementModule;
+        return entity instanceof TileEntityTimelineEditor;
     }
 
     @Nullable
@@ -219,8 +241,31 @@ public class LocalWorld implements IBlockAccess {
         return tileEntities.get(pos);
     }
 
-    // TODO: 2019/6/28 fix position (need transform), and fix lightmap so that lightmap will be constructTest when
-    // TODO: 2019/6/28 constructTest the localworld
+    public int getActCombinedLight(BlockPos pos, int lightValue){
+        Vector3f blockPos = getTransformedPos(new Vector3f(pos.getX(),pos.getY(),pos.getZ()));
+        BlockPos transPos = new BlockPos(blockPos.getX(),blockPos.getY(),blockPos.getZ());
+
+        int i = this.getLightFromNeighborsFor(EnumSkyBlock.SKY, transPos);
+        int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos);
+        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,transPos.add(parentWorldPos));
+
+        if (j < lightValue)
+        {
+            j = lightValue;
+        }
+
+        if(k < lightValue){
+            k = lightValue;
+        }
+
+        if(j < k) {
+            j = k;
+        }
+
+        return i << 20 | j << 4;
+    }
+
+
     @Override
     public int getCombinedLight(BlockPos pos, int lightValue) {
         int i = this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
@@ -252,12 +297,11 @@ public class LocalWorld implements IBlockAccess {
         }
         else
         {
-
-            if (!this.isValid(pos))
+            if (!this.isValid(pos) && type == EnumSkyBlock.BLOCK)
             {
                 return type.defaultLightValue;
             }
-            else if (!parentWorld.isBlockLoaded(pos.add(parentWorldPos)))
+            else if (!parentWorld.isBlockLoaded(pos.add(parentWorldPos)) && type == EnumSkyBlock.SKY)
             {
                 return type.defaultLightValue;
             }
@@ -297,15 +341,15 @@ public class LocalWorld implements IBlockAccess {
                 if(type == EnumSkyBlock.SKY)
                     return chunk.getLightFor(type,pos.add(parentWorldPos));
 
-                IBlockState blockState = get(pos).orElse(Blocks.AIR.getDefaultState());
-                return blockState.getBlock().getLightValue(blockState,this,pos);
+                return getLightFor(type,pos);
             }
         }
     }
 
+
     public int getLightFor(EnumSkyBlock type, BlockPos pos)
     {
-        if (!this.isValid(pos))
+        if (!this.isValid(pos) && type == EnumSkyBlock.BLOCK)
         {
             return type.defaultLightValue;
         }
@@ -315,8 +359,48 @@ public class LocalWorld implements IBlockAccess {
             if(type == EnumSkyBlock.SKY)
                 return chunk.getLightFor(type,pos.add(parentWorldPos));
 
-            IBlockState blockState = get(pos).orElse(Blocks.AIR.getDefaultState());
-            return blockState.getBlock().getLightValue(blockState,this,pos);
+            return getLight(pos);
+        }
+    }
+
+    public int getLight(BlockPos pos){
+        if(isValid(pos))
+            return lightMap[pos.getX()][pos.getY()][pos.getZ()];
+        else
+            return 0;
+    }
+
+    private int getLight(int x,int y,int z){
+        return lightMap[x][y][z];
+    }
+
+    @Deprecated
+    public void updateLightMap() throws InterruptedException{
+        final int x = size.getX(),y = size.getY(),z = size.getZ();
+
+        for(int i=0;i<x;++i)
+            for(int j=0;j<y;++j)
+                for(int k=0;k<z;++k) {
+                    int light = parentWorld.getLightFromNeighborsFor(EnumSkyBlock.BLOCK,parentWorldPos.add(i,j,k));
+                    setLightForCoord(light,i,j,k);
+                    if(Thread.currentThread().isInterrupted()){
+                        throw new InterruptedException();
+                    }
+                }
+    }
+
+    private void setLightForCoord(int light,int x,int y,int z){
+        if(isValid(x,y,z)) {
+            int orgLight = lightMap[x][y][z];
+            if(light > orgLight) {
+                lightMap[x][y][z] = light;
+            }
+        }
+    }
+
+    public void setLightForCoord(int light,BlockPos pos){
+        if(isValid(pos)) {
+            lightMap[pos.getX()][pos.getY()][pos.getZ()] = light;
         }
     }
 
@@ -328,6 +412,11 @@ public class LocalWorld implements IBlockAccess {
         return MathHelper.isInCuboid(pos,Vec3i.NULL_VECTOR,size);
     }
 
+    public boolean isValid(int x,int y,int z){
+        return x >= 0 && x < size.getX() &&
+                y >= 0 && y < size.getY() &&
+                z >= 0 && z < size.getZ() ;
+    }
 
     @Override
     public IBlockState getBlockState(BlockPos pos) {

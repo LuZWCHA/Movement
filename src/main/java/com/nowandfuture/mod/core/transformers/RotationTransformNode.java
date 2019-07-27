@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.transformers;
 
+import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.utils.MathHelper;
@@ -27,14 +28,15 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         GlStateManager.translate(vector3f.x,vector3f.y,vector3f.z);
         recipe.getModelMatrix().translate(vector3f);
 
-        final Vec3d mid = MathHelper.Slerp(p,
+        final Vec3d mid = MathHelper.Lerp(p,
                 new Vec3d(preKey.axisAngle4f.x,preKey.axisAngle4f.y,preKey.axisAngle4f.z),
                 new Vec3d(key.axisAngle4f.x,key.axisAngle4f.y,key.axisAngle4f.z));
+
         final float angle = MathHelper.Lerp(p,preKey.axisAngle4f.angle,key.axisAngle4f.angle);
 
         GlStateManager.rotate(angle, (float) mid.x,(float) mid.y,(float) mid.z);
         vector3f.set((float) mid.x,(float) mid.y,(float) mid.z);
-        recipe.getModelMatrix().rotate((float) (angle/180*Math.PI),vector3f);
+        recipe.getModelMatrix().rotate((float) (angle/180*Math.PI),vector3f.normalise(vector3f));
 
         vector3f.set(-key.center.getX() - .5f,-key.center.getY() - .5f,-key.center.getZ() - .5f);
         GlStateManager.translate(vector3f.x,vector3f.y,vector3f.z);
@@ -75,8 +77,20 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
 
         public BlockPos center;
 
+        @Override
+        public KeyFrame<RotationTransformNode> clone() {
+            RotationKeyFrame keyFrame = new RotationKeyFrame();
+            keyFrame.setBeginTick(getBeginTick());
+            keyFrame.center = new BlockPos(center);
+            keyFrame.axisAngle4f = new AxisAngle4f(axisAngle4f);
+
+            return keyFrame;
+        }
+
         public RotationKeyFrame(){
             type = 1;
+            center = new BlockPos(0,0,0);
+            axisAngle4f = new AxisAngle4f(0,1,0,0);
         }
 
         public RotationKeyFrame(AxisAngle4f axisAngle4f){
