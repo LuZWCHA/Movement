@@ -5,7 +5,7 @@ import com.google.common.collect.Sets;
 import com.nowandfuture.asm.RenderHook;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Matrix4f;
@@ -150,7 +150,7 @@ public class CubesBuilder {
         for (EnumFacing testFace:
              EnumFacing.values()) {
 
-            OBBounding.Facing facing = OBBounding.Facing.createFromAABBounding(testFace, startCube.getBounding());
+            OBBox.Facing facing = OBBox.Facing.createFromAABBounding(testFace, startCube.getBounding());
 
             if(facing != null) {
                 facing.mulMatrix(startCube.getWorld().getModelMatrix());
@@ -220,7 +220,7 @@ public class CubesBuilder {
 
     //check is the renderchunks are render(which chunks are contain the cube)
     public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos){
-        OBBounding bounding = cube.getTransformedOBBounding();
+        OBBox bounding = cube.getTransformedOBBounding();
         for (Vector3f vex :
                 bounding.asArray()) {
             if (RenderHook.getRenderChunks().containsKey(
@@ -239,14 +239,14 @@ public class CubesBuilder {
     //do faces cull
     public static Set<EnumFacing> getVisibleFaces(Vector3f visitorPos, AbstractPrefab prefab){
         final Set<EnumFacing> set = Sets.newHashSet();
-        final OBBounding bounding = prefab.getOBBounding();
+        final OBBox bounding = prefab.getOBB();
         Vector3f temp;
-        OBBounding.Facing face;
+        OBBox.Facing face;
 
         for (EnumFacing enumFacing :
                 EnumFacing.values()) {
 
-            face = OBBounding.Facing.createFromAABBounding(enumFacing,bounding);
+            face = OBBox.Facing.createFromAABBounding(enumFacing,bounding);
             if(face != null){
                 face.mulMatrix(prefab.getModelMatrix());
                 temp = new Vector3f(face.getV0());
@@ -310,6 +310,6 @@ public class CubesBuilder {
     public static Vector3f getLocalPos(@Nonnull LocalWorld world,Vector3f visitorPos){
         Matrix4f invertMatrix = new Matrix4f();
         Matrix4f.invert(world.getModelMatrix(),invertMatrix);
-        return OBBounding.transform(visitorPos,invertMatrix);
+        return OBBox.transform(visitorPos,invertMatrix);
     }
 }

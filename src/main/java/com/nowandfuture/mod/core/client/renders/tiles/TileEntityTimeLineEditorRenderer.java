@@ -27,7 +27,6 @@ public class TileEntityTimeLineEditorRenderer extends TileEntityModuleRenderer<T
             DrawHelper.drawOutlinedBoundingBox(te.getModuleBase().getPrefab().getTransformedBounding());
             DrawHelper.drawCoordinateAxis();
             GlStateManager.popMatrix();
-            RenderHandler.addRenderer(te);
         }
     }
 

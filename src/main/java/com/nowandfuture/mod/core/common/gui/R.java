@@ -34,6 +34,18 @@ public interface R {
         public static final String text_module_btn_stop_id = "movement.module.btn.stop";
         public static final String text_module_btn_apply_id = "movement.module.btn.apply";
         public static final String text_module_btn_export_id = "movement.module.btn.export";
+        public static final String text_module_btn_import_id = "movement.module.btn.import";
+        public static final String text_module_lab_key_title1_id = "movement.module.lab.title1";
+        public static final String text_module_lab_key_title2_id = "movement.module.lab.title2";
+        public static final String text_module_lab_key_title3_id = "movement.module.lab.title3";
+
+        public static final String text_module_btn_hide_id = "movement.module.btn.hide";
+        public static final String text_module_btn_show_id = "movement.module.btn.show";
+        public static final String text_module_btn_collision_enable_id = "movement.module.btn.collision.enable";
+        public static final String text_module_btn_collision_disable_id = "movement.module.btn.collision.disable";
+        public static final String text_module_lab_collision_tip_id = "movement.module.lab.collision.tip";
+
+
     }
 
     static TextComponentTranslation name1(String id){

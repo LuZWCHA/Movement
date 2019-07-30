@@ -3,6 +3,8 @@ package com.nowandfuture.mod.core.common.gui;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.network.NetworkHandler;
@@ -22,6 +24,10 @@ public class GuiModule extends AbstractGuiContainer {
     private TileEntityShowModule tileEntityShowModule;
     private SliderView view;
     private MyLabel tickLabel;
+    private MyLabel tipLabel;
+    private MyButton startBtn;
+    private MyButton hideBlockBtn;
+    private MyButton useClientCollisionBtn;//not finished
 
     public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityShowModule tileEntityModule) {
         super(new ContainerModule(inventorySlotsIn,tileEntityModule));
@@ -64,21 +70,116 @@ public class GuiModule extends AbstractGuiContainer {
         long tick = tileEntityShowModule.getLine().getTick();
         long total = tileEntityShowModule.getLine().getTotalTick();
         tickLabel = createMyLabel(130,70,20,12,-1);
+        tipLabel = createMyLabel(8,10,157,16,-1);
         tickLabel.addLine(String.valueOf(tick)).enableBackDraw(false);
+        tipLabel.addLine(R.name(R.id.text_module_lab_collision_tip_id)).enableBackDraw(false);
 
         view.setProgress(tick / (float)total);
 
-        addGuiCompoundsRelative(tickLabel);
+        startBtn = createMyButton(134,30,26,16,R.name(R.id.text_module_btn_start_id));
+        hideBlockBtn = createMyButton(104,30,26,16,R.name(R.id.text_module_btn_hide_id));
+        useClientCollisionBtn = createMyButton(8,30,90,16,R.name(R.id.text_module_btn_collision_enable_id));
+
+        bind(useClientCollisionBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                tileEntityShowModule.setEnableCollision(!tileEntityShowModule.isEnableCollision());
+                updateCollisionEnableBtn();
+                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_ENABLE_COLLISION_FLAG);
+                voidMessage.setPos(tileEntityShowModule.getPos());
+                NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+            }
+        });
+
+        bind(startBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                startOrStop();
+            }
+        });
+        //noinspection Duplicates
+        updateStartOrStopBtn();
+
+        bind(hideBlockBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                tileEntityShowModule.setShowBlock(!tileEntityShowModule.isShowBlock());
+                updateShowOrHideBtn();
+                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_SHOW_OR_HIDE_BLOCK_FLAG);
+                voidMessage.setPos(tileEntityShowModule.getPos());
+                NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+
+            }
+        });
+
+        //noinspection Duplicates
+        if(tileEntityShowModule.getStackInSlot(1).isEmpty()){
+            view.setVisible(false);
+            tickLabel.visible = false;
+        }else{
+            view.setVisible(true);
+            tickLabel.visible = true;
+        }
+
+        updateShowOrHideBtn();
+
+        addGuiCompoundsRelative(
+                useClientCollisionBtn,
+                hideBlockBtn,
+                tickLabel,
+                tipLabel,
+                startBtn);
     }
 
+    private void updateCollisionEnableBtn(){
+        if(tileEntityShowModule.isEnableCollision()){
+            useClientCollisionBtn.displayString = R.name(R.id.text_module_btn_collision_disable_id);
+        }else {
+            useClientCollisionBtn.displayString = R.name(R.id.text_module_btn_collision_enable_id);
+        }
+    }
+
+    private void updateShowOrHideBtn(){
+        if(tileEntityShowModule.isShowBlock()){
+            hideBlockBtn.displayString = R.name(R.id.text_module_btn_hide_id);
+        }else {
+            hideBlockBtn.displayString = R.name(R.id.text_module_btn_show_id);
+        }
+    }
+
+    private void updateStartOrStopBtn(){
+        if(!tileEntityShowModule.getLine().isEnable()){
+            startBtn.displayString = R.name(R.id.text_module_btn_start_id);
+        }else {
+            startBtn.displayString = R.name(R.id.text_module_btn_stop_id);
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private void startOrStop(){
+        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_START_FLAG);
+        voidMessage.setPos(tileEntityShowModule.getPos());
+        if(tileEntityShowModule.getLine().isEnable()){
+            tileEntityShowModule.getLine().setEnable(false);
+            startBtn.displayString = R.name(R.id.text_module_btn_start_id);
+        }else{
+            tileEntityShowModule.getLine().setEnable(true);
+            startBtn.displayString = R.name(R.id.text_module_btn_stop_id);
+        }
+        NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+    }
+
+    // TODO: 2019/7/30 modify to even-notify-mode
     @Override
     public void updateScreen() {
         super.updateScreen();
 
         if(tileEntityShowModule.getStackInSlot(1).isEmpty()){
             view.setVisible(false);
+            tickLabel.visible = false;
         }else{
             view.setVisible(true);
+            tickLabel.visible = true;
         }
 
         if(view.isVisible()){
@@ -90,6 +191,9 @@ public class GuiModule extends AbstractGuiContainer {
                 view.setProgress(tick / (float) total);
             }
         }
+
+        updateStartOrStopBtn();
+        updateCollisionEnableBtn();
     }
 
     @Override

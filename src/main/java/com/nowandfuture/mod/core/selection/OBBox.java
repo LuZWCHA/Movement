@@ -1,17 +1,14 @@
 package com.nowandfuture.mod.core.selection;
 
-import net.minecraft.client.renderer.Matrix4f;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
-import java.util.stream.BaseStream;
-import java.util.stream.Stream;
-
-public class OBBounding {
+public class OBBox {
     private Vector3f xyz000;
     private Vector3f xyz001;
     private Vector3f xyz010;
@@ -35,7 +32,7 @@ public class OBBounding {
          * @param aabbounding The OBBOX must be a AABBOX-Create so the every point will map to minX minY minZ ...
          * @return The Facing contain the OBB vex
          */
-        public static Facing createFromAABBounding(EnumFacing facing,OBBounding aabbounding){
+        public static Facing createFromAABBounding(EnumFacing facing,OBBox aabbounding){
             switch (facing){
                 case DOWN:
                     return new Facing(aabbounding.xyz000,aabbounding.xyz001,aabbounding.xyz101,aabbounding.xyz100,facing.getDirectionVec());
@@ -168,7 +165,7 @@ public class OBBounding {
         }
     }
 
-    public OBBounding(AxisAlignedBB axisAlignedBB){
+    public OBBox(AxisAlignedBB axisAlignedBB){
         this(new Vector3f((float) axisAlignedBB.minX,(float) axisAlignedBB.minY,(float) axisAlignedBB.minZ),
                 new Vector3f((float) axisAlignedBB.minX,(float) axisAlignedBB.minY,(float) axisAlignedBB.maxZ),
                 new Vector3f((float) axisAlignedBB.minX,(float) axisAlignedBB.maxY,(float) axisAlignedBB.minZ),
@@ -180,7 +177,7 @@ public class OBBounding {
         );
     }
 
-    public OBBounding(Vector3f xyz000, Vector3f xyz001, Vector3f xyz010, Vector3f xyz011, Vector3f xyz100, Vector3f xyz101, Vector3f xyz110, Vector3f xyz111) {
+    public OBBox(Vector3f xyz000, Vector3f xyz001, Vector3f xyz010, Vector3f xyz011, Vector3f xyz100, Vector3f xyz101, Vector3f xyz110, Vector3f xyz111) {
         this.xyz000 = xyz000;
         this.xyz001 = xyz001;
         this.xyz010 = xyz010;
@@ -210,8 +207,8 @@ public class OBBounding {
         transform1(xyz111,matrix4f);
     }
 
-    public OBBounding transform(final Matrix4f matrix4f){
-        return new OBBounding(
+    public OBBox transform(final Matrix4f matrix4f){
+        return new OBBox(
                 transform(xyz000,matrix4f),
                 transform(xyz001,matrix4f),
                 transform(xyz010,matrix4f),
@@ -223,16 +220,16 @@ public class OBBounding {
         );
     }
 
-    public OBBounding translate(Vec3i pos){
+    public OBBox translate(Vec3i pos){
         translate(pos.getX(),pos.getY(),pos.getZ());
         return this;
     }
 
-    public OBBounding translate(double x,double y,double z){
+    public OBBox translate(double x, double y, double z){
         return translate((float) x, (float) y,(float)z);
     }
 
-    public OBBounding translate(float x,float y,float z){
+    public OBBox translate(float x, float y, float z){
         this.xyz000.translate(x,y,z);
         this.xyz001.translate(x,y,z);
         this.xyz010.translate(x,y,z);
@@ -357,4 +354,89 @@ public class OBBounding {
 
         return dest;
     }
+
+    public boolean intersect(AxisAlignedBB other){
+        return Collision.intersect(this,new OBBox(other));
+    }
+
+    public boolean intersect(OBBox other){
+        return Collision.intersect(this,other);
+    }
+
+    public static class Collision{
+
+        public static boolean intersect(OBBox a,OBBox b){
+            for (int i = 0; i <3; i++)
+            {
+                float[] res1 = getInterval(a, getFaceDirection(a,i));//计算当前包围盒在某轴上的最大最小投影值
+                float[] res2 = getInterval(b, getFaceDirection(a,i));//计算另一个包围盒在某轴上的最大最小投影值
+                if (res1[1] <= res2[0] || res2[1] <= res1[0]) return false;
+
+                float[] res3 = getInterval(a, getFaceDirection(b,i));
+                float[] res4 = getInterval(b, getFaceDirection(b,i));
+                if (res3[1] <= res4[0] || res4[1] <= res3[0]) return false;//判断分离轴上投影是否重合
+            }
+
+            for (int i = 0; i <3; i++)
+            {
+                for (int j = 0; j <3; j++)
+                {
+                    Vector3f axis = new Vector3f();
+                    Vector3f.cross(getEdgeDirection(a,i), getEdgeDirection(b,j),axis);//边的矢量并做叉积
+                    float[] res1 = getInterval(a, axis);
+                    float[] res2 = getInterval(b, axis);
+                    if (res1[1] < res2[0] || res2[1] < res1[0]) return false;//判断分离轴上投影是否重合
+                }
+            }
+            return true;
+        }
+
+        private static float[] getInterval(OBBox obBox,Vector3f axis){
+            Vector3f[] corners = obBox.asArray();
+
+            float value,min,max;
+
+            min = max = projectPoint(axis, corners[0]);
+            for(int i = 1; i <8; i++)
+            {
+                value = projectPoint(axis, corners[i]);
+                min = Math.min(min, value);
+                max = Math.max(max, value);
+            }
+
+            return new float[]{min,max};
+        }
+
+        private static float projectPoint(Vector3f point, Vector3f axis){
+            return Vector3f.dot(point,axis) * MathHelper.sqrt(point.lengthSquared());
+        }
+
+        private static Vector3f getEdgeDirection(OBBox obBox,int index){
+            switch (index){
+                case 0: return (Vector3f) new Vector3f(obBox.xyz100.getX() - obBox.xyz000.getX(),obBox.xyz100.getY() - obBox.xyz000.getY(),obBox.xyz100.getZ() - obBox.xyz000.getZ()).normalise();
+                case 1: return (Vector3f) new Vector3f(obBox.xyz010.getX() - obBox.xyz000.getX(),obBox.xyz010.getY() - obBox.xyz000.getY(),obBox.xyz010.getZ() - obBox.xyz000.getZ()).normalise();
+                default:
+                    return (Vector3f) new Vector3f(obBox.xyz001.getX() - obBox.xyz000.getX(),obBox.xyz001.getY() - obBox.xyz000.getY(),obBox.xyz001.getZ() - obBox.xyz000.getZ()).normalise();
+            }
+        }
+
+        private static Vector3f getFaceDirection(OBBox obBox,int index){
+            final Vector3f x = getEdgeDirection(obBox,0);
+            final Vector3f y = getEdgeDirection(obBox,1);
+            final Vector3f z = getEdgeDirection(obBox,2);
+
+            switch (index){
+                case 0:
+                    return (Vector3f) Vector3f.cross(x,y,new Vector3f()).normalise();
+                case 1:
+                    return (Vector3f) Vector3f.cross(x,z,new Vector3f()).normalise();
+                default:
+                    return (Vector3f) Vector3f.cross(y,z,new Vector3f()).normalise();
+            }
+        }
+    }
+
+
+
+
 }

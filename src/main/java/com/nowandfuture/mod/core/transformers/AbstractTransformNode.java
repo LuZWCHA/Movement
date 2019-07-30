@@ -3,18 +3,17 @@ package com.nowandfuture.mod.core.transformers;
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.Vec3d;
+
+import java.nio.FloatBuffer;
 
 public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyFarmVisitor<T> {
     public static final String NBT_NEXT_TYPE = "NextType";
     public static final String NBT_NEXT_TAG = "NextTag";
 
     public static final String NBT_TYPE = "Type";
-
-//    public static final String NBT_BASE_X = "BaseX";
-//    public static final String NBT_BASE_Y = "BaseY";
-//    public static final String NBT_BASE_Z = "BaseZ";
 
     public static final String NBT_INTERPOLATION_TYPE = "Interpolation";
 
@@ -47,7 +46,6 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         if(isAcceptKeyFarm(pre) && isAcceptKeyFarm(now)) {
             if(interpolation!=null)
                 p = (float) interpolation.interpolate(p);
-
             transform(recipe, p, (T) pre, (T) now);
         }
     };
@@ -59,7 +57,6 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         if(isAcceptKeyFarm(pre) && isAcceptKeyFarm(now)) {
             if(interpolation!=null)
                 p = (float) interpolation.interpolate(p);
-
             transformPost(recipe, p, (T) pre, (T) now);
         }
 
@@ -69,6 +66,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);
     protected abstract void transform(final AbstractPrefab recipe, float p,T preKey,T key);
+    public abstract void transformMatrix(final AbstractPrefab recipe, float p,T preKey,T key);
     protected abstract void transformPost(final AbstractPrefab recipe, float p,T preKey,T key);
 
     public void readFromNBT(NBTTagCompound compound){

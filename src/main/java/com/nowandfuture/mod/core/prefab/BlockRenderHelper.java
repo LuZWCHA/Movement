@@ -48,8 +48,6 @@ public class BlockRenderHelper {
     }
 
     public void init(){
-        Movement.logger.info("size:" + localWorld.getRenderBlocks().size());
-        Movement.logger.info("per size:" + perListSize);
 
         listNum = (int) Math.ceil((double)localWorld.getRenderBlocks().size()/(double)perListSize);
         listStartIndex = GLAllocation.generateDisplayLists(listNum);

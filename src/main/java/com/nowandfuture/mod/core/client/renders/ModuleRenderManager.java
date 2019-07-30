@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.client.renders;
 
 import com.google.common.collect.Queues;
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.client.renderer.culling.ClippingHelper;
@@ -90,7 +90,7 @@ public enum ModuleRenderManager {
             return (double)p_178624_1_[0] * p_178624_2_ + (double)p_178624_1_[1] * p_178624_4_ + (double)p_178624_1_[2] * p_178624_6_ + (double)p_178624_1_[3];
         }
 
-        public boolean isOBBInFrustum(OBBounding bounding){
+        public boolean isOBBInFrustum(OBBox bounding){
 
             for (int i = 0; i < 6; ++i)
             {

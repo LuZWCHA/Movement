@@ -2,13 +2,14 @@ package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.tiles.TileEntityModuleRenderer;
+import com.nowandfuture.mod.core.client.renders.tiles.TileEntityModuleShowerRenderer;
 import com.nowandfuture.mod.core.client.renders.tiles.TileEntityTimeLineEditorRenderer;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.MovementCreativeTab;
-import com.nowandfuture.mod.core.common.block.ConstructorBlock;
-import com.nowandfuture.mod.core.common.block.ModuleTimelineEditorBlock;
-import com.nowandfuture.mod.core.common.block.ModuleCoreBlock;
+import com.nowandfuture.mod.core.common.blocks.ConstructorBlock;
+import com.nowandfuture.mod.core.common.blocks.ModuleTimelineEditorBlock;
+import com.nowandfuture.mod.core.common.blocks.ModuleCoreBlock;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
@@ -56,7 +57,7 @@ public final class RegisterHandler {
                         .setCreativeTab(creativeTab)
         );
         GameRegistry.registerTileEntity(TileEntityShowModule.class,new ResourceLocation(MODID,"module_block"));
-        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityShowModule.class,new TileEntityModuleRenderer<TileEntityShowModule>());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityShowModule.class,new TileEntityModuleShowerRenderer());
 
     }
     @SubscribeEvent

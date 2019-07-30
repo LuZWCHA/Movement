@@ -9,15 +9,20 @@ import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.EmptyPrefab;
 import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import joptsimple.internal.Strings;
+import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import javax.vecmath.AxisAngle4f;
+import java.nio.FloatBuffer;
 
 public class ModuleBase implements IModule,ITickable {
 
@@ -37,6 +42,7 @@ public class ModuleBase implements IModule,ITickable {
     private final Object lock = new Object();
     private AbstractPrefab prefab;
     private AbstractTransformNode transformerHead;
+    private FloatBuffer floatBuffer = GLAllocation.createDirectFloatBuffer(16);
 
     private boolean enable;
 
@@ -122,11 +128,13 @@ public class ModuleBase implements IModule,ITickable {
             transformerHead = TransformNodeManager.INSTANCE.getDefaultAttributeNode();
     }
 
+    @SideOnly(Side.CLIENT)
     public final void prepare(float p){
         if(prefab != null && prefab.isLocalWorldInit())
             prefab.prepare(p);
     }
 
+    @SideOnly(Side.CLIENT)
     @Deprecated
     public final void buildTranslucent(float p){
         if(prefab != null && prefab.isLocalWorldInit())
@@ -145,6 +153,9 @@ public class ModuleBase implements IModule,ITickable {
             prefab.getModelMatrix().setIdentity();
 
             transformPre(p);
+            prefab.getModelMatrix().store(floatBuffer);
+            floatBuffer.rewind();
+            GlStateManager.multMatrix(floatBuffer);
             prefab.renderTileEntity(p);
             transformPost(p);
 
@@ -154,6 +165,14 @@ public class ModuleBase implements IModule,ITickable {
         }
     }
 
+    //server
+    public void transform(float p){
+        prefab.getModelMatrix().setIdentity();
+        transformPre(p);
+        transformPost(p);
+    }
+
+    @SideOnly(Side.CLIENT)
     @Override
     public final void renderBlockLayer(int pass, double p, BlockRenderLayer blockRenderLayer) {
 
@@ -168,6 +187,9 @@ public class ModuleBase implements IModule,ITickable {
             prefab.getModelMatrix().setIdentity();
 
             transformPre(p);
+            prefab.getModelMatrix().store(floatBuffer);
+            floatBuffer.rewind();
+            GlStateManager.multMatrix(floatBuffer);
             prefab.renderBlockRenderLayer(blockRenderLayer);
             transformPost(p);
 
@@ -178,7 +200,7 @@ public class ModuleBase implements IModule,ITickable {
     }
 
 
-    private void transformPre(double p){
+    public void transformPre(double p){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -194,7 +216,7 @@ public class ModuleBase implements IModule,ITickable {
             }
     }
 
-    private void transformPost(double p){
+    public void transformPost(double p){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -226,12 +248,20 @@ public class ModuleBase implements IModule,ITickable {
         return isEnable();
     }
 
+    public void setUseFixLight(boolean enable){
+        prefab.useFixSkyLight(enable);
+    }
+
     @Override
     public void update() {
         if(!isEnable()) return;
         if(prefab != null && line != null) {
             prefab.update();
         }
+    }
+
+    public AxisAlignedBB getMinAABB(){
+        return prefab.getMinAABB();
     }
 
     public boolean updateLine(){

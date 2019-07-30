@@ -7,6 +7,7 @@ import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.EmptyPrefab;
 import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -33,12 +34,15 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     protected final static int TIMELINE_UPDATE_PACKET = 0x11;
     protected final static int TIMELINE_MODIFY_PACKET = 0x12;
+    protected final static int ENABLE_COLLISION_PACKET = 0x13;
 
     private final static String NBT_TICK = "Tick";
     private final static String NBT_ENABLE = "Enable";
+    private final static String NBT_ENABLE_COLLISION = "EnableCollision";
 
     private final static int FORCE_UPDATE_TIME = 50;
     private int tick = 0;
+    private boolean enableCollision = false;
 
     protected ModuleBase moduleBase;
 
@@ -55,6 +59,14 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     @Override
     public double getMaxRenderDistanceSquared() {
         return (Minecraft.getMinecraft().gameSettings.renderDistanceChunks * Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if(world.isRemote){
+            CollisionHandler.modules.add(this);
+        }
     }
 
     public void setModuleBase(@Nonnull ModuleBase moduleBase) {
@@ -136,6 +148,10 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         moduleBase.renderTileEntities(p);
     }
 
+    public AxisAlignedBB getMinAABB(){
+        return moduleBase.getMinAABB();
+    }
+
     @Deprecated
     public void buildTranslucentBlocks(int pass, float p){
         moduleBase.buildTranslucent(p);
@@ -163,6 +179,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         super.invalidate();
         if(world.isRemote)
             moduleBase.invalidate();
+        if(world.isRemote)
+            CollisionHandler.modules.remove(this);
     }
 
     @Override
@@ -181,11 +199,14 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         moduleBase.readFromNBT(compound);
+        enableCollision = compound.getBoolean(NBT_ENABLE_COLLISION);
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
+        compound.setBoolean(NBT_ENABLE_COLLISION,enableCollision);
+
         return moduleBase.writeToNBT(compound);
     }
 
@@ -224,6 +245,13 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return new SPacketUpdateTileEntity(getPos(),TIMELINE_MODIFY_PACKET,nbtTagCompound);
     }
 
+    public SPacketUpdateTileEntity getCollisionEnablePacket(){
+        NBTTagCompound nbtTagCompound = new NBTTagCompound();
+        nbtTagCompound.setBoolean(NBT_ENABLE_COLLISION,enableCollision);
+
+        return new SPacketUpdateTileEntity(getPos(),ENABLE_COLLISION_PACKET,nbtTagCompound);
+    }
+
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         NBTTagCompound nbtGet = pkt.getNbtCompound();
@@ -234,6 +262,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
             getLine().update(nbtGet.getLong(NBT_TICK));
         }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
             getModuleBase().getLine().deserializeNBT(nbtGet);
+        }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){
+            enableCollision = nbtGet.getBoolean(NBT_ENABLE_COLLISION);
         }
     }
 
@@ -363,4 +393,11 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return null;
     }
 
+    public boolean isEnableCollision() {
+        return enableCollision;
+    }
+
+    public void setEnableCollision(boolean enableCollision) {
+        this.enableCollision = enableCollision;
+    }
 }

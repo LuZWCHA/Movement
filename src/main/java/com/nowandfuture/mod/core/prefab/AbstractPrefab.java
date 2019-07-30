@@ -1,9 +1,8 @@
 package com.nowandfuture.mod.core.prefab;
 
-import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.CubesRenderer;
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.ByteZip;
 import joptsimple.internal.Strings;
 import net.minecraft.block.Block;
@@ -22,9 +21,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.optifine.shaders.ShadersRender;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -50,6 +46,13 @@ public abstract class AbstractPrefab implements ITickable {
     public static final String NBT_CENTER_Y = "CenterY";
     public static final String NBT_CENTER_Z = "CenterZ";
 
+    public static final String NBT_MIN_AABB_MIN_X = "minX";
+    public static final String NBT_MIN_AABB_MIN_Y = "minY";
+    public static final String NBT_MIN_AABB_MIN_Z = "minZ";
+    public static final String NBT_MIN_AABB_MAX_X = "maxX";
+    public static final String NBT_MIN_AABB_MAX_Y = "maxY";
+    public static final String NBT_MIN_AABB_MAX_Z = "maxZ";
+
     public static final String NBT_CONSTRUCT_READY = "ConstructReady";
 
     public static final String NBT_PREFAB_NAME = "PrefabName";
@@ -62,7 +65,9 @@ public abstract class AbstractPrefab implements ITickable {
     protected BlockPos controlPoint;
     protected Vec3i size;
 
-    private OBBounding obbounding;
+    private OBBox obbounding;
+
+    private AxisAlignedBB minAABB = null;
 
     //---------------------------------for build-------------------------------------------------------------------------
 //    private BlockRenderHelper blockRenderHelper;
@@ -76,15 +81,15 @@ public abstract class AbstractPrefab implements ITickable {
 
     }
 
-    public OBBounding getOBBounding() {
+    public OBBox getOBB() {
         if(this.obbounding == null){
-            this.obbounding = new OBBounding(new AxisAlignedBB(0,0,0,size.getX(),size.getY(),size.getZ()));
+            this.obbounding = new OBBox(new AxisAlignedBB(0,0,0,size.getX(),size.getY(),size.getZ()));
         }
         return this.obbounding;
     }
 
-    public OBBounding getTransformedBounding(){
-        return getOBBounding().transform(getModelMatrix());
+    public OBBox getTransformedBounding(){
+        return getOBB().transform(getModelMatrix());
     }
 
     public void init(@Nonnull World world, BlockPos baseLocation, Vec3i size) {
@@ -195,42 +200,6 @@ public abstract class AbstractPrefab implements ITickable {
         cubesRenderer.buildTranslucent();
     }
 
-    @Deprecated
-    public void render(double p) {
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-        renderBlocks(p);
-        RenderHelper.enableStandardItemLighting();
-        renderTileEntity(p);
-        RenderHelper.disableStandardItemLighting();
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
-    }
-
-    @Deprecated
-    public void renderBlocks(double p){
-        if(cubesRenderer == null) return;
-        if(cubesRenderer.isBuilt()) {
-            mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-
-            GlStateManager.disableAlpha();
-            mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, this.mc.gameSettings.mipmapLevels > 0); // FORGE: fix flickering leaves when mods mess up the blurMipmap settings
-//            ShadersRender.beginTerrainSolid();
-            cubesRenderer.render(BlockRenderLayer.SOLID);
-            GlStateManager.enableAlpha();
-
-            mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).restoreLastBlurMipmap();
-            mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, false);
-//            ShadersRender.beginTerrainCutoutMipped();
-            cubesRenderer.render(BlockRenderLayer.CUTOUT_MIPPED);
-//            ShadersRender.beginTerrainCutout();
-            cubesRenderer.render(BlockRenderLayer.CUTOUT);
-            mc.getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).restoreLastBlurMipmap();
-//            ShadersRender.endTerrain();
-//            renderTranslucentBlocks(p);
-        }else{
-            cubesRenderer.build();
-        }
-    }
-
     public void renderBlockRenderLayer(BlockRenderLayer layer){
         if(cubesRenderer == null || !cubesRenderer.isBuilt()) return;
         Minecraft.getMinecraft().entityRenderer.enableLightmap();
@@ -243,7 +212,6 @@ public abstract class AbstractPrefab implements ITickable {
 
         GlStateManager.resetColor();
         Minecraft.getMinecraft().entityRenderer.enableLightmap();
-        ForgeHooksClient.setRenderPass(0);
         final TileEntityRendererDispatcher dispatcher = TileEntityRendererDispatcher.instance;
         RenderHelper.enableStandardItemLighting();
 
@@ -289,8 +257,6 @@ public abstract class AbstractPrefab implements ITickable {
 //        dispatcher.drawBatch(ForgeHooksClient.getWorldRenderPass());
         RenderHelper.disableStandardItemLighting();
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
-
-        ForgeHooksClient.setRenderPass(0);
     }
 
     @Override
@@ -328,8 +294,9 @@ public abstract class AbstractPrefab implements ITickable {
 
     public synchronized void constructLocalWoldFromActrualWorld() throws InterruptedException {
         constructBlockIndex = 0;
+        int maxX = 0,maxY = 0,maxZ = 0,minX = size.getX(),minY = size.getY(),minZ = size.getZ();
         final World actrualWorld = getActrualWorld();
-        for (int x = 0; x < size.getX(); ++x)
+        for (int x = 0; x < size.getX(); ++x) {
             for (int y = 0; y < size.getY(); ++y)
                 for (int z = 0; z < size.getZ(); ++z) {
 
@@ -337,6 +304,17 @@ public abstract class AbstractPrefab implements ITickable {
                     BlockPos fixedPos = getBasePos().add(localPos);
                     IBlockState s = actrualWorld.getBlockState(fixedPos);
                     IBlockState copyState = s.getActualState(actrualWorld, fixedPos);
+
+                    boolean hasCollision = !(copyState.getCollisionBoundingBox(actrualWorld, fixedPos)
+                            == Block.NULL_AABB);
+                    if (hasCollision) {
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (z < minZ) minZ = z;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                        if (z > maxZ) maxZ = z;
+                    }
 
                     localWorld.addBlockState(localPos, copyState);
 
@@ -354,17 +332,31 @@ public abstract class AbstractPrefab implements ITickable {
                             localWorld.addTitleEntity(localPos, copyTileEntity);
                         }
                     }
-                    constructBlockIndex ++;
+                    constructBlockIndex++;
 
                     if (Thread.currentThread().isInterrupted()) {
                         throw new InterruptedException();
                     }
                 }
+        }
+        if(maxX < minX || maxY < minY || maxZ < minZ){
+            minAABB = null;
+        }else{
+            minAABB = new AxisAlignedBB(minX,minY,minZ,maxX + 1,maxY + 1,maxZ + 1);
+        }
     }
 
     @Deprecated
     public void diffuseLight() throws InterruptedException {
         localWorld.updateLightMap();
+    }
+
+    public void useFixSkyLight(boolean fixedLight){
+        localWorld.setUseFixSkyLight(fixedLight);
+    }
+
+    public AxisAlignedBB getMinAABB() {
+        return minAABB;
     }
 
     //first build
@@ -389,6 +381,16 @@ public abstract class AbstractPrefab implements ITickable {
         name = nbt.getString(NBT_PREFAB_NAME);
 
         ready = nbt.getBoolean(NBT_CONSTRUCT_READY);
+
+        if(nbt.hasKey(NBT_MIN_AABB_MIN_X)){
+            double minX = nbt.getDouble(NBT_MIN_AABB_MIN_X);
+            double minY = nbt.getDouble(NBT_MIN_AABB_MIN_Y);
+            double minZ = nbt.getDouble(NBT_MIN_AABB_MIN_Z);
+            double maxX = nbt.getDouble(NBT_MIN_AABB_MAX_X);
+            double maxY = nbt.getDouble(NBT_MIN_AABB_MAX_Y);
+            double maxZ = nbt.getDouble(NBT_MIN_AABB_MAX_Z);
+            minAABB = new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
+        }
 
         init(world, base, size);
 
@@ -420,6 +422,16 @@ public abstract class AbstractPrefab implements ITickable {
 
         ready = nbt.getBoolean(NBT_CONSTRUCT_READY);
 
+        if(nbt.hasKey(NBT_MIN_AABB_MIN_X)){
+            double minX = nbt.getDouble(NBT_MIN_AABB_MIN_X);
+            double minY = nbt.getDouble(NBT_MIN_AABB_MIN_Y);
+            double minZ = nbt.getDouble(NBT_MIN_AABB_MIN_Z);
+            double maxX = nbt.getDouble(NBT_MIN_AABB_MAX_X);
+            double maxY = nbt.getDouble(NBT_MIN_AABB_MAX_Y);
+            double maxZ = nbt.getDouble(NBT_MIN_AABB_MAX_Z);
+            minAABB = new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
+        }
+
         decompressLocalBlocks(nbt);
     }
 
@@ -441,13 +453,22 @@ public abstract class AbstractPrefab implements ITickable {
         nbt.setBoolean(NBT_CONSTRUCT_READY, ready);
         nbt.setString(NBT_PREFAB_NAME,name);
 
+        if(minAABB != null) {
+            nbt.setDouble(NBT_MIN_AABB_MIN_X, minAABB.minX);
+            nbt.setDouble(NBT_MIN_AABB_MIN_Y, minAABB.minY);
+            nbt.setDouble(NBT_MIN_AABB_MIN_Z, minAABB.minZ);
+            nbt.setDouble(NBT_MIN_AABB_MAX_X, minAABB.maxX);
+            nbt.setDouble(NBT_MIN_AABB_MAX_Y, minAABB.maxY);
+            nbt.setDouble(NBT_MIN_AABB_MAX_Z, minAABB.maxZ);
+        }
+
         return nbt;
     }
 
     public void decompressLocalBlocks(@Nonnull NBTTagCompound nbt) {
 
         //blockid  x x x x\x x x x\x x x x\x x x x  ;
-        //          meta        block    id
+        //          meta        blocks    id
         final int decompressSize = nbt.getInteger(NBT_DECOMPRESS_SIZE);
         if (decompressSize <= 0) return;
 

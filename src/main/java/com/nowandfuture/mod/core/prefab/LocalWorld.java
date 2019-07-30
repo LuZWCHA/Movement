@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.Matrix4f;
@@ -31,6 +31,7 @@ public class LocalWorld implements IBlockAccess {
     private BlockPos parentWorldPos;
 
     private Matrix4f modelMatrix;
+    private boolean useFixSkyLight = true;
 
     public BlockPos getParentWorldPos() {
         return parentWorldPos;
@@ -42,7 +43,7 @@ public class LocalWorld implements IBlockAccess {
     }
 
     public Vector3f getTransformedPos(Vector3f pos) {
-        return OBBounding.transform(pos,modelMatrix);
+        return OBBox.transform(pos,modelMatrix);
     }
 
     public void setParentWorldPos(BlockPos parentWorldPos) {
@@ -265,10 +266,13 @@ public class LocalWorld implements IBlockAccess {
         return i << 20 | j << 4;
     }
 
+    public void setUseFixSkyLight(boolean useFixSkyLight) {
+        this.useFixSkyLight = useFixSkyLight;
+    }
 
     @Override
     public int getCombinedLight(BlockPos pos, int lightValue) {
-        int i = this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
+        int i = useFixSkyLight ? 15 : this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
         int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos);
         int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,pos.add(parentWorldPos));
 

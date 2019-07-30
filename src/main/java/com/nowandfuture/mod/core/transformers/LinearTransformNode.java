@@ -20,22 +20,19 @@ public class LinearTransformNode extends AbstractTransformNode<LinearTransformNo
         setTypeId(1);
     }
 
-
     @Override
     protected void transform(AbstractPrefab recipe, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
+        transformMatrix(recipe, p, preKey, key);
+    }
 
-        GlStateManager.pushMatrix();
-
+    @Override
+    public void transformMatrix(AbstractPrefab recipe, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
         temp = MathHelper.Lerp(p,preKey.curPos, key.curPos);
-
-        GlStateManager.translate(temp.x, temp.y, temp.z);
-
         recipe.getModelMatrix().translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
     }
 
     @Override
     protected void transformPost(AbstractPrefab recipe, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
-        GlStateManager.popMatrix();
     }
 
     @Override

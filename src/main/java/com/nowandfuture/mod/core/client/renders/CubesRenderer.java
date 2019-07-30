@@ -51,7 +51,7 @@ public class CubesRenderer {
 
     private int frameCounter = 0;
     private double x,y,z;
-    private final WorldLightChangeListener lightChangeListener;
+    private WorldLightChangeListener lightChangeListener;
     private boolean isShaderOn = OptifineHelper.isActive() && OptifineHelper.isShaders();
 
     public CubesRenderer(AbstractPrefab prefab){
@@ -61,7 +61,8 @@ public class CubesRenderer {
         cubesToRender = new LinkedList<>();
         queueChunkUploads = Queues.newPriorityQueue();
         vertexBufferUploader = new VertexBufferUploader();
-        lightChangeListener = new WorldLightChangeListener(this);
+        //enable it will case some problem
+//        lightChangeListener = new WorldLightChangeListener(this);
         eachFaceCubes = new HashMap<>();
         for (EnumFacing facing :
                 EnumFacing.values()) {
@@ -82,7 +83,8 @@ public class CubesRenderer {
 
         eachFaceCubes = CubesBuilder.createVisibleCubesForEachFace(cubes,size);
 
-        Minecraft.getMinecraft().world.addEventListener(lightChangeListener);
+        if(lightChangeListener != null)
+            Minecraft.getMinecraft().world.addEventListener(lightChangeListener);
 
         built = true;
     }
@@ -241,7 +243,8 @@ public class CubesRenderer {
     }
 
     public void invalid(){
-        Minecraft.getMinecraft().world.removeEventListener(lightChangeListener);
+        if(lightChangeListener != null)
+            Minecraft.getMinecraft().world.removeEventListener(lightChangeListener);
 
         cubes.forEach(new BiConsumer<BlockPos, RenderCube>() {
             @Override

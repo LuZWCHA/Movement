@@ -46,6 +46,10 @@ public class RenderHandler {
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
     }
 
+    public static Deque<IRender> getRenderModules() {
+        return renderModules;
+    }
+
     public static void addRenderer(IRender renderer){
         renderModules.addFirst(renderer);
     }

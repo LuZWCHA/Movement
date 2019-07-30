@@ -1,15 +1,12 @@
-package com.nowandfuture.mod.core.common.block;
+package com.nowandfuture.mod.core.common.blocks;
 
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.common.MovementCreativeTab;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
 import com.nowandfuture.mod.core.common.gui.GuiConstructor;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.tileentity.TileEntity;

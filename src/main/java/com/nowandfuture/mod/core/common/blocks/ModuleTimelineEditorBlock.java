@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.common.block;
+package com.nowandfuture.mod.core.common.blocks;
 
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;

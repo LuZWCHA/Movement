@@ -157,7 +157,6 @@ public abstract class MovementMessage implements IMessage {
 
                                     NBTTagCompound nbtTagCompound = message.nbt;
                                     if(nbtTagCompound != null){
-//                                        Movement.logger.info("send line");
                                         ((TileEntityModule) tileEntity).getLine().deserializeNBT(nbtTagCompound);
                                         NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityModule) tileEntity).getTimelineModifyPacket());
                                     }
@@ -179,6 +178,9 @@ public abstract class MovementMessage implements IMessage {
 
         public static final short GUI_RESTART_FLAG = 0x0000;
         public static final short GUI_EXPORT_TIMELINE_FLAG = 0x0001;
+        public static final short GUI_START_FLAG = 0x0002;
+        public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x0003;
+        public static final short GUI_ENABLE_COLLISION_FLAG = 0x0004;
 
         private short flag;
 
@@ -219,11 +221,10 @@ public abstract class MovementMessage implements IMessage {
 
                                     if(!((TileEntityModule) tileEntity).getLine().isEnable()) {
                                         ((TileEntityModule) tileEntity).getLine().restart();
-                                        ((TileEntityModule) tileEntity).enable();
                                     }else{
                                         ((TileEntityModule) tileEntity).getLine().stop();
-                                        ((TileEntityModule) tileEntity).enable();
                                     }
+                                    ((TileEntityModule) tileEntity).enable();
 
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,
                                             ((TileEntityModule) tileEntity).getTimelineUpdatePacket(
@@ -246,6 +247,49 @@ public abstract class MovementMessage implements IMessage {
                                     }
                                 }
                                 break;
+                            case GUI_START_FLAG:
+                                if(tileEntity instanceof TileEntityModule){
+
+                                    if(!((TileEntityModule) tileEntity).getLine().isEnable()) {
+                                        ((TileEntityModule) tileEntity).getLine().start();
+                                    }else{
+                                        ((TileEntityModule) tileEntity).getLine().stop();
+                                    }
+                                    ((TileEntityModule) tileEntity).enable();
+
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                            ((TileEntityModule) tileEntity).getTimelineUpdatePacket(
+                                                    ((TileEntityModule) tileEntity).getLine().getTick(),
+                                                    ((TileEntityModule) tileEntity).getLine().isEnable()
+                                            )
+                                    );
+                                }
+                                break;
+                            case GUI_SHOW_OR_HIDE_BLOCK_FLAG:
+                                if(tileEntity instanceof TileEntityShowModule){
+
+                                    if(((TileEntityShowModule) tileEntity).isShowBlock()) {
+                                        ((TileEntityShowModule) tileEntity).setShowBlock(false);
+                                    }else{
+                                        ((TileEntityShowModule) tileEntity).setShowBlock(true);
+                                    }
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                            ((TileEntityShowModule) tileEntity).getShowBlockPacket()
+                                    );
+                                }
+                                break;
+                            case GUI_ENABLE_COLLISION_FLAG:
+                                if(tileEntity instanceof TileEntityShowModule){
+
+                                    if(((TileEntityShowModule) tileEntity).isEnableCollision()) {
+                                        ((TileEntityShowModule) tileEntity).setEnableCollision(false);
+                                    }else{
+                                        ((TileEntityShowModule) tileEntity).setEnableCollision(true);
+                                    }
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                            ((TileEntityShowModule) tileEntity).getCollisionEnablePacket()
+                                    );
+                                }
                         }
                     }
                 }

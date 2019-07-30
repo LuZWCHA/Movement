@@ -1,7 +1,9 @@
 package com.nowandfuture.mod;
 
+import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.GuiHandler;
 import com.nowandfuture.mod.setup.IProxy;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -33,6 +35,8 @@ public class Movement {
         {
             logger = event.getModLog();
             proxy.preInit(event);
+            MinecraftForge.EVENT_BUS.register(new CollisionHandler());
+
         }
 
         @Mod.EventHandler

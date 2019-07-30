@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-// TODO: 2019/7/3 optimize x,y,z to reduce size of packet
 public class DivBytesMessage implements IMessage,IMessageHandler<DivBytesMessage,IMessage> {
 
     public interface DivBytesGetter{
@@ -21,7 +20,6 @@ public class DivBytesMessage implements IMessage,IMessageHandler<DivBytesMessage
         void setter(int index,int divNum,byte[] bytes);
     }
 
-    public static int SIZE;
     private int x,y,z;
     private byte[] byteArray;
     private int index;

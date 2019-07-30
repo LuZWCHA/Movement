@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui;
 
+import com.google.common.base.Predicate;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
@@ -19,17 +20,21 @@ import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.MovementMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
 import javax.vecmath.AxisAngle4f;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +75,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private MyLabel keyTitle;
     private MyButton applyBtn;
     private MyButton exportBtn;
+    private MyButton importBtn;
 
     private MyLabel totalTimeLabel;
     private MyTextField totalTimeBox;
@@ -101,7 +107,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     @Override
     public void updateScreen() {
         super.updateScreen();
-//        timeLine.update();
     }
 
     @Override
@@ -132,69 +137,74 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         list.add(R.name(R.id.text_module_cmb_mode_stop_id));
         comboBox.setContents(list);
         comboBox.setX(46);
-        comboBox.setY(104);
+        comboBox.setY(105);
         comboBox.setWidth(40);
         comboBox.setLabelHeight(12);
         comboBox.setListHeight(30);
         comboBox.setIndex(tileMovementModule.getLine().getMode().ordinal());
-        comboBox.setOnItemClicked(new Consumer<Integer>() {
-            @Override
-            public void accept(Integer integer) {
-
-            }
-        });
 
         addView(comboBox);
 
         reStartBtn = createMyButton(12,100,26,20,R.name(R.id.text_module_btn_start_id));
-        applyBtn = createMyButton(12,130,26,20,R.name(R.id.text_module_btn_apply_id));
+        applyBtn = createMyButton(72,130,26,20,R.name(R.id.text_module_btn_apply_id));
+        importBtn = createMyButton(12,130,26,20,R.name(R.id.text_module_btn_import_id));
         exportBtn = createMyButton(42,130,26,20,R.name(R.id.text_module_btn_export_id));
         keyTitle = createMyLabel(160,4,40,12,-1)
-                .addLine("keyframe").enableBackDraw(false);
+                .addLine("").enableBackDraw(false);
 
         totalTimeLabel = createMyLabel(12,80,30,18,-1)
                 .addLine(R.name(R.id.text_module_lab_total_time_id)).enableBackDraw(false);
 
-        totalTimeBox = createMyTextField(44,80,26,18,"");
+        totalTimeBox = createMyTextField(50,80,26,18,"");
+        totalTimeBox.setValidator(new Predicate<String>() {
+            @Override
+            public boolean apply(@Nullable String input) {
+                if("".equals(input)) {
+                    return true;
+                }
+                try {
+                    long a = Long.parseLong(input);
+                    if(a <= 0) return false;
+                }catch (Exception e){
+                    return false;
+                }
+                return true;
+            }
+        });
+
         totalTimeBox.setText(String.valueOf(timeLine.getTotalTick()));
 
         bind(reStartBtn, new ActionClick() {
             @Override
             public void clicked(MyGui gui, int button) {
-                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_RESTART_FLAG);
-                voidMessage.setPos(tileMovementModule.getPos());
-                NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+                startOrStop();
             }
         });
+
+        if(tileMovementModule.getLine().isEnable()){
+            reStartBtn.displayString = R.name(R.id.text_module_btn_stop_id);
+        }else{
+            reStartBtn.displayString = R.name(R.id.text_module_btn_start_id);
+        }
 
         bind(applyBtn, new ActionClick() {
             @Override
             public void clicked(MyGui gui, int button) {
-                TimeLine.Mode mode = TimeLine.Mode.values()[comboBox.getSelectIndex()];
-                long totalTime = Long.parseLong(totalTimeBox.getText());
-                if(totalTime <= 0) {
-                    onError();
-                    return;
-                }
-
-                timeLine.setMode(mode);
-                timeLine.setEnable(true);
-                timeLine.setTotalTick(totalTime);
-                timeLine.setStep(1);
-
-                NBTTagCompound compound = timeLine.serializeNBT(new NBTTagCompound());
-                MovementMessage.NBTMessage nbtMessage = new MovementMessage.NBTMessage(MovementMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
-                nbtMessage.setPos(tileMovementModule.getPos());
-                NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
+                applyTimeline();
             }
         });
 
         bind(exportBtn, new ActionClick() {
             @Override
             public void clicked(MyGui gui, int button) {
-                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
-                voidMessage.setPos(tileMovementModule.getPos());
-                NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+                exportTimeline();
+            }
+        });
+
+        bind(importBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                importTimeline();
             }
         });
 
@@ -203,11 +213,11 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         numLabel1 = createMyLabel(160,16,20,12,color);
         numLabel2 = createMyLabel(230,16,20,12,color);
 
-        numLabel3 = createMyLabel(100,37,20,12,color);
-        numLabel4 = createMyLabel(160,37,20,12,color);
-        numLabel5 = createMyLabel(230,37,20,12,color);
+        numLabel3 = createMyLabel(100,35,20,12,color);
+        numLabel4 = createMyLabel(160,35,20,12,color);
+        numLabel5 = createMyLabel(230,35,20,12,color);
 
-        numLabel6 = createMyLabel(100,58,20,12,color);
+        numLabel6 = createMyLabel(100,54,20,12,color);
 
         numLabel0.addLine("").enableBackDraw(false);
         numLabel1.addLine("").enableBackDraw(false);
@@ -221,11 +231,11 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         numBox1 = createMyTextField(180,16,20,12,"");
         numBox2 = createMyTextField(240,16,20,12,"");
 
-        numBox3 = createMyTextField(120,37,20,12,"");
-        numBox4 = createMyTextField(180,37,20,12,"");
-        numBox5 = createMyTextField(240,37,20,12,"");
+        numBox3 = createMyTextField(120,35,20,12,"");
+        numBox4 = createMyTextField(180,35,20,12,"");
+        numBox5 = createMyTextField(240,35,20,12,"");
 
-        numBox6 = createMyTextField(120,58,20,12,"");
+        numBox6 = createMyTextField(120,54,20,12,"");
 
         Function<Character,Boolean> numFilter = new Function<Character, Boolean>() {
             @Override
@@ -248,6 +258,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 reStartBtn,
                 applyBtn,
                 exportBtn,
+                importBtn,
                 keyTitle,
                 totalTimeLabel,
                 totalTimeBox,
@@ -267,6 +278,52 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 numLabel6
         );
         clearAllEnum();
+        slotChange();
+    }
+
+    private void importTimeline(){
+        ItemStack stack = tileMovementModule.getStackInSlot(1);
+        NBTTagCompound compound = stack.getTagCompound();
+        if(compound!= null){
+            timeLine.deserializeNBT(compound);
+        }
+    }
+
+    private void exportTimeline(){
+        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
+        voidMessage.setPos(tileMovementModule.getPos());
+        NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+    }
+
+    private void applyTimeline(){
+        TimeLine.Mode mode = TimeLine.Mode.values()[comboBox.getSelectIndex()];
+        long totalTime;
+        if(!totalTimeBox.getText().isEmpty())
+            totalTime = Long.parseLong(totalTimeBox.getText());
+        else
+            totalTime = timeLine.getTotalTick();
+
+        timeLine.setMode(mode);
+        timeLine.setTotalTick(totalTime);
+        timeLine.setStep(1);
+
+        NBTTagCompound compound = timeLine.serializeNBT(new NBTTagCompound());
+        MovementMessage.NBTMessage nbtMessage = new MovementMessage.NBTMessage(MovementMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
+        nbtMessage.setPos(tileMovementModule.getPos());
+        NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
+    }
+
+    private void startOrStop(){
+        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_RESTART_FLAG);
+        voidMessage.setPos(tileMovementModule.getPos());
+        if(tileMovementModule.getLine().isEnable()){
+            tileMovementModule.getLine().setEnable(false);
+            reStartBtn.displayString = R.name(R.id.text_module_btn_start_id);
+        }else{
+            tileMovementModule.getLine().setEnable(true);
+            reStartBtn.displayString = R.name(R.id.text_module_btn_stop_id);
+        }
+        NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
     }
 
     private void onError(){
@@ -297,7 +354,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numBox1.setVisible(true);
                     numBox2.setVisible(true);
 
-                    keyTitle.setLine(0,"平移（时间）" + String.valueOf(keyFrame.getBeginTick()));
+                    keyTitle.setLine(0,R.name(R.id.text_module_lab_key_title1_id) + String.valueOf(keyFrame.getBeginTick()));
                     break;
                 case 1://rotation
                     RotationTransformNode.RotationKeyFrame rotationKeyFrame = (RotationTransformNode.RotationKeyFrame) keyFrame;
@@ -338,7 +395,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numBox6.setText(String.valueOf(rotationKeyFrame.axisAngle4f.angle));
                     numBox6.setVisible(true);
 
-                    keyTitle.setLine(0, "旋转（时间）" + String.valueOf(keyFrame.getBeginTick()));
+                    keyTitle.setLine(0, R.name(R.id.text_module_lab_key_title2_id) + String.valueOf(keyFrame.getBeginTick()));
 
                     break;
                 case 2://scale
@@ -349,7 +406,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numLabel0.visible = true;
                     numBox0.setVisible(true);
 
-                    keyTitle.setLine(0, "缩放（时间）" + String.valueOf(keyFrame.getBeginTick()));
+                    keyTitle.setLine(0, R.name(R.id.text_module_lab_key_title3_id) + String.valueOf(keyFrame.getBeginTick()));
 
                     break;
             }
@@ -420,16 +477,20 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     protected void childLoseFocus(MyGui gui) {
         if(gui instanceof MyTextField){
             //MyTextField will be focused when click,but not auto lose focus by this system;
-            ((MyTextField) gui).setFocused(false);
-            if(gui != totalTimeBox)
+
+            if(gui != totalTimeBox) {
+                ((MyTextField) gui).setFocused(false);
+                if (((MyTextField) gui).getText() == null || ((MyTextField) gui).getText().isEmpty())
+                    ((MyTextField) gui).setText("0");
                 submitValue();
-            else {
+            } else {
+                long time = timeLine.getTotalTick();
                 try {
-                    long time = Long.parseLong(totalTimeBox.getText());
-                    timeLine.setTotalTick(time);
+                    time = Long.parseLong(totalTimeBox.getText());
                 }catch (NumberFormatException e){
                     onError();
                 }
+                timeLine.setTotalTick(time);
             }
         }
     }
@@ -485,14 +546,23 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 }
             }
         }
-
-
     }
 
     private void slotChange(){
+        if(tileMovementModule.getStackInSlot(0).isEmpty()){
 
+        }else{
+
+        }
+
+        if(tileMovementModule.getStackInSlot(1).isEmpty()){
+            exportBtn.enabled = true;
+            importBtn.enabled = false;
+        }else {
+            exportBtn.enabled = false;
+            importBtn.enabled = true;
+        }
     }
-
 
     @Override
     public long getId() {

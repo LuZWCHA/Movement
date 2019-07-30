@@ -1,6 +1,6 @@
 package com.nowandfuture.mod.utils;
 
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -225,7 +225,7 @@ public class DrawHelper {
         GlStateManager.enableLighting();
     }
 
-    public static void drawFace(OBBounding.Facing facing){
+    public static void drawFace(OBBox.Facing facing){
         preDraw();
         GlStateManager.color(1.0F, 0.0F, 0.0F, 1.0F);
 
@@ -306,7 +306,7 @@ public class DrawHelper {
         postDraw();
     }
 
-    public static void drawOutlinedBoundingBox(OBBounding bounding)
+    public static void drawOutlinedBoundingBox(OBBox bounding)
     {
         preDraw();
         BufferBuilder var2 = Tessellator.getInstance().getBuffer();

@@ -4,7 +4,7 @@ import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.google.common.base.Objects;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
-import com.nowandfuture.mod.core.selection.OBBounding;
+import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
@@ -45,7 +45,7 @@ public class RenderCube {
 
     private final ReentrantLock lockCompileTask = new ReentrantLock();
     private BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
-    private OBBounding bounding;
+    private OBBox bounding;
 
     private volatile boolean compiling = false;
     private int renderFrame;
@@ -99,16 +99,16 @@ public class RenderCube {
     }
 
     //local world pos
-    public OBBounding getBounding() {
+    public OBBox getBounding() {
         if(bounding == null){
             BlockPos worldPos = new BlockPos(pos.getX() * CUBE_SIZE,pos.getY() * CUBE_SIZE,pos.getZ() * CUBE_SIZE);
-            bounding = new OBBounding(new AxisAlignedBB(worldPos,worldPos.add(CUBE_SIZE,CUBE_SIZE,CUBE_SIZE)));
+            bounding = new OBBox(new AxisAlignedBB(worldPos,worldPos.add(CUBE_SIZE,CUBE_SIZE,CUBE_SIZE)));
         }
         return bounding;
     }
 
     //local world pos
-    public OBBounding getTransformedOBBounding(){
+    public OBBox getTransformedOBBounding(){
         return getBounding().transform(world.getModelMatrix());
     }
 
@@ -179,12 +179,12 @@ public class RenderCube {
                                     RenderCube.this.preRenderBlocks(bufferBuilder);
                                 }
 
-//                                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
-//                                    SVertexBuilder.pushEntity(blockState,worldPos,world,bufferBuilder);
+                                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
+                                    SVertexBuilder.pushEntity(blockState,worldPos,world,bufferBuilder);
                                 success[blockRenderLayer.ordinal()] |=
                                         dispatcher.renderBlock(blockState,mutableBlockPos,world,bufferBuilder);
-//                                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
-//                                    SVertexBuilder.popEntity(bufferBuilder);
+                                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
+                                    SVertexBuilder.popEntity(bufferBuilder);
                             }
 
                         }
@@ -200,10 +200,10 @@ public class RenderCube {
             }
 
             if (cubeCompileTask.isLayerStarted(blockrenderlayer)) {
-//                if(OptifineHelper.isActive() && OptifineHelper.isShaders()) {
-//                    BufferBuilder bufferBuilder = cubeCompileTask.getCacheBuilder().getWorldRendererByLayer(blockrenderlayer);
-//                    SVertexBuilder.calcNormalChunkLayer(bufferBuilder);
-//                }
+                if(OptifineHelper.isActive() && OptifineHelper.isShaders()) {
+                    BufferBuilder bufferBuilder = cubeCompileTask.getCacheBuilder().getWorldRendererByLayer(blockrenderlayer);
+                    SVertexBuilder.calcNormalChunkLayer(bufferBuilder);
+                }
                 RenderCube.this.postRenderBlocks(blockrenderlayer,x,y,z,cubeCompileTask.getCacheBuilder().getWorldRendererByLayer(blockrenderlayer));
             }
         }

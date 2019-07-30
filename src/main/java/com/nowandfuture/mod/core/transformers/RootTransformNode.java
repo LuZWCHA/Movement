@@ -29,6 +29,11 @@ public final class RootTransformNode extends AbstractTransformNode {
     }
 
     @Override
+    public void transformMatrix(AbstractPrefab recipe, float p, KeyFrame preKey, KeyFrame key) {
+
+    }
+
+    @Override
     protected void transformPost(AbstractPrefab recipe, float p, KeyFrame preKey, KeyFrame key) {
 
     }

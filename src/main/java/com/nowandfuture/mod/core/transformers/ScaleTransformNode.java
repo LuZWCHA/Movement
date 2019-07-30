@@ -16,17 +16,17 @@ public class ScaleTransformNode extends AbstractTransformNode<ScaleTransformNode
 
     @Override
     protected void transform(AbstractPrefab recipe, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
-        GlStateManager.pushMatrix();
+        transformMatrix(recipe, p, preKey, key);
+    }
 
+    @Override
+    public void transformMatrix(AbstractPrefab recipe, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
         final float s = MathHelper.Lerp(p,preKey.scale,key.scale);
-        GlStateManager.scale(s,s,s);
-
         recipe.getModelMatrix().scale(new Vector3f(s,s,s));
     }
 
     @Override
     protected void transformPost(AbstractPrefab recipe, float p, ScaleKeyFrame pre, ScaleKeyFrame key) {
-        GlStateManager.popMatrix();
     }
 
     @Override

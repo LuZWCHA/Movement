@@ -128,12 +128,16 @@ public class TimeLine {
             case ONE_TIME:
                 if(tick + step >= totalTick) {
                     tick = totalTick;
-                    if(!test)
+                    if(!test) {
                         this.enable = false;
+                        this.step = -step;
+                    }
                 }else if(tick + step <= 0){
                     tick = 0;
-                    if(!test)
+                    if(!test) {
                         this.enable = false;
+                        this.step = -step;
+                    }
                 }else{
                     tick += step;
                 }
@@ -145,8 +149,9 @@ public class TimeLine {
                         this.step = - step;
                 }else if(tick + step <= 0){
                     tick = 0;
-                    if(!test)
+                    if(!test) {
                         this.enable = false;
+                    }
                 }else{
                     tick += step;
                 }
@@ -161,6 +166,7 @@ public class TimeLine {
     }
 
     public TimeLine setTotalTick(long totalTick) {
+        if(totalTick <= 0) totalTick = 100;
         this.totalTick = totalTick;
         return this;
     }
@@ -170,6 +176,8 @@ public class TimeLine {
     }
 
     public TimeLine setTick(long tick) {
+        if(tick < 0) tick = 0;
+        if(tick > totalTick) tick = totalTick;
         this.tick = tick;
         return this;
     }
@@ -197,6 +205,9 @@ public class TimeLine {
     }
 
     public TimeLine setMode(Mode mode) {
+        if(Mode.ONE_CYCLE == mode){
+            resetTick();
+        }
         this.mode = mode;
         return this;
     }
@@ -216,6 +227,8 @@ public class TimeLine {
     }
 
     public void restart(){
+        //reset ONE_TIME step to origin step
+        if(Mode.ONE_TIME == this.mode) this.step = Math.abs(this.step);
         resetTick();
         start();
     }

@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.slots;
 
+import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -12,7 +13,7 @@ public class TimelineOutputSlot extends Slot {
 
     @Override
     public boolean isItemValid(ItemStack stack) {
-        return false;
+        return stack.getItem() instanceof TimelineItem;
     }
 
     @Override
