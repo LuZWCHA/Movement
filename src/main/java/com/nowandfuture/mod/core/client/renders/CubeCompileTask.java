@@ -73,7 +73,6 @@ public class CubeCompileTask {
 
         try
         {
-
             this.finished = true;
             this.status = Status.FINISHED;
 

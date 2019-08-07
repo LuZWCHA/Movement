@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.transformers;
 
+import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 
@@ -24,17 +25,17 @@ public final class RootTransformNode extends AbstractTransformNode {
     }
 
     @Override
-    protected void transform(AbstractPrefab recipe, float p, KeyFrame preKey, KeyFrame key) {
+    protected void transform(CubesRenderer renderer, float p, KeyFrame preKey, KeyFrame key) {
 
     }
 
     @Override
-    public void transformMatrix(AbstractPrefab recipe, float p, KeyFrame preKey, KeyFrame key) {
+    public void transformMatrix(CubesRenderer renderer, float p, KeyFrame preKey, KeyFrame key) {
 
     }
 
     @Override
-    protected void transformPost(AbstractPrefab recipe, float p, KeyFrame preKey, KeyFrame key) {
+    protected void transformPost(CubesRenderer renderer, float p, KeyFrame preKey, KeyFrame key) {
 
     }
 

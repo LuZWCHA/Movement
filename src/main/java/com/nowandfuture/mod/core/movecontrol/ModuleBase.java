@@ -1,18 +1,14 @@
 package com.nowandfuture.mod.core.movecontrol;
 
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.api.IModule;
+import com.nowandfuture.mod.core.client.renders.CubesRenderer;
+import com.nowandfuture.mod.core.prefab.AbstractPrefab;
+import com.nowandfuture.mod.core.prefab.EmptyPrefab;
 import com.nowandfuture.mod.core.transformers.*;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.EmptyPrefab;
-import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import joptsimple.internal.Strings;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -21,8 +17,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
-import javax.vecmath.AxisAngle4f;
-import java.nio.FloatBuffer;
 
 public class ModuleBase implements IModule,ITickable {
 
@@ -42,7 +36,6 @@ public class ModuleBase implements IModule,ITickable {
     private final Object lock = new Object();
     private AbstractPrefab prefab;
     private AbstractTransformNode transformerHead;
-    private FloatBuffer floatBuffer = GLAllocation.createDirectFloatBuffer(16);
 
     private boolean enable;
 
@@ -52,10 +45,11 @@ public class ModuleBase implements IModule,ITickable {
         super();
         prefab = new EmptyPrefab();
         line = new KeyFrameLine();
-        createDefaultTransformer();
+
+        //all animation only create on client
     }
 
-    private void createDefaultTransformer(){
+    public void createDefaultTransformer(){
         LinearTransformNode node = new LinearTransformNode();
         ScaleTransformNode node1 = new ScaleTransformNode();
         RotationTransformNode node2 = new RotationTransformNode();
@@ -73,8 +67,8 @@ public class ModuleBase implements IModule,ITickable {
 
     public void setPrefab(AbstractPrefab prefab) {
         synchronized (lock) {
-            if(world.isRemote && this.prefab != null){
-                this.prefab.invalidRenderList();
+            if(this.prefab != null && prefab != this.prefab && this.prefab.isLocalWorldInit()){
+                this.prefab.invalid();
             }
             this.prefab = prefab;
         }
@@ -108,9 +102,6 @@ public class ModuleBase implements IModule,ITickable {
         return enable && prefab.isReady();
     }
 
-    public boolean canRender(double renderPosX,double renderPosY,double renderPosZ){
-        return true;
-    }
 
     @Override
     public BlockPos getModulePos() {
@@ -129,78 +120,7 @@ public class ModuleBase implements IModule,ITickable {
     }
 
     @SideOnly(Side.CLIENT)
-    public final void prepare(float p){
-        if(prefab != null && prefab.isLocalWorldInit())
-            prefab.prepare(p);
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Deprecated
-    public final void buildTranslucent(float p){
-        if(prefab != null && prefab.isLocalWorldInit())
-            prefab.buildTranslucent(p);
-    }
-
-    public void renderTileEntities(float p){
-        if(prefab == null || !isEnable()) return;
-
-        synchronized (lock) {
-
-            GlStateManager.pushMatrix();
-
-//            prefab.renderPre(p);
-
-            prefab.getModelMatrix().setIdentity();
-
-            transformPre(p);
-            prefab.getModelMatrix().store(floatBuffer);
-            floatBuffer.rewind();
-            GlStateManager.multMatrix(floatBuffer);
-            prefab.renderTileEntity(p);
-            transformPost(p);
-
-//            prefab.renderPost(p);
-
-            GlStateManager.popMatrix();
-        }
-    }
-
-    //server
-    public void transform(float p){
-        prefab.getModelMatrix().setIdentity();
-        transformPre(p);
-        transformPost(p);
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public final void renderBlockLayer(int pass, double p, BlockRenderLayer blockRenderLayer) {
-
-        if(prefab == null || !isEnable()) return;
-
-        synchronized (lock) {
-
-            GlStateManager.pushMatrix();
-
-            prefab.renderPre(p);
-
-            prefab.getModelMatrix().setIdentity();
-
-            transformPre(p);
-            prefab.getModelMatrix().store(floatBuffer);
-            floatBuffer.rewind();
-            GlStateManager.multMatrix(floatBuffer);
-            prefab.renderBlockRenderLayer(blockRenderLayer);
-            transformPost(p);
-
-            prefab.renderPost(p);
-
-            GlStateManager.popMatrix();
-        }
-    }
-
-
-    public void transformPre(double p){
+    public void transformPre(double p, CubesRenderer renderer){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -211,12 +131,13 @@ public class ModuleBase implements IModule,ITickable {
 
                 if(section == null || section.isEmpty()) continue;
 
-                transformerHead.transformStart(prefab, (float) line.getSectionProgress(section, (float) p),
+                transformerHead.transformStart(renderer, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
             }
     }
 
-    public void transformPost(double p){
+    @SideOnly(Side.CLIENT)
+    public void transformPost(double p,CubesRenderer renderer){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -227,25 +148,13 @@ public class ModuleBase implements IModule,ITickable {
 
                 if(section == null || section.isEmpty()) continue;
 
-                transformerHead.transformEnd(prefab, (float) line.getSectionProgress(section, (float) p),
+                transformerHead.transformEnd(renderer, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
             }
-    }
-
-    @Deprecated
-    @Override
-    public void buildTranslucentBlocks(int pass, float p) {
-        buildTranslucent(p);
     }
 
     public void renderForGui(float p, float rotAngel){
 
-    }
-
-    //for build
-    @Override
-    public boolean isRenderValid() {
-        return isEnable();
     }
 
     public void setUseFixLight(boolean enable){
@@ -276,9 +185,10 @@ public class ModuleBase implements IModule,ITickable {
         this.world = worldIn;
     };
 
-    public void invalidate() {
-        if (prefab != null)
-            prefab.invalidRenderList();
+    public void invalid() {
+        if(prefab != null && getModuleWorld().isRemote){
+            prefab.invalid();
+        }
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -292,16 +202,16 @@ public class ModuleBase implements IModule,ITickable {
             else
                 prefab.readFromNBT(recNBT);
         }
-
-        if(compound.hasKey(NBT_TRANSFORMERS_TAG)) {
-            NBTTagCompound transNBT = compound.getCompoundTag(NBT_TRANSFORMERS_TAG);
-            if(transformerHead == null){
-                transformerHead = AbstractTransformNode.Builder.newBuilder().
-                         buildFromNBTTag(transNBT);
-            }else {
-                transformerHead.readFromNBT(transNBT);
-            }
-        }
+//
+//        if(compound.hasKey(NBT_TRANSFORMERS_TAG) && world.isRemote) {
+//            NBTTagCompound transNBT = compound.getCompoundTag(NBT_TRANSFORMERS_TAG);
+//            if(transformerHead == null){
+//                transformerHead = AbstractTransformNode.Builder.newBuilder().
+//                         buildFromNBTTag(transNBT);
+//            }else {
+//                transformerHead.readFromNBT(transNBT);
+//            }
+//        }
 
         if(compound.hasKey(NBT_KEYFRAMES_LINE_TAG)){
             NBTTagCompound keysNBT = compound.getCompoundTag(NBT_KEYFRAMES_LINE_TAG);
@@ -321,9 +231,9 @@ public class ModuleBase implements IModule,ITickable {
             compound.setTag(NBT_PREFAB_TAG,
                 prefab.writeToNBT(new NBTTagCompound()));
 
-        if(transformerHead != null)
-            compound.setTag(NBT_TRANSFORMERS_TAG,
-                transformerHead.writeToNBT(new NBTTagCompound()));
+//        if(world.isRemote && transformerHead != null)
+//            compound.setTag(NBT_TRANSFORMERS_TAG,
+//                transformerHead.writeToNBT(new NBTTagCompound()));
 
         compound.setTag(NBT_KEYFRAMES_LINE_TAG,
                 line.serializeNBT(new NBTTagCompound()));

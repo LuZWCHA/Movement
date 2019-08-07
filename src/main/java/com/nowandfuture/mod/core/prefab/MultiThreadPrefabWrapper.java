@@ -4,7 +4,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
 
@@ -37,10 +36,6 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         prefab.setBaseLocation(baseLocation);
     }
 
-    @Override
-    public Vector3f getTransformedBasePos() {
-        return prefab.getTransformedBasePos();
-    }
 
     @Override
     public String getName() {
@@ -52,19 +47,12 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
         return prefab.getPrefabMaxNum();
     }
 
-    @Override
-    public Vector3f getTransformedPos() {
-        return prefab.getTransformedPos();
-    }
 
     @Override
     public int getConstructBlockIndex() {
         return prefab.getConstructBlockIndex();
     }
 
-    public Vector3f getTransformedPos(Vector3f vector3f){
-        return prefab.getTransformedPos(vector3f);
-    }
 
     @Override
     public BlockPos getControlPoint() {
@@ -74,15 +62,6 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
     @Override
     public Vec3i getSize() {
         return prefab.getSize();
-    }
-
-    @Override
-    public void renderPre(double p) {
-        prefab.renderPre(p);
-    }
-
-    public void renderPost(float p){
-        prefab.renderPost(p);
     }
 
     public MultiThreadPrefabWrapper(){
@@ -115,8 +94,8 @@ public class MultiThreadPrefabWrapper extends AbstractPrefab {
     }
 
     @Override
-    public void clear() {
-        prefab.clear();
+    public void invalid() {
+        prefab.invalid();
     }
 
     @Override

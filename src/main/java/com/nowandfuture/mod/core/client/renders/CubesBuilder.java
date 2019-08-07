@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.chunk.VisGraph;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
@@ -32,7 +33,7 @@ public class CubesBuilder {
 
 
     //because of prefab's size is custom size,spilt it to cubes witch size is CUBE_SIZE * CUBE_SIZE * CUBE_SIZE;
-    public static Vec3i reMapPrefab(Map<BlockPos,RenderCube> cubeMap,AbstractPrefab prefab){
+    public static Vec3i reMapPrefab(Map<BlockPos,RenderCube> cubeMap,AbstractPrefab prefab,CubesRenderer renderer){
         if(cubeMap == null) cubeMap = Maps.newHashMap();
 
         boolean ready = prefab.isLocalWorldInit();
@@ -57,7 +58,7 @@ public class CubesBuilder {
                 for (int j = 0;j < remapYSize;j++){
 
                     for (int k = 0;k < remapZSize;k++){
-                        RenderCube cube = new RenderCube(prefab.getCubesRenderer(),prefab.getLocalWorld(),new BlockPos(i,j,k));
+                        RenderCube cube = new RenderCube(renderer,prefab.getLocalWorld(),new BlockPos(i,j,k));
                         cubeMap.put(cube.getPos(),cube);
                     }
                 }
@@ -145,24 +146,23 @@ public class CubesBuilder {
 
         Queue<CubesRenderer.RenderCubeInformation> queue = new LinkedList<>();
 
-        EnumFacing backFace = null;
-        float min = Float.MIN_VALUE;
-        for (EnumFacing testFace:
-             EnumFacing.values()) {
-
-            OBBox.Facing facing = OBBox.Facing.createFromAABBounding(testFace, startCube.getBounding());
-
-            if(facing != null) {
-                facing.mulMatrix(startCube.getWorld().getModelMatrix());
-                float f = facing.dotDirectionVec(lookVec);
-
-                if (f < min) {
-                    min = f;
-                    backFace = testFace;
-                }
-            }
-        }
-
+//        EnumFacing backFace = null;
+//        float min = Float.MIN_VALUE;
+//        for (EnumFacing testFace:
+//             EnumFacing.values()) {
+//
+//            OBBox.Facing facing = OBBox.Facing.createFromAABBounding(testFace, startCube.getBounding());
+//
+//            if(facing != null) {
+//                facing.mulMatrix(startCube.getCubesRenderer().getModelMatrix());
+//                float f = facing.dotDirectionVec(lookVec);
+//
+//                if (f < min) {
+//                    min = f;
+//                    backFace = testFace;
+//                }
+//            }
+//        }
 
         Set<RenderCube> visibleCubes = new HashSet<>(cubes.size());
 
@@ -237,18 +237,19 @@ public class CubesBuilder {
     }
 
     //do faces cull
-    public static Set<EnumFacing> getVisibleFaces(Vector3f visitorPos, AbstractPrefab prefab){
+    public static Set<EnumFacing> getVisibleFaces(Vector3f visitorPos, CubesRenderer renderer){
         final Set<EnumFacing> set = Sets.newHashSet();
-        final OBBox bounding = prefab.getOBB();
+        final OBBox bounding = new OBBox(new AxisAlignedBB(0,0,0,renderer.getSize().getX(),renderer.getSize().getY(),renderer.getSize().getZ()));
         Vector3f temp;
         OBBox.Facing face;
 
+        AbstractPrefab prefab = renderer.getPrefab();
         for (EnumFacing enumFacing :
                 EnumFacing.values()) {
 
             face = OBBox.Facing.createFromAABBounding(enumFacing,bounding);
             if(face != null){
-                face.mulMatrix(prefab.getModelMatrix());
+                face.mulMatrix(renderer.getModelMatrix());
                 temp = new Vector3f(face.getV0());
                 Vector3f lookVec = Vector3f.sub(
                         temp.translate(prefab.getBasePos().getX(),prefab.getBasePos().getY(),prefab.getBasePos().getZ()),
@@ -287,7 +288,7 @@ public class CubesBuilder {
         if(!cubesRenderer.isBuilt()) return null;
         AbstractPrefab prefab = cubesRenderer.getPrefab();
         if(!prefab.isLocalWorldInit()) return null;
-        Vector3f localPos = getLocalPos(prefab.getLocalWorld(),visitorPos);
+        Vector3f localPos = getLocalPos(visitorPos,cubesRenderer);
 
         if(localPos.getX() < 0 || localPos.getY() < 0 || localPos.getZ() < 0) return null;
 
@@ -302,14 +303,18 @@ public class CubesBuilder {
     }
 
     //from GL model-coordinate to prefab-coordinate
-    public static Vector3f getLocalPos(@Nonnull LocalWorld world,BlockPos visitorPos){
-        return getLocalPos(world, new Vector3f(visitorPos.getX(),visitorPos.getY(),visitorPos.getZ()));
+    public static Vector3f getLocalPos(BlockPos visitorPos,CubesRenderer renderer){
+        return getLocalPos(new Vector3f(visitorPos.getX(),visitorPos.getY(),visitorPos.getZ()),renderer);
     }
 
     //from GL model-coordinate to prefab-coordinate
-    public static Vector3f getLocalPos(@Nonnull LocalWorld world,Vector3f visitorPos){
+    public static Vector3f getLocalPos(Vector3f visitorPos,CubesRenderer renderer){
         Matrix4f invertMatrix = new Matrix4f();
-        Matrix4f.invert(world.getModelMatrix(),invertMatrix);
+        Matrix4f.invert(renderer.getModelMatrix(),invertMatrix);
         return OBBox.transform(visitorPos,invertMatrix);
+    }
+
+    public static Vector3f getTransformPos(Vector3f pos,CubesRenderer renderer){
+       return OBBox.transform(pos,renderer.getModelMatrix());
     }
 }

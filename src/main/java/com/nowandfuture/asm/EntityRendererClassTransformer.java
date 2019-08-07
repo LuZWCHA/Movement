@@ -2,10 +2,13 @@ package com.nowandfuture.asm;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraftforge.fml.common.FMLLog;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
+@SideOnly(Side.CLIENT)
 public class EntityRendererClassTransformer implements IClassTransformer {
 
     @Override

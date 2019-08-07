@@ -19,12 +19,18 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public enum NetworkHandler {
     INSTANCE;
-    private final SimpleNetworkWrapper channel = NetworkRegistry.INSTANCE.newSimpleChannel(Movement.MODID);
+    private SimpleNetworkWrapper channel;
 
     NetworkHandler(){
+
+    }
+
+    public void init(){
+        channel = NetworkRegistry.INSTANCE.newSimpleChannel(Movement.MODID);
         int baseId = 0;
         channel.registerMessage(MovementMessage.RenamePrefabMessage.class,MovementMessage.RenamePrefabMessage.class, baseId++,Side.SERVER);
         channel.registerMessage(DivBytesMessage.class,DivBytesMessage.class,baseId++,Side.SERVER);
@@ -34,7 +40,6 @@ public enum NetworkHandler {
         channel.registerMessage(MovementMessage.VoidMessage.class,MovementMessage.VoidMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(MovementMessage.NBTMessage.class,MovementMessage.NBTMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(MovementMessage.LongDataMessage.class,MovementMessage.LongDataMessage.class,baseId++,Side.SERVER);
-
     }
 
     @SubscribeEvent
@@ -42,6 +47,7 @@ public enum NetworkHandler {
 
     }
 
+    @SideOnly(Side.CLIENT)
     public void sendClientCommandMessage(String message){
         Minecraft.getMinecraft().player.sendMessage(new TextComponentString(message));
     }

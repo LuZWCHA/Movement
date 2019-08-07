@@ -150,6 +150,7 @@ public class TimeLine {
                 }else if(tick + step <= 0){
                     tick = 0;
                     if(!test) {
+                        this.step = -step;
                         this.enable = false;
                     }
                 }else{

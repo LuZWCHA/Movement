@@ -1,13 +1,9 @@
 package com.nowandfuture.mod.core.transformers;
 
+import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.Vec3d;
-
-import java.nio.FloatBuffer;
 
 public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyFarmVisitor<T> {
     public static final String NBT_NEXT_TYPE = "NextType";
@@ -36,38 +32,38 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     }
 
     //transform start from the root to this, because of GL Matrix use the stack,so the final order is form the this to next
-    public final void transformStart(final AbstractPrefab recipe, float p, KeyFrame pre, KeyFrame now){
+    public final void transformStart(final CubesRenderer renderer, float p, KeyFrame pre, KeyFrame now){
         if(pre == null) pre = now;
         if(now == null) now = pre;
 
         if(getNext() != null)
-            getNext().transformStart(recipe,p,pre,now);
+            getNext().transformStart(renderer,p,pre,now);
 
         if(isAcceptKeyFarm(pre) && isAcceptKeyFarm(now)) {
             if(interpolation!=null)
                 p = (float) interpolation.interpolate(p);
-            transform(recipe, p, (T) pre, (T) now);
+            transform(renderer, p, (T) pre, (T) now);
         }
     };
 
-    public final void transformEnd(final AbstractPrefab recipe, float p, KeyFrame pre, KeyFrame now){
+    public final void transformEnd(final CubesRenderer renderer, float p, KeyFrame pre, KeyFrame now){
         if(pre == null) pre = now;
         if(now == null) now = pre;
 
         if(isAcceptKeyFarm(pre) && isAcceptKeyFarm(now)) {
             if(interpolation!=null)
                 p = (float) interpolation.interpolate(p);
-            transformPost(recipe, p, (T) pre, (T) now);
+            transformPost(renderer, p, (T) pre, (T) now);
         }
 
         if(getNext() != null)
-            getNext().transformEnd(recipe, p,(T)pre,(T)now);
+            getNext().transformEnd(renderer, p,(T)pre,(T)now);
     }
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);
-    protected abstract void transform(final AbstractPrefab recipe, float p,T preKey,T key);
-    public abstract void transformMatrix(final AbstractPrefab recipe, float p,T preKey,T key);
-    protected abstract void transformPost(final AbstractPrefab recipe, float p,T preKey,T key);
+    protected abstract void transform(final CubesRenderer renderer, float p,T preKey,T key);
+    public abstract void transformMatrix(final CubesRenderer renderer, float p,T preKey,T key);
+    protected abstract void transformPost(final CubesRenderer renderer, float p,T preKey,T key);
 
     public void readFromNBT(NBTTagCompound compound){
         readParametersFromNBT(compound);

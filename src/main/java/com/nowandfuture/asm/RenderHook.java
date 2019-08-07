@@ -4,12 +4,15 @@ import com.nowandfuture.mod.Movement;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+@SideOnly(Side.CLIENT)
 public class RenderHook {
     private final static Deque<IRender> renderModules = new LinkedList<>();
     //store chunks which are rendered by minecraft itself

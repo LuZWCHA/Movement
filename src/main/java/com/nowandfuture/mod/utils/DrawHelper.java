@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.utils;
 
+import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -28,6 +29,15 @@ public class DrawHelper {
         public Vector3f z;
         public Vector3f origin;
     }
+
+    public static void render(AABBSelectArea selectArea, float r, float b, float g){
+            if(selectArea.isShow()) {
+                GlStateManager.enablePolygonOffset();
+                GlStateManager.doPolygonOffset(-1, -1);
+                DrawHelper.drawCube(selectArea.getBox(), r, b, g);
+                GlStateManager.disablePolygonOffset();
+            }
+        }
 
     public static void drawBuffer(BufferBuilder bufferBuilderIn){
         if (bufferBuilderIn.getVertexCount() > 0)

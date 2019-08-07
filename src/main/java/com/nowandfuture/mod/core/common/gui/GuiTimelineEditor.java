@@ -87,8 +87,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         this.tileMovementModule = tileMovementModule;
         this.inventoryPlayer = playerInv;
         timeLine = new KeyFrameLine();
-        timeLine.setTotalTick(100);
-        timeLine.setMode(TimeLine.Mode.CYCLE_RESTART);
 
         view = new TimeLineView(getRootView());
         comboBox = new MyComboBox(getRootView());
@@ -550,16 +548,16 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private void slotChange(){
         if(tileMovementModule.getStackInSlot(0).isEmpty()){
-
+            //do nothing
         }else{
-
+            //do nothing
         }
 
         if(tileMovementModule.getStackInSlot(1).isEmpty()){
-            exportBtn.enabled = true;
-            importBtn.enabled = false;
-        }else {
             exportBtn.enabled = false;
+            importBtn.enabled = false;
+        }else{
+            exportBtn.enabled = true;
             importBtn.enabled = true;
         }
     }

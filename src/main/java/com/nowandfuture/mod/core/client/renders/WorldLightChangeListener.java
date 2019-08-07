@@ -1,16 +1,19 @@
 package com.nowandfuture.mod.core.client.renders;
 
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
+import com.nowandfuture.mod.core.prefab.LocalWorld;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -29,14 +32,22 @@ public class WorldLightChangeListener implements IWorldEventListener {
 
     }
 
+    // TODO: 2019/8/7 not finished
     @Override
     public void notifyLightSet(BlockPos pos) {
         AbstractPrefab prefab = cubesRenderer.getPrefab();
+        //not transformed pos
         BlockPos localPos = pos.subtract(prefab.getBasePos());
         cubesRenderer.getCubeByCubeInPos(CubesBuilder.getVisitorCubePos(cubesRenderer,localPos))
                 .ifPresent(new Consumer<RenderCube>() {
                     @Override
                     public void accept(RenderCube renderCube) {
+                        LocalWorld world = renderCube.getWorld();
+                        World actWorld = world.getParentWorld();
+
+                        int light = actWorld.getLightFor(EnumSkyBlock.BLOCK,pos);
+                        Vector3f actLocalPos = CubesBuilder.getLocalPos(localPos,cubesRenderer);
+                        world.setLightForCoord(light,actLocalPos.getX(),actLocalPos.getY(),actLocalPos.getZ());
                         renderCube.markUpdate(true);
                     }
                 });

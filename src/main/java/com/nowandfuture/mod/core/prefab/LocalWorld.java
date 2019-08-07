@@ -1,10 +1,9 @@
 package com.nowandfuture.mod.core.prefab;
 
+import com.nowandfuture.mod.core.client.renders.CubesBuilder;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
-import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.Matrix4f;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -18,7 +17,6 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -29,21 +27,12 @@ import static com.nowandfuture.mod.core.client.renders.CubesBuilder.CUBE_SIZE;
 public class LocalWorld implements IBlockAccess {
     private World parentWorld;
     private BlockPos parentWorldPos;
+    private AbstractPrefab prefab;
 
-    private Matrix4f modelMatrix;
     private boolean useFixSkyLight = true;
 
     public BlockPos getParentWorldPos() {
         return parentWorldPos;
-    }
-
-    //get point zero transformed
-    public Vector3f getTransformedPos() {
-        return getTransformedPos(new Vector3f(0,0,0));
-    }
-
-    public Vector3f getTransformedPos(Vector3f pos) {
-        return OBBox.transform(pos,modelMatrix);
     }
 
     public void setParentWorldPos(BlockPos parentWorldPos) {
@@ -70,7 +59,6 @@ public class LocalWorld implements IBlockAccess {
 
     private Map<BlockPos,TileEntity> tileEntities;
 
-    //private Map<BlockPos,IBlockState> blocks;
     private IBlockState[][][] blocks;
     private Vec3i size;
     private List<LocalBlock> renderBlocks;
@@ -219,17 +207,15 @@ public class LocalWorld implements IBlockAccess {
     //==================================================================================================================================
 
 
-    public LocalWorld(Vec3i size,BlockPos parentWorldPos, World world){
+    public LocalWorld(Vec3i size, BlockPos parentWorldPos, World world, AbstractPrefab prefab){
         this.size = size;
+        this.prefab = prefab;
         allocBlockArray(size.getX(),size.getY(),size.getZ());
         tileEntities = new HashMap<>();
         parentWorld = world;
         this.parentWorldPos = parentWorldPos;
 
         renderBlocks = new LinkedList<>();
-
-        modelMatrix = new Matrix4f();
-        modelMatrix.setIdentity();
     }
 
     public boolean isBaned(TileEntity entity){
@@ -242,13 +228,11 @@ public class LocalWorld implements IBlockAccess {
         return tileEntities.get(pos);
     }
 
-    public int getActCombinedLight(BlockPos pos, int lightValue){
-        Vector3f blockPos = getTransformedPos(new Vector3f(pos.getX(),pos.getY(),pos.getZ()));
-        BlockPos transPos = new BlockPos(blockPos.getX(),blockPos.getY(),blockPos.getZ());
+    public int getActCombinedLight(BlockPos pos, int lightValue,boolean useFixSkyLight){
 
-        int i = this.getLightFromNeighborsFor(EnumSkyBlock.SKY, transPos);
+        int i =  useFixSkyLight ? 15 :this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
         int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos);
-        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,transPos.add(parentWorldPos));
+        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,pos.add(parentWorldPos));
 
         if (j < lightValue)
         {
@@ -272,24 +256,7 @@ public class LocalWorld implements IBlockAccess {
 
     @Override
     public int getCombinedLight(BlockPos pos, int lightValue) {
-        int i = useFixSkyLight ? 15 : this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
-        int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos);
-        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,pos.add(parentWorldPos));
-
-        if (j < lightValue)
-        {
-            j = lightValue;
-        }
-
-        if(k < lightValue){
-            k = lightValue;
-        }
-
-        if(j < k) {
-            j = k;
-        }
-
-        return i << 20 | j << 4;
+        return getActCombinedLight(pos, lightValue,false);
     }
 
     @SideOnly(Side.CLIENT)
@@ -408,6 +375,12 @@ public class LocalWorld implements IBlockAccess {
         }
     }
 
+    public void setLightForCoord(int light,double x,double y,double z){
+        if(isValid(x,y,z)) {
+            lightMap[(int)x][(int)y][(int)z] = light;
+        }
+    }
+
     /**
      * Check if the given BlockPos has valid coordinates
      */
@@ -416,7 +389,7 @@ public class LocalWorld implements IBlockAccess {
         return MathHelper.isInCuboid(pos,Vec3i.NULL_VECTOR,size);
     }
 
-    public boolean isValid(int x,int y,int z){
+    public boolean isValid(double x,double y,double z){
         return x >= 0 && x < size.getX() &&
                 y >= 0 && y < size.getY() &&
                 z >= 0 && z < size.getZ() ;
@@ -459,13 +432,5 @@ public class LocalWorld implements IBlockAccess {
 
     public int getHeight(){
         return size.getY();
-    }
-
-    public Matrix4f getModelMatrix() {
-        return modelMatrix;
-    }
-
-    public void setModelMatrix(Matrix4f modelMatrix) {
-        this.modelMatrix = modelMatrix;
     }
 }

@@ -16,10 +16,6 @@ public class DivBytesMessage implements IMessage,IMessageHandler<DivBytesMessage
         void get(int index,int divNum,byte[] bytes) throws Exception;
     }
 
-    public interface DivBytesSetter{
-        void setter(int index,int divNum,byte[] bytes);
-    }
-
     private int x,y,z;
     private byte[] byteArray;
     private int index;

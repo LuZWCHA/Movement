@@ -6,34 +6,39 @@ import com.google.common.primitives.Doubles;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.nowandfuture.asm.IRender;
+import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
+import com.nowandfuture.mod.core.prefab.LocalWorld;
+import com.nowandfuture.mod.core.prefab.LocalWorldWrap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.VertexBufferUploader;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.Entity;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.optifine.shaders.SVertexBuilder;
 import net.optifine.shaders.ShadersRender;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
-public class CubesRenderer {
+public class CubesRenderer implements IRender{
 
     private boolean built = false;
     private AbstractPrefab prefab;
@@ -49,6 +54,9 @@ public class CubesRenderer {
     private Set<RenderCube> visibleCubes;
     private List<RenderCube> cubesToRender;
 
+    private Matrix4f modelMatrix;
+    private FloatBuffer floatBuffer = GLAllocation.createDirectFloatBuffer(16);
+
     private int frameCounter = 0;
     private double x,y,z;
     private WorldLightChangeListener lightChangeListener;
@@ -61,9 +69,9 @@ public class CubesRenderer {
         cubesToRender = new LinkedList<>();
         queueChunkUploads = Queues.newPriorityQueue();
         vertexBufferUploader = new VertexBufferUploader();
-        //enable it will case some problem
-//        lightChangeListener = new WorldLightChangeListener(this);
+        lightChangeListener = new WorldLightChangeListener(this);
         eachFaceCubes = new HashMap<>();
+        modelMatrix = Matrix4f.setIdentity(new Matrix4f());
         for (EnumFacing facing :
                 EnumFacing.values()) {
             eachFaceCubes.put(facing,new HashSet<>());
@@ -71,7 +79,7 @@ public class CubesRenderer {
     }
 
     public void build(){
-        size = CubesBuilder.reMapPrefab(cubes,prefab);
+        size = CubesBuilder.reMapPrefab(cubes,prefab,this);
         if(size == Vec3i.NULL_VECTOR) return;
 
         cubes.forEach(new BiConsumer<BlockPos, RenderCube>() {
@@ -101,6 +109,121 @@ public class CubesRenderer {
         return size;
     }
 
+    public BlockPos getBasePos(){
+        return prefab.getBasePos();
+    }
+
+    public void renderPre(BlockPos basePos,double partialTicks) {
+        final Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
+        if (entity == null ) {
+            return;
+        }
+
+        final double renderPosX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
+        final double renderPosY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
+        final double renderPosZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+
+        GlStateManager.pushAttrib();
+        GlStateManager.pushMatrix();
+
+        GlStateManager.translate(
+                basePos.getX() - renderPosX,
+                basePos.getY() - renderPosY,
+                basePos.getZ() - renderPosZ);
+    }
+
+    public void renderPost(double partialTicks) {
+        GlStateManager.popAttrib();
+        GlStateManager.popMatrix();
+    }
+
+    @Override
+    public void prepare(float p){
+        if(isBuilt()) {
+            this.prepareIn(p);
+        }else{
+            this.build();
+        }
+    }
+
+//    public void buildTranslucent(float p){
+//        this.buildTranslucent();
+//    }
+
+    private void renderBlockRenderLayerIn(BlockRenderLayer layer,double p){
+        if(!isBuilt()) return;
+        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+        this.renderPre(getPrefab().getBasePos(),p);
+
+        this.transform();
+        this.render(layer);
+        this.renderPost(p);
+        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+
+    }
+
+    public void transform(){
+        modelMatrix.store(floatBuffer);
+        floatBuffer.rewind();
+        GlStateManager.multMatrix(floatBuffer);
+    }
+
+    public void resetMatrix(){
+        this.modelMatrix.setIdentity();
+    }
+
+    public void renderTileEntity(final double p) {
+        transform();
+        LocalWorld localWorld = prefab.getLocalWorld();
+        LocalWorldWrap worldWrap = prefab.getWorldWrap();
+
+        GlStateManager.resetColor();
+        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+        final TileEntityRendererDispatcher dispatcher = TileEntityRendererDispatcher.instance;
+        RenderHelper.enableStandardItemLighting();
+
+//        dispatcher.preDrawBatch();
+
+        localWorld.getTileEntitySet()
+                .forEach(tileEntry -> {
+                    TileEntity tileEntity = tileEntry.getValue();
+
+                    if (tileEntity == null || localWorld.isBaned(tileEntity)) return;
+
+                    tileEntity.setPos(tileEntry.getKey());
+                    tileEntity.setWorld(worldWrap);
+
+                    BlockPos blockPos = tileEntity.getPos();
+
+                    int i = localWorld.getActCombinedLight(blockPos, 0,false);
+                    int j = i % 65536;int k = i / 65536;
+                    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                    TileEntitySpecialRenderer renderer = dispatcher.getRenderer(tileEntity.getClass());
+                    boolean isGlobal = (renderer != null && renderer.isGlobalRenderer(tileEntity));
+
+                    if (isGlobal) {
+                        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+                    }
+
+                    dispatcher.render(tileEntry.getValue(),
+                            tileEntry.getKey().getX(),
+                            tileEntry.getKey().getY(),
+                            tileEntry.getKey().getZ(),
+                            (float) p, -1, 1);
+
+                    if (isGlobal) {
+                        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+                    }
+                });
+
+        //enableStandardItemLighting in drawBatch(int pass);
+//        dispatcher.drawBatch(ForgeHooksClient.getWorldRenderPass());
+        RenderHelper.disableStandardItemLighting();
+        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+    }
+
     public Optional<RenderCube> getCubeByCubeInPos(BlockPos pos){
         return Optional.ofNullable(cubes.get(pos));
     }
@@ -124,9 +247,7 @@ public class CubesRenderer {
         }
     }
 
-    public void prepare(double partialTicks){
-        if(!built) return;
-
+    private void prepareIn(double partialTicks){
         Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
         visibleCubes = new HashSet<>();
 
@@ -138,7 +259,7 @@ public class CubesRenderer {
 
             final Vector3f eyesPos = new Vector3f((float) x, (float)(y + entity.getEyeHeight()), (float)z);
 
-            final Set<EnumFacing> set = CubesBuilder.getVisibleFaces(eyesPos, prefab);
+            final Set<EnumFacing> set = CubesBuilder.getVisibleFaces(eyesPos,this);
 
             final Function<RenderCube,Boolean> frustumFilter = new Function<RenderCube, Boolean>() {
                 @Override
@@ -146,7 +267,8 @@ public class CubesRenderer {
                     boolean flag = true;
                     if(!OptifineHelper.isActive()) flag = CubesBuilder.checkRenderChunkIsRender(cube,prefab.getBasePos());
 
-                    Vector3f center = prefab.getTransformedWorldPos(cube.getBounding().getCenter());
+                    Vector3f center = CubesBuilder.getTransformPos(cube.getBounding().getCenter(),CubesRenderer.this)
+                            .translate(prefab.getBasePos().getX(),prefab.getBasePos().getY(),prefab.getBasePos().getZ());
                     return entity.getDistanceSq(center.getX(),center.getY(),center.getZ()) <=
                             (Minecraft.getMinecraft().gameSettings.renderDistanceChunks * Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8) &&
                             ModuleRenderManager.INSTANCE.getClippingHelper()
@@ -190,8 +312,10 @@ public class CubesRenderer {
                     cube.setCompiling(true);
                     cube.markUpdate(false);
 
-                    if(cube.getCubeCompileTask() == null || cube.getCubeCompileTask().isFinished()){
-                        cube.createCompileTask();
+                    if(cube.getCubeCompileTask() == null){
+                        cube.createNewCompileTask();
+                    }else if(cube.getCubeCompileTask().isFinished()){
+                        cube.rebuildCompileTask();
                     }
                     ModuleRenderManager.INSTANCE.execute(new ModuleRenderWorker(cube.getCubeCompileTask()));
                 }
@@ -212,28 +336,28 @@ public class CubesRenderer {
         }
     }
 
-    public void buildTranslucent(){
+//    public void buildTranslucent(){
+//        for (RenderCube cube :
+//                visibleCubes) {
+//
+//            if(cube.isToUpdate() && !cube.isCompiling()){
+//                cube.setCompiling(true);
+//                cube.markUpdate(false);
+//
+////                if(cube.getCubeCompileTask() == null || cube.getCubeCompileTask().isFinished()){
+//                    cube.createTranslucentCompileTask();
+////                }
+//                ModuleRenderManager.INSTANCE.execute(new ModuleRenderWorker(cube.getCubeCompileTask()));
+//            }
+//        }
+//    }
+
+    private void render(BlockRenderLayer layer){
+        if(!isBuilt()) return;
         for (RenderCube cube :
                 visibleCubes) {
 
-            if(cube.isToUpdate() && !cube.isCompiling()){
-                cube.setCompiling(true);
-                cube.markUpdate(false);
-
-//                if(cube.getCubeCompileTask() == null || cube.getCubeCompileTask().isFinished()){
-                    cube.createTranslucentCompileTask();
-//                }
-                ModuleRenderManager.INSTANCE.execute(new ModuleRenderWorker(cube.getCubeCompileTask()));
-            }
-        }
-    }
-
-    public void render(BlockRenderLayer layer){
-        if(!built) return;
-        for (RenderCube cube :
-                visibleCubes) {
-
-            if (!cube.getCubeCompileTask().isLayerEmpty(layer)) {
+            if (!cube.getCubeCompileTask().isLayerEmpty(layer) || cube.isVboBind(layer)) {
                 cubesToRender.add(cube);
             }
         }
@@ -263,16 +387,17 @@ public class CubesRenderer {
         built = false;
     }
 
-    public ListenableFuture upload(VertexBuffer vertexBuffer, BufferBuilder bufferBuilder,double distance){
+    public ListenableFuture upload(RenderCube renderCube,BlockRenderLayer layer,VertexBuffer vertexBuffer, BufferBuilder bufferBuilder,double distance){
         if(Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
             uploadVBO(vertexBuffer, bufferBuilder);
+            renderCube.setVboBind(layer.ordinal(),true);
             return Futures.immediateFuture(null);
         }else{
             ListenableFutureTask<Object> listenableFutureTask =
                     ListenableFutureTask.create(
                             new Runnable(){
                                 public void run() {
-                                    CubesRenderer.this.upload(vertexBuffer, bufferBuilder,distance);
+                                    CubesRenderer.this.upload(renderCube,layer,vertexBuffer,bufferBuilder,distance);
                                 }
                             },
                             null);
@@ -365,6 +490,20 @@ public class CubesRenderer {
         OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.glTexCoordPointer(2, 5122, 28, 24);
         OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    public Matrix4f getModelMatrix() {
+        return modelMatrix;
+    }
+
+    @Override
+    public void renderBlockLayer(int pass, double p, BlockRenderLayer blockRenderLayer) {
+        renderBlockRenderLayerIn(blockRenderLayer,p);
+    }
+
+    @Override
+    public boolean isRenderValid() {
+        return isBuilt();
     }
 
     @SideOnly(Side.CLIENT)

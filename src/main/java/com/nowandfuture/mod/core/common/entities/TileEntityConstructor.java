@@ -236,6 +236,7 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
         aabbSelectArea.writeToNBT(compound);
         compound.setBoolean(NBT_IS_LOCK,isLock);
         ItemStackHelper.saveAllItems(compound,constructorItemStacks);
+
         if(isLock)
             compound.setString(NBT_LICK_USER,lockUserName);
 
@@ -506,7 +507,6 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
             e.printStackTrace();
             completed = false;
         }
-        Movement.logger.info("revItemDivBytes:" + (index + 1) + " of "+ divNum + " finished:" + completed);
 
         if(completed) {
             setConstructProgress(-1);

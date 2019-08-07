@@ -1,6 +1,5 @@
 package com.nowandfuture.mod.core.common.entities;
 
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.api.IModule;
 import com.nowandfuture.mod.core.movecontrol.ModuleBase;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
@@ -20,7 +19,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityLockable;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -56,6 +54,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return INFINITE_EXTENT_AABB;
     }
 
+    // TODO: 2019/8/1 fix client
     @Override
     public double getMaxRenderDistanceSquared() {
         return (Minecraft.getMinecraft().gameSettings.renderDistanceChunks * Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8);
@@ -65,6 +64,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void onLoad() {
         super.onLoad();
         if(world.isRemote){
+            moduleBase.createDefaultTransformer();
             CollisionHandler.modules.add(this);
         }
     }
@@ -119,10 +119,6 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return moduleBase.isEnable() && !isInvalid();
     }
 
-    public boolean canRender(double renderPosX, double renderPosY, double renderPosZ) {
-        return isRenderValid() && getMaxRenderDistanceSquared() >= getDistanceSq(renderPosX,renderPosY,renderPosZ);
-    }
-
     public BlockPos getModulePos() {
         return moduleBase.getModulePos();
     }
@@ -135,30 +131,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         moduleBase.removePartIfExit();
     }
 
-    public void prepare(float p){
-        moduleBase.prepare(p);
-    }
-
-    @Override
-    public void renderBlockLayer(int pass, double p, BlockRenderLayer blockRenderLayer) {
-        moduleBase.renderBlockLayer(pass, p, blockRenderLayer);
-    }
-
-    public void renderTileEntities(float p){
-        moduleBase.renderTileEntities(p);
-    }
-
     public AxisAlignedBB getMinAABB(){
         return moduleBase.getMinAABB();
-    }
-
-    @Deprecated
-    public void buildTranslucentBlocks(int pass, float p){
-        moduleBase.buildTranslucent(p);
-    }
-
-    public boolean isRenderValid() {
-        return moduleBase.isRenderValid();
     }
 
     public void update() {
@@ -178,7 +152,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void invalidate() {
         super.invalidate();
         if(world.isRemote)
-            moduleBase.invalidate();
+            moduleBase.invalid();
         if(world.isRemote)
             CollisionHandler.modules.remove(this);
     }

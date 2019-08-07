@@ -1,5 +1,7 @@
 package com.nowandfuture.mod.network.message;
 
+import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
 import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
@@ -13,6 +15,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import joptsimple.internal.Strings;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
@@ -23,6 +26,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -237,13 +241,21 @@ public abstract class MovementMessage implements IMessage {
                             case GUI_EXPORT_TIMELINE_FLAG:
                                 if(tileEntity instanceof TileEntityTimelineEditor){
                                     boolean empty =((TileEntityTimelineEditor) tileEntity).getStackInSlot(1).isEmpty();
-                                    NBTTagCompound compound = ((TileEntityTimelineEditor)tileEntity).getLine().serializeNBT(new NBTTagCompound());
-                                    if(compound != null && empty){
-                                        ItemStack output = new ItemStack(RegisterHandler.timelineItem);
-                                        output.setCount(1);
-                                        output.setTagCompound(compound);
-                                        ((TileEntityTimelineEditor) tileEntity).setInventorySlotContents(1,output);
-                                        tileEntity.markDirty();
+                                    NBTTagCompound compound = ((TileEntityTimelineEditor)tileEntity).getLine()
+                                            .serializeNBT(new NBTTagCompound());
+                                    if(compound != null && !empty){
+//                                        ItemStack output = new ItemStack(new TimelineItem());
+////                                        output.setTagCompound(compound);
+//                                        //set slot packet should small enough,or decode will fail
+//                                        Movement.logger.info("start");
+//                                        ((TileEntityTimelineEditor) tileEntity).setStackForSlot(1,
+//                                                output);
+                                        ((TileEntityTimelineEditor) tileEntity)
+                                                .getStackInSlot(1)
+                                                .setTagCompound(compound);
+//                                        Movement.logger.info("end");
+
+                                        NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                     }
                                 }
                                 break;
@@ -616,6 +628,7 @@ public abstract class MovementMessage implements IMessage {
 
         @Override
         public IMessage onMessage(StringDataSyncMessage message, MessageContext ctx) {
+
             final BlockPos blockPos = new BlockPos(message.getX(),message.getY(),message.getZ());
             final EntityPlayerMP player = NetworkHandler.getServerPlayer(ctx);
             final TileEntity tileEntity = NetworkHandler.getServerWorld(ctx).getTileEntity(blockPos);

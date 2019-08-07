@@ -2,7 +2,6 @@ package com.nowandfuture.mod.core.selection;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -359,22 +358,111 @@ public class OBBox {
         return Collision.intersect(this,new OBBox(other));
     }
 
+    public float sweepTest(AxisAlignedBB other,Vector3f v){
+        return sweepTest(new OBBox(other),v);
+    }
+
+    public float sweepTest(OBBox other,Vector3f v){
+        return Collision.sweepTest(other,this,v);
+    }
+
     public boolean intersect(OBBox other){
         return Collision.intersect(this,other);
     }
 
     public static class Collision{
 
+        //not finished OBB VS OBB SweepTest (extention of SAT test) and compute the nearest future impact time;
+        //this test has guarantee the impact must happen in a future time(less than "1"),so always consider the
+        //time and direction is opptive
+        public static float sweepTest(OBBox moveOBB,OBBox staticOBB,Vector3f v){
+            float maxTime = 0;
+            Vector3f axis = null;
+            for (int i = 0; i <3; i++)
+            {
+                Vector3f axis0 = getFaceDirection(moveOBB,i);
+                float length = Math.abs(Vector3f.dot(axis0,v));
+
+                float[] res1 = getInterval(moveOBB, axis0);
+                float[] res2 = getInterval(staticOBB, axis0);
+                if (res1[1] < res2[0]) {
+                    float a = (res2[0] - res1[1]) / length;
+                    if (a > maxTime && a < 1) {
+                        maxTime = a;
+                        axis = axis0;
+                    }
+                }
+                else if(res2[1] < res1[0]){
+                    float a = (res2[1] - res1[0])/length;
+                    if(a > maxTime && a < 1) {
+                        maxTime = a;
+                        axis = axis0;
+                    }
+                }
+
+                Vector3f axis1 = getFaceDirection(staticOBB,i);
+                length = Math.abs(Vector3f.dot(axis1,v));
+
+                float[] res3 = getInterval(moveOBB,axis1);
+                float[] res4 = getInterval(staticOBB, axis1);
+                if (res3[1] < res4[0]) {
+                    float a = (res4[0] - res3[1]) / length;
+                    if (a > maxTime && a < 1) {
+                        maxTime = a;
+                        axis = axis1;
+                    }
+                }
+                else if(res3[0] > res4[1]){
+                    float a = (res3[0] - res4[1])/length;
+                    if( a> maxTime && a < 1) {
+                        maxTime = a;
+                        axis = axis1;
+                    }
+                }
+            }
+
+            for (int i = 0; i <3; i++)
+            {
+                for (int j = 0; j <3; j++)
+                {
+                    Vector3f axis2 = new Vector3f();
+                    Vector3f.cross(getEdgeDirection(moveOBB,i), getEdgeDirection(staticOBB,j),axis2);
+                    if(axis2.lengthSquared() == 0) continue;
+                    axis2.normalise();
+                    float length = Math.abs(Vector3f.dot(axis2,v));
+
+                    float[] res1 = getInterval(moveOBB, axis2);
+                    float[] res2 = getInterval(staticOBB, axis2);
+                    if (res1[1] < res2[0]){
+                        float a = (res2[0] - res1[1])/length;
+                        if( a> maxTime && a < 1) {
+                            maxTime = a;
+                            axis = axis2;
+                        }
+                    }
+                    else if(res2[1] < res1[0]){
+                        float a = (res2[1] - res1[0])/length;
+                        if(a > maxTime && a < 1) {
+                            maxTime = a;
+                            axis = axis2;
+                        }
+                    }
+                }
+            }
+
+            return maxTime;
+        }
+
         public static boolean intersect(OBBox a,OBBox b){
             for (int i = 0; i <3; i++)
             {
-                float[] res1 = getInterval(a, getFaceDirection(a,i));//计算当前包围盒在某轴上的最大最小投影值
-                float[] res2 = getInterval(b, getFaceDirection(a,i));//计算另一个包围盒在某轴上的最大最小投影值
+                float[] res1 = getInterval(a, getFaceDirection(a,i));
+                float[] res2 = getInterval(b, getFaceDirection(a,i));
                 if (res1[1] <= res2[0] || res2[1] <= res1[0]) return false;
 
                 float[] res3 = getInterval(a, getFaceDirection(b,i));
                 float[] res4 = getInterval(b, getFaceDirection(b,i));
-                if (res3[1] <= res4[0] || res4[1] <= res3[0]) return false;//判断分离轴上投影是否重合
+                if (res3[1] <= res4[0] || res4[1] <= res3[0]) return false;
             }
 
             for (int i = 0; i <3; i++)
@@ -382,10 +470,13 @@ public class OBBox {
                 for (int j = 0; j <3; j++)
                 {
                     Vector3f axis = new Vector3f();
-                    Vector3f.cross(getEdgeDirection(a,i), getEdgeDirection(b,j),axis);//边的矢量并做叉积
-                    float[] res1 = getInterval(a, axis);
-                    float[] res2 = getInterval(b, axis);
-                    if (res1[1] < res2[0] || res2[1] < res1[0]) return false;//判断分离轴上投影是否重合
+                    Vector3f.cross(getEdgeDirection(a,i), getEdgeDirection(b,j),axis);
+                    if(axis.lengthSquared() != 0) {
+                        axis.normalise();
+                        float[] res1 = getInterval(a, axis);
+                        float[] res2 = getInterval(b, axis);
+                        if (res1[1] <= res2[0] || res2[1] <= res1[0]) return false;
+                    }
                 }
             }
             return true;
@@ -408,7 +499,7 @@ public class OBBox {
         }
 
         private static float projectPoint(Vector3f point, Vector3f axis){
-            return Vector3f.dot(point,axis) * MathHelper.sqrt(point.lengthSquared());
+            return Vector3f.dot(point,axis) * point.length();
         }
 
         private static Vector3f getEdgeDirection(OBBox obBox,int index){

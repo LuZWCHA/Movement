@@ -760,5 +760,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="OptiFine_1.12.2_HD_U_D3" level="application" />
+    <orderEntry type="library" name="OptiFine_1.12.2_HD_U_D3" level="project" />
   </component>
 </module>

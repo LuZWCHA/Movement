@@ -1,6 +1,6 @@
 package com.nowandfuture.mod;
 
-import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
+import net.minecraftforge.fml.relauncher.*;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -9,7 +9,10 @@ import java.util.Map;
 public class MovementCore implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{"com.nowandfuture.asm.EntityRendererClassTransformer","com.nowandfuture.asm.RenderGlobalClassTransformer"};
+        if(FMLLaunchHandler.side().isClient())
+            return new String[]{"com.nowandfuture.asm.EntityRendererClassTransformer",
+                    "com.nowandfuture.asm.RenderGlobalClassTransformer"};
+        return new String[]{};
     }
 
     @Override

@@ -1,17 +1,14 @@
 package com.nowandfuture.mod.core.transformers;
 
-import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
+import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.utils.MathHelper;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.vecmath.AxisAngle4f;
-import java.nio.FloatBuffer;
 
 public class RotationTransformNode extends AbstractTransformNode<RotationTransformNode.RotationKeyFrame> {
 
@@ -23,28 +20,28 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
     }
 
     @Override
-    protected void transform(AbstractPrefab recipe, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
-        transformMatrix(recipe, p, preKey, key);
+    protected void transform(CubesRenderer renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
+        transformMatrix(renderer, p, preKey, key);
     }
 
     @Override
-    public void transformMatrix(AbstractPrefab recipe, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
+    public void transformMatrix(CubesRenderer renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
         vector3f.set(key.center.getX() + .5f,key.center.getY() + .5f,key.center.getZ() + .5f);
-        recipe.getModelMatrix().translate(vector3f);
+        renderer.getModelMatrix().translate(vector3f);
         final Vec3d mid = MathHelper.Lerp(p,
                 new Vec3d(preKey.axisAngle4f.x,preKey.axisAngle4f.y,preKey.axisAngle4f.z),
                 new Vec3d(key.axisAngle4f.x,key.axisAngle4f.y,key.axisAngle4f.z));
 
         final float angle = MathHelper.Lerp(p,preKey.axisAngle4f.angle,key.axisAngle4f.angle);
         vector3f.set((float) mid.x,(float) mid.y,(float) mid.z);
-        recipe.getModelMatrix().rotate((float) (angle/180*Math.PI),vector3f.normalise(vector3f));
+        renderer.getModelMatrix().rotate((float) (angle/180*Math.PI),vector3f.normalise(vector3f));
 
         vector3f.set(-key.center.getX() - .5f,-key.center.getY() - .5f,-key.center.getZ() - .5f);
-        recipe.getModelMatrix().translate(vector3f);
+        renderer.getModelMatrix().translate(vector3f);
     }
 
     @Override
-    protected void transformPost(AbstractPrefab recipe, float p, RotationKeyFrame pre, RotationKeyFrame key) {
+    protected void transformPost(CubesRenderer renderer, float p, RotationKeyFrame pre, RotationKeyFrame key) {
     }
 
     @Override

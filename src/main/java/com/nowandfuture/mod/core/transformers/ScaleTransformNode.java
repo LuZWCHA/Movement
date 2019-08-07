@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.transformers;
 
+import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.utils.MathHelper;
@@ -15,18 +16,18 @@ public class ScaleTransformNode extends AbstractTransformNode<ScaleTransformNode
     }
 
     @Override
-    protected void transform(AbstractPrefab recipe, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
-        transformMatrix(recipe, p, preKey, key);
+    protected void transform(CubesRenderer renderer, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
+        transformMatrix(renderer, p, preKey, key);
     }
 
     @Override
-    public void transformMatrix(AbstractPrefab recipe, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
+    public void transformMatrix(CubesRenderer renderer, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
         final float s = MathHelper.Lerp(p,preKey.scale,key.scale);
-        recipe.getModelMatrix().scale(new Vector3f(s,s,s));
+        renderer.getModelMatrix().scale(new Vector3f(s,s,s));
     }
 
     @Override
-    protected void transformPost(AbstractPrefab recipe, float p, ScaleKeyFrame pre, ScaleKeyFrame key) {
+    protected void transformPost(CubesRenderer renderer, float p, ScaleKeyFrame pre, ScaleKeyFrame key) {
     }
 
     @Override

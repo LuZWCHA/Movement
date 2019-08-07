@@ -1,59 +1,52 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
-import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.utils.ByteZip;
 import joptsimple.internal.Strings;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
-import org.lwjgl.util.vector.Vector3f;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class AbstractPrefab implements ITickable {
-    public static final String NBT_DECOMPRESS_SIZE = "DecompressSize";
-    public static final String NBT_COMPRESSED_BYTE_ARRAY = "CompressedByteArray";
-    public static final String NBT_TITLE_ENTITY = "TitleEntity";
+    private static final String NBT_DECOMPRESS_SIZE = "DecompressSize";
+    private static final String NBT_COMPRESSED_BYTE_ARRAY = "CompressedByteArray";
+    private static final String NBT_TITLE_ENTITY = "TitleEntity";
 
-    public static final String NBT_BASE_X = "BaseX";
-    public static final String NBT_BASE_Y = "BaseY";
-    public static final String NBT_BASE_Z = "BaseZ";
+    private static final String NBT_BASE_X = "BaseX";
+    private static final String NBT_BASE_Y = "BaseY";
+    private static final String NBT_BASE_Z = "BaseZ";
 
-    public static final String NBT_SIZE_X = "SizeX";
-    public static final String NBT_SIZE_Y = "SizeY";
-    public static final String NBT_SIZE_Z = "SizeZ";
+    private static final String NBT_SIZE_X = "SizeX";
+    private static final String NBT_SIZE_Y = "SizeY";
+    private static final String NBT_SIZE_Z = "SizeZ";
 
-    public static final String NBT_CENTER_X = "CenterX";
-    public static final String NBT_CENTER_Y = "CenterY";
-    public static final String NBT_CENTER_Z = "CenterZ";
+    private static final String NBT_CENTER_X = "CenterX";
+    private static final String NBT_CENTER_Y = "CenterY";
+    private static final String NBT_CENTER_Z = "CenterZ";
 
-    public static final String NBT_MIN_AABB_MIN_X = "minX";
-    public static final String NBT_MIN_AABB_MIN_Y = "minY";
-    public static final String NBT_MIN_AABB_MIN_Z = "minZ";
-    public static final String NBT_MIN_AABB_MAX_X = "maxX";
-    public static final String NBT_MIN_AABB_MAX_Y = "maxY";
-    public static final String NBT_MIN_AABB_MAX_Z = "maxZ";
+    private static final String NBT_MIN_AABB_MIN_X = "minX";
+    private static final String NBT_MIN_AABB_MIN_Y = "minY";
+    private static final String NBT_MIN_AABB_MIN_Z = "minZ";
+    private static final String NBT_MIN_AABB_MAX_X = "maxX";
+    private static final String NBT_MIN_AABB_MAX_Y = "maxY";
+    private static final String NBT_MIN_AABB_MAX_Z = "maxZ";
 
-    public static final String NBT_CONSTRUCT_READY = "ConstructReady";
+    private static final String NBT_CONSTRUCT_READY = "ConstructReady";
 
     public static final String NBT_PREFAB_NAME = "PrefabName";
 
@@ -65,43 +58,28 @@ public abstract class AbstractPrefab implements ITickable {
     protected BlockPos controlPoint;
     protected Vec3i size;
 
-    private OBBox obbounding;
-
     private AxisAlignedBB minAABB = null;
 
     //---------------------------------for build-------------------------------------------------------------------------
-//    private BlockRenderHelper blockRenderHelper;
-    private CubesRenderer cubesRenderer;
-    private Minecraft mc =  Minecraft.getMinecraft();
 
     private volatile boolean ready = false;
-    private boolean accurateLight = false;
 
     public AbstractPrefab() {
 
     }
 
-    public OBBox getOBB() {
-        if(this.obbounding == null){
-            this.obbounding = new OBBox(new AxisAlignedBB(0,0,0,size.getX(),size.getY(),size.getZ()));
-        }
-        return this.obbounding;
-    }
-
-    public OBBox getTransformedBounding(){
-        return getOBB().transform(getModelMatrix());
-    }
-
     public void init(@Nonnull World world, BlockPos baseLocation, Vec3i size) {
-        this.localWorld = new LocalWorld(size, baseLocation, world);
+        this.localWorld = new LocalWorld(size, baseLocation, world, this);
         this.worldWrap = new LocalWorldWrap(world.getSaveHandler(), world.getWorldInfo(), world.provider, world.profiler, true);
         this.worldWrap.wrap(localWorld);
-        this.cubesRenderer = new CubesRenderer(this);
         this.size = size;
+        if(world.isRemote){
+            initRenderer();
+        }
     }
 
-    public CubesRenderer getCubesRenderer() {
-        return cubesRenderer;
+    private void initRenderer(){
+        ModuleRenderManager.INSTANCE.addCubesRenderer(this);
     }
 
     public AbstractPrefab(World world, BlockPos baseLocation, Vec3i size) {
@@ -118,21 +96,17 @@ public abstract class AbstractPrefab implements ITickable {
         return localWorld.getParentWorldPos();
     }
 
-    public Vector3f getTransformedBasePos(){
-        return localWorld.getTransformedPos();
-    }
-
     public int getPrefabMaxNum(){
         return localWorld.getAllBlockNum();
     }
 
-    public Vector3f getTransformedPos(Vector3f vector3f){
-        return localWorld.getTransformedPos(vector3f);
-    }
-
-    public Vector3f getTransformedWorldPos(Vector3f vector3f){
-        return getTransformedPos(vector3f).translate(getBasePos().getX(),getBasePos().getY(),getBasePos().getZ());
-    }
+//    public Vector3f getTransformedPos(Vector3f vector3f){
+//        return ;
+//    }
+//
+//    public Vector3f getTransformedWorldPos(Vector3f vector3f){
+//        return getTransformedPos(vector3f).translate(getBasePos().getX(),getBasePos().getY(),getBasePos().getZ());
+//    }
 
     public BlockPos getControlPoint() {
         return controlPoint;
@@ -142,9 +116,9 @@ public abstract class AbstractPrefab implements ITickable {
         localWorld.setParentWorldPos(baseLocation);
     }
 
-    public Vector3f getTransformedPos(){
-        return localWorld.getTransformedPos();
-    }
+//    public Vector3f getTransformedPos(){
+//        return localWorld.getTransformedPos();
+//    }
 
     public Vec3i getSize() {
         return size;
@@ -162,101 +136,8 @@ public abstract class AbstractPrefab implements ITickable {
         return localWorld;
     }
 
-
-    //------------------------------------------render function-----------------------------------------------
-    public void renderPre(double partialTicks) {
-        final Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
-        if (entity == null ) {
-            return;
-        }
-
-        final double renderPosX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double) partialTicks;
-        final double renderPosY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double) partialTicks;
-        final double renderPosZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double) partialTicks;
-
-        GlStateManager.pushAttrib();
-        GlStateManager.pushMatrix();
-
-        GlStateManager.translate(getBasePos().getX() - renderPosX,
-                getBasePos().getY() - renderPosY,
-                getBasePos().getZ() - renderPosZ);
-    }
-
-    public void renderPost(double partialTicks) {
-        GlStateManager.popAttrib();
-        GlStateManager.popMatrix();
-    }
-
-    public void prepare(double p){
-        if(cubesRenderer == null) return;
-        if(cubesRenderer.isBuilt()) {
-            cubesRenderer.prepare(p);
-        }else{
-            cubesRenderer.build();
-        }
-    }
-
-    public void buildTranslucent(float p){
-        cubesRenderer.buildTranslucent();
-    }
-
-    public void renderBlockRenderLayer(BlockRenderLayer layer){
-        if(cubesRenderer == null || !cubesRenderer.isBuilt()) return;
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-        cubesRenderer.render(layer);
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
-
-    }
-
-    public void renderTileEntity(final double p) {
-
-        GlStateManager.resetColor();
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-        final TileEntityRendererDispatcher dispatcher = TileEntityRendererDispatcher.instance;
-        RenderHelper.enableStandardItemLighting();
-
-//        dispatcher.preDrawBatch();
-
-        localWorld.getTileEntitySet()
-                .forEach(tileEntry -> {
-                    TileEntity tileEntity = tileEntry.getValue();
-
-                    if (tileEntity == null || localWorld.isBaned(tileEntity)) return;
-
-                    tileEntity.setPos(tileEntry.getKey());
-                    tileEntity.setWorld(worldWrap);
-
-                    BlockPos blockPos = tileEntity.getPos();
-
-                    int i = accurateLight ? this.getLocalWorld().getActCombinedLight(blockPos,0):
-                            this.getLocalWorld().getCombinedLight(blockPos, 0);
-                    int j = i % 65536;
-                    int k = i / 65536;
-                    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-                    TileEntitySpecialRenderer renderer = dispatcher.getRenderer(tileEntity.getClass());
-                    boolean isGlobal = (renderer != null && renderer.isGlobalRenderer(tileEntity));
-
-                    if (isGlobal) {
-                        Minecraft.getMinecraft().entityRenderer.disableLightmap();
-                    }
-
-                    dispatcher.render(tileEntry.getValue(),
-                            tileEntry.getKey().getX(),
-                            tileEntry.getKey().getY(),
-                            tileEntry.getKey().getZ(),
-                            (float) p, -1, 1);
-
-                    if (isGlobal) {
-                        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-                    }
-                });
-
-        //enableStandardItemLighting in drawBatch(int pass);
-//        dispatcher.drawBatch(ForgeHooksClient.getWorldRenderPass());
-        RenderHelper.disableStandardItemLighting();
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+    public LocalWorldWrap getWorldWrap() {
+        return worldWrap;
     }
 
     @Override
@@ -535,21 +416,18 @@ public abstract class AbstractPrefab implements ITickable {
         nbt.setByteArray(NBT_COMPRESSED_BYTE_ARRAY, byteZip.getOutput());
     }
 
-
-    //clear recipe and delete build;
-    public void clear() {
+    //invalid recipe and delete build;
+    public void invalid() {
         if(localWorld != null)
             localWorld.fastClear();
-        invalidRenderList();
+
+        if(isLocalWorldInit() && getActrualWorld().isRemote){
+            ModuleRenderManager.INSTANCE.removeCubesRenderer(this);
+        }
     }
 
     public boolean isLocalWorldInit() {
         return localWorld != null;
-    }
-
-    public void invalidRenderList() {
-        if(cubesRenderer != null)
-            cubesRenderer.invalid();
     }
 
     @Override
@@ -571,18 +449,6 @@ public abstract class AbstractPrefab implements ITickable {
 
     public void setReady(boolean ready) {
         this.ready = ready;
-    }
-
-    public Matrix4f getModelMatrix() {
-        return localWorld.getModelMatrix();
-    }
-
-    public void setModelMatrix(Matrix4f modelMatrix) {
-        this.localWorld.setModelMatrix(modelMatrix);
-    }
-
-    public void setModelMatrix(FloatBuffer modelMatrix) {
-        getModelMatrix().load(modelMatrix);
     }
 
     public int getConstructBlockIndex() {

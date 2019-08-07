@@ -19,7 +19,7 @@ public class AABBSelectArea {
 
     private AxisAlignedBB box;
     private boolean show;
-    private Minecraft mc = Minecraft.getMinecraft();
+//    private Minecraft mc = Minecraft.getMinecraft();
 
     public AABBSelectArea(){
         show = true;
@@ -144,97 +144,97 @@ public class AABBSelectArea {
         box = box.expand(x,y,z);
     }
 
-    public void expand(DIRECTION dir,int step){
-        Vec3d look = mc.player.getLook(0);
-        int lookNum = transLookToInt(look.x,look.z);
-
-        switch (dir){
-            case UP:
-                box = box.expand(0,step,0);
-                break;
-            case DOWN:
-                box = box.expand(0,-step,0);
-                break;
-            case LEFT:
-                switch (lookNum){
-                    case 0: box = box.expand(step,0,0);break;
-                    case 1: box = box.expand(0,0, -step);break;
-                    case 2: box = box.expand(-step,0,0);break;
-                    case 3: box = box.expand(0,0,step);break;
-                }
-                break;
-            case RIGHT:
-                switch (lookNum){
-                    case 0: box = box.expand(-step,0,0);break;
-                    case 1: box = box.expand(0,0, step);break;
-                    case 2: box = box.expand(step,0,0);break;
-                    case 3: box = box.expand(0,0,-step);break;
-                }
-                break;
-            case FORWARD:
-                switch (lookNum){
-                    case 3: box = box.expand(-step,0,0);break;
-                    case 0: box = box.expand(0,0, step);break;
-                    case 1: box = box.expand(step,0,0);break;
-                    case 2: box = box.expand(0,0,-step);break;
-                }
-                break;
-            case BACKWARD:
-                switch (lookNum){
-                    case 3: box = box.expand(step,0,0);break;
-                    case 0: box = box.expand(0,0, -step);break;
-                    case 1: box = box.expand(-step,0,0);break;
-                    case 2: box = box.expand(0,0,step);break;
-                }
-                break;
-        }
-    }
-
-    public void contract(DIRECTION dir,int step){
-        Vec3d look = mc.player.getLook(0);
-        int lookNum = transLookToInt(look.x,look.z);
-
-        switch (dir){
-            case UP:
-                box = box.contract(0,step,0);
-                break;
-            case DOWN:
-                box = box.contract(0,-step,0);
-                break;
-            case LEFT:
-                switch (lookNum){
-                    case 0: box = box.contract(step,0,0);break;
-                    case 1: box = box.contract(0,0, -step);break;
-                    case 2: box = box.contract(-step,0,0);break;
-                    case 3: box = box.contract(0,0,step);break;
-                }
-                break;
-            case RIGHT:
-                switch (lookNum){
-                    case 0: box = box.contract(-step,0,0);break;
-                    case 1: box = box.contract(0,0, step);break;
-                    case 2: box = box.contract(step,0,0);break;
-                    case 3: box = box.contract(0,0,-step);break;
-                }
-                break;
-            case FORWARD:
-                switch (lookNum){
-                    case 3: box = box.contract(-step,0,0);break;
-                    case 0: box = box.contract(0,0, step);break;
-                    case 1: box = box.contract(step,0,0);break;
-                    case 2: box = box.contract(0,0,-step);break;
-                }
-                break;
-            case BACKWARD:
-                switch (lookNum){
-                    case 3: box = box.contract(step,0,0);break;
-                    case 0: box = box.contract(0,0, -step);break;
-                    case 1: box = box.contract(-step,0,0);break;
-                    case 2: box = box.contract(0,0,step);break;
-                }
-                break;
-        }
-    }
+//    public void expand(DIRECTION dir,int step){
+//        Vec3d look = mc.player.getLook(0);
+//        int lookNum = transLookToInt(look.x,look.z);
+//
+//        switch (dir){
+//            case UP:
+//                box = box.expand(0,step,0);
+//                break;
+//            case DOWN:
+//                box = box.expand(0,-step,0);
+//                break;
+//            case LEFT:
+//                switch (lookNum){
+//                    case 0: box = box.expand(step,0,0);break;
+//                    case 1: box = box.expand(0,0, -step);break;
+//                    case 2: box = box.expand(-step,0,0);break;
+//                    case 3: box = box.expand(0,0,step);break;
+//                }
+//                break;
+//            case RIGHT:
+//                switch (lookNum){
+//                    case 0: box = box.expand(-step,0,0);break;
+//                    case 1: box = box.expand(0,0, step);break;
+//                    case 2: box = box.expand(step,0,0);break;
+//                    case 3: box = box.expand(0,0,-step);break;
+//                }
+//                break;
+//            case FORWARD:
+//                switch (lookNum){
+//                    case 3: box = box.expand(-step,0,0);break;
+//                    case 0: box = box.expand(0,0, step);break;
+//                    case 1: box = box.expand(step,0,0);break;
+//                    case 2: box = box.expand(0,0,-step);break;
+//                }
+//                break;
+//            case BACKWARD:
+//                switch (lookNum){
+//                    case 3: box = box.expand(step,0,0);break;
+//                    case 0: box = box.expand(0,0, -step);break;
+//                    case 1: box = box.expand(-step,0,0);break;
+//                    case 2: box = box.expand(0,0,step);break;
+//                }
+//                break;
+//        }
+//    }
+//
+//    public void contract(DIRECTION dir,int step){
+//        Vec3d look = mc.player.getLook(0);
+//        int lookNum = transLookToInt(look.x,look.z);
+//
+//        switch (dir){
+//            case UP:
+//                box = box.contract(0,step,0);
+//                break;
+//            case DOWN:
+//                box = box.contract(0,-step,0);
+//                break;
+//            case LEFT:
+//                switch (lookNum){
+//                    case 0: box = box.contract(step,0,0);break;
+//                    case 1: box = box.contract(0,0, -step);break;
+//                    case 2: box = box.contract(-step,0,0);break;
+//                    case 3: box = box.contract(0,0,step);break;
+//                }
+//                break;
+//            case RIGHT:
+//                switch (lookNum){
+//                    case 0: box = box.contract(-step,0,0);break;
+//                    case 1: box = box.contract(0,0, step);break;
+//                    case 2: box = box.contract(step,0,0);break;
+//                    case 3: box = box.contract(0,0,-step);break;
+//                }
+//                break;
+//            case FORWARD:
+//                switch (lookNum){
+//                    case 3: box = box.contract(-step,0,0);break;
+//                    case 0: box = box.contract(0,0, step);break;
+//                    case 1: box = box.contract(step,0,0);break;
+//                    case 2: box = box.contract(0,0,-step);break;
+//                }
+//                break;
+//            case BACKWARD:
+//                switch (lookNum){
+//                    case 3: box = box.contract(step,0,0);break;
+//                    case 0: box = box.contract(0,0, -step);break;
+//                    case 1: box = box.contract(-step,0,0);break;
+//                    case 2: box = box.contract(0,0,step);break;
+//                }
+//                break;
+//        }
+//    }
 
     public boolean isShow() {
         return show;
@@ -244,19 +244,19 @@ public class AABBSelectArea {
         this.show = show;
     }
 
-    public enum DIRECTION{
-        UP,DOWN,LEFT,RIGHT,FORWARD,BACKWARD;
-    }
+//    public enum DIRECTION{
+//        UP,DOWN,LEFT,RIGHT,FORWARD,BACKWARD;
+//    }
 
-    public static class RenderHelper {
-
-        public static void render(AABBSelectArea selectArea,float r,float b,float g){
-            if(selectArea.isShow()) {
-                GlStateManager.enablePolygonOffset();
-                GlStateManager.doPolygonOffset(-1, -1);
-                DrawHelper.drawCube(selectArea.box, r, b, g);
-                GlStateManager.disablePolygonOffset();
-            }
-        }
-    }
+//    public static class RenderHelper {
+//
+//        public static void render(AABBSelectArea selectArea,float r,float b,float g){
+//            if(selectArea.isShow()) {
+//                GlStateManager.enablePolygonOffset();
+//                GlStateManager.doPolygonOffset(-1, -1);
+//                DrawHelper.drawCube(selectArea.box, r, b, g);
+//                GlStateManager.disablePolygonOffset();
+//            }
+//        }
+//    }
 }

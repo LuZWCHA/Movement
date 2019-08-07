@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.client.renders;
 
 import com.google.common.collect.Queues;
+import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
@@ -9,6 +10,9 @@ import net.minecraft.client.renderer.culling.ClippingHelperImpl;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public enum ModuleRenderManager {
@@ -20,6 +24,7 @@ public enum ModuleRenderManager {
     private ChunkRenderDispatcher chunkRenderDispatcher;
     private final BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
 
+    private final Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
 
     ModuleRenderManager(){
 //        try {
@@ -46,6 +51,25 @@ public enum ModuleRenderManager {
             queueFreeRenderBuilders = Queues.newArrayBlockingQueue(0);
         }
 
+        cubesRendererMap = new HashMap<>();
+
+    }
+
+    public void addCubesRenderer(@Nonnull AbstractPrefab abstractPrefab){
+        CubesRenderer renderer = new CubesRenderer(abstractPrefab);
+        cubesRendererMap.put(abstractPrefab,renderer);
+    }
+
+    public void removeCubesRenderer(@Nonnull AbstractPrefab prefab){
+        CubesRenderer cubesRenderer = cubesRendererMap.get(prefab);
+        if(cubesRenderer != null) {
+            cubesRenderer.invalid();
+            cubesRendererMap.remove(prefab);
+        }
+    }
+
+    public CubesRenderer getRenderer(@Nonnull AbstractPrefab prefab){
+        return cubesRendererMap.get(prefab);
     }
 
     public void stopThreadPool(){

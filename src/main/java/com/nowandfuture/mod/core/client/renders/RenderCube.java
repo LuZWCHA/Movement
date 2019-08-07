@@ -42,6 +42,7 @@ public class RenderCube {
     private CubeCompileTask cubeCompileTask;
 
     private VertexBuffer[] vertexBuffers = new VertexBuffer[BlockRenderLayer.values().length];
+    private boolean[] vboBind = new boolean[BlockRenderLayer.values().length];
 
     private final ReentrantLock lockCompileTask = new ReentrantLock();
     private BlockRendererDispatcher dispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
@@ -67,7 +68,16 @@ public class RenderCube {
         }
     }
 
-    public void createCompileTask(){
+    public void rebuildCompileTask(){
+        taskLock.lock();
+        try {
+            this.cubeCompileTask = new CubeCompileTask(this);
+        }finally {
+            taskLock.unlock();
+        }
+    }
+
+    public void createNewCompileTask(){
         taskLock.lock();
         try {
             if (!cubeCompileTask.isFinished())
@@ -109,7 +119,7 @@ public class RenderCube {
 
     //local world pos
     public OBBox getTransformedOBBounding(){
-        return getBounding().transform(world.getModelMatrix());
+        return getBounding().transform(cubesRenderer.getModelMatrix());
     }
 
     public CubeCompileTask getCubeCompileTask() {
@@ -123,10 +133,6 @@ public class RenderCube {
     public VertexBuffer getVertexBufferByLayer(int layer)
     {
         return vertexBuffers[layer];
-    }
-
-    public BlockPos getIndex() {
-        return pos;
     }
 
     public SetVisibility getSetVisibility() {
@@ -143,7 +149,7 @@ public class RenderCube {
     }
 
     public Vector3f getTransformedBasePos(){
-        return world.getTransformedPos(new Vector3f(pos.getX() * CUBE_SIZE,pos.getY() * CUBE_SIZE,pos.getZ() * CUBE_SIZE));
+        return CubesBuilder.getTransformPos(new Vector3f(pos.getX() * CUBE_SIZE,pos.getY() * CUBE_SIZE,pos.getZ() * CUBE_SIZE),cubesRenderer);
     }
 
     public BlockPos getPos() {
@@ -244,7 +250,15 @@ public class RenderCube {
     public ListenableFuture upload(BlockRenderLayer layer, double distance){
         VertexBuffer vertexBuffer = getVertexBufferByLayer(layer.ordinal());
         BufferBuilder bufferBuilder = cubeCompileTask.getCacheBuilder().getWorldRendererByLayer(layer);
-        return cubesRenderer.upload(vertexBuffer,bufferBuilder,distance);
+        return cubesRenderer.upload(this,layer,vertexBuffer,bufferBuilder,distance);
+    }
+
+    public void setVboBind(int index ,boolean b){
+        vboBind[index] = b;
+    }
+
+    public boolean isVboBind(BlockRenderLayer blockRenderLayer){
+        return vboBind[blockRenderLayer.ordinal()];
     }
 
     public void deleteGlResources()
@@ -318,5 +332,9 @@ public class RenderCube {
 
     public int getRenderFrame() {
         return renderFrame;
+    }
+
+    public CubesRenderer getCubesRenderer() {
+        return cubesRenderer;
     }
 }

@@ -21,10 +21,10 @@ public class TileEntityTimeLineEditorRenderer extends TileEntityModuleRenderer<T
 
         super.render(te,x + 1,y,z,partialTicks,destroyStage,alpha);
 
-        if(te.isRenderValid() && te.getModuleBase().getPrefab() != null) {
+        if(te.isEnable() && te.getModuleBase().getPrefab() != null) {
             GlStateManager.pushMatrix();
             GlStateManager.translate(x + 1,y,z);
-            DrawHelper.drawOutlinedBoundingBox(te.getModuleBase().getPrefab().getTransformedBounding());
+//            DrawHelper.drawOutlinedBoundingBox(te.getModuleBase().getPrefab().getTransformedBounding());
             DrawHelper.drawCoordinateAxis();
             GlStateManager.popMatrix();
         }

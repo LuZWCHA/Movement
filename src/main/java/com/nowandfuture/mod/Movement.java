@@ -2,6 +2,7 @@ package com.nowandfuture.mod;
 
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.GuiHandler;
+import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.setup.IProxy;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -20,7 +21,7 @@ public class Movement {
 
         public static final String MODID = "movement";
         public static final String NAME = "Movement Mod";
-        public static final String VERSION = "0.1";
+        public static final String VERSION = "0.04";
 
         @Mod.Instance
         public static Movement instance;
@@ -35,8 +36,7 @@ public class Movement {
         {
             logger = event.getModLog();
             proxy.preInit(event);
-            MinecraftForge.EVENT_BUS.register(new CollisionHandler());
-
+            NetworkHandler.INSTANCE.init();
         }
 
         @Mod.EventHandler
