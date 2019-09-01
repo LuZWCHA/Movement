@@ -1,0 +1,16 @@
+{
+	"parent": "item/generated",
+	"textures": {
+		"layer0": "movement:items/prefab_complete"
+	},
+	"overrides": [
+		{
+			"predicate": {"movement:ready": 0},
+			"model": "movement:item/item_prefab_empty"
+		},
+		{
+			"predicate": {"movement:ready": 1},
+			"model": "movement:item/item_prefab"
+		}
+	]
+}

@@ -33,3 +33,20 @@ movement.module.btn.show=显示
 movement.module.btn.collision.enable=启用碰撞（测试）
 movement.module.btn.collision.disable=关闭碰撞（测试）
 movement.module.lab.collision.tip=仅使用最小包围盒检测碰撞仅客户端生效
+
+movement.tooltip.prefab.size=大小
+movement.tooltip.timeline.mode=模式:
+movement.tooltip.timeline.step=步长:
+movement.tooltip.timeline.duration=总时长:
+movement.tooltip.timeline.enable=启用:
+
+
+tile.ConstructorBlock.name=构建器
+tile.ModuleCoreBlock.name=核心模块
+tile.ModuleTimelineEditorBlock.name=动画编辑器
+
+item.timeline.name=时间线
+item.prefab.empty.name=空白预制件
+item.prefab.complete.name=预制件
+
+itemGroup.Movemen Mod=运动

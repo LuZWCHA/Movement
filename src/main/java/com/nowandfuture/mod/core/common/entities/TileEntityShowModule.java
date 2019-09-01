@@ -4,6 +4,7 @@ import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.EmptyPrefab;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -15,6 +16,7 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class TileEntityShowModule extends TileEntityModule {
     @Override
     public double getMaxRenderDistanceSquared() {
         return super.getMaxRenderDistanceSquared();
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+        return (oldState.getBlock() != newSate.getBlock());
     }
 
     @Override

@@ -1,0 +1,6 @@
+{
+	"variants": {
+        "powered=true": {"model": "movement:module_block_powered"},
+        "powered=false": { "model": "movement:module_block" }
+	}
+}

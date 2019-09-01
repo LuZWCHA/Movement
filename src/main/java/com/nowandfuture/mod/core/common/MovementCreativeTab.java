@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common;
 
+import com.nowandfuture.mod.handler.RegisterHandler;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
@@ -17,6 +18,6 @@ public class MovementCreativeTab extends CreativeTabs {
 
     @Override
     public ItemStack getTabIconItem() {
-        return new ItemStack(Blocks.WOOL);
+        return new ItemStack(RegisterHandler.constructorBlock);
     }
 }

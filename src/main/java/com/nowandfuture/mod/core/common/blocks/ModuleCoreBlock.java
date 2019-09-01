@@ -11,8 +11,10 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
@@ -46,6 +48,20 @@ public class ModuleCoreBlock extends BlockDirectional {
             worldIn.updateComparatorOutputLevel(pos, this);
         }
         super.breakBlock(worldIn, pos, state);
+    }
+
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+
+        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+    }
+
+    @Override
+    public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
+        if(!worldIn.isRemote){
+            updateState(worldIn,pos,state);
+        }
+        super.onBlockAdded(worldIn, pos, state);
     }
 
     @Override
@@ -123,12 +139,6 @@ public class ModuleCoreBlock extends BlockDirectional {
         return i|(state.getValue(POWERED) ? 8:0);
     }
 
-    @Override
-    public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor) {
-        super.onNeighborChange(world, pos, neighbor);
-
-    }
-
 
     @Override
     public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
@@ -137,16 +147,19 @@ public class ModuleCoreBlock extends BlockDirectional {
 
     private void updateState(World world, BlockPos pos, IBlockState state)
     {
+        boolean flag = world.isBlockPowered(pos);
 
         if(!world.isRemote) {
-            boolean flag = world.isBlockPowered(pos);
-
             TileEntity tileEntity = world.getTileEntity(pos);
+            state = state.withProperty(POWERED,flag);
+//            world.notifyBlockUpdate(pos,state,state,3);
+            world.setBlockState(pos, state, 3);
+            world.notifyNeighborsOfStateChange(pos,this,false);
+
             if (tileEntity != null && tileEntity instanceof TileEntityModule) {
                 if (flag && !((TileEntityModule) tileEntity).getLine().isEnable()) {
                     ((TileEntityModule) tileEntity).getLine().start();
                     NetworkHandler.syncToTrackingClients(world,tileEntity,((TileEntityModule) tileEntity).getTimelineUpdatePacket(((TileEntityModule) tileEntity).getLine().getTick(),((TileEntityModule) tileEntity).getLine().isEnable()));
-
                 } else if(!flag && ((TileEntityModule) tileEntity).getLine().isEnable()){
                     ((TileEntityModule) tileEntity).getLine().stop();
                     NetworkHandler.syncToTrackingClients(world,tileEntity,((TileEntityModule) tileEntity).getTimelineUpdatePacket(((TileEntityModule) tileEntity).getLine().getTick(),((TileEntityModule) tileEntity).getLine().isEnable()));

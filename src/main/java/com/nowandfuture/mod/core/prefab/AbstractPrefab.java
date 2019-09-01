@@ -31,9 +31,9 @@ public abstract class AbstractPrefab implements ITickable {
     private static final String NBT_BASE_Y = "BaseY";
     private static final String NBT_BASE_Z = "BaseZ";
 
-    private static final String NBT_SIZE_X = "SizeX";
-    private static final String NBT_SIZE_Y = "SizeY";
-    private static final String NBT_SIZE_Z = "SizeZ";
+    public static final String NBT_SIZE_X = "SizeX";
+    public static final String NBT_SIZE_Y = "SizeY";
+    public static final String NBT_SIZE_Z = "SizeZ";
 
     private static final String NBT_CENTER_X = "CenterX";
     private static final String NBT_CENTER_Y = "CenterY";
@@ -46,7 +46,7 @@ public abstract class AbstractPrefab implements ITickable {
     private static final String NBT_MIN_AABB_MAX_Y = "maxY";
     private static final String NBT_MIN_AABB_MAX_Z = "maxZ";
 
-    private static final String NBT_CONSTRUCT_READY = "ConstructReady";
+    public static final String NBT_CONSTRUCT_READY = "ConstructReady";
 
     public static final String NBT_PREFAB_NAME = "PrefabName";
 

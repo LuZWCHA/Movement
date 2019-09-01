@@ -7,11 +7,11 @@ import java.io.Serializable;
 
 public class TimeLine {
 
-    public final String NBT_ANM_LINE_ENABLE = "LineEnable";
-    public final String NBT_ANM_LINE_TOTAL = "TotalTick";
-    public final String NBT_ANM_LINE_TICK = "Tick";
-    public final String NBT_ANM_LINE_STEP = "Step";
-    public final String NBT_ANM_LINE_MODE = "Mode";
+    public static final String NBT_ANM_LINE_ENABLE = "LineEnable";
+    public static final String NBT_ANM_LINE_TOTAL = "TotalTick";
+    public static final String NBT_ANM_LINE_TICK = "Tick";
+    public static final String NBT_ANM_LINE_STEP = "Step";
+    public static final String NBT_ANM_LINE_MODE = "Mode";
 
     private boolean enable;
 

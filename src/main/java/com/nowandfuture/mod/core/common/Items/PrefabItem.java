@@ -2,15 +2,23 @@ package com.nowandfuture.mod.core.common.Items;
 
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import joptsimple.internal.Strings;
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.nowandfuture.mod.Movement.MODID;
 
 public class PrefabItem extends Item {
 
@@ -19,6 +27,26 @@ public class PrefabItem extends Item {
         this.setMaxStackSize(1);
         this.setMaxDamage(0);
         this.setHasSubtypes(true);
+        addPropertyOverride(new ResourceLocation(MODID, "ready"), new IItemPropertyGetter() {
+            @Override
+            public float apply(ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
+                return isReady(stack.getTagCompound()) ? 1:0;//1 - isReady
+            }
+        });
+    }
+
+    public String getUnlocalizedName(ItemStack stack) {
+        NBTTagCompound nbt = stack.getTagCompound();
+
+        boolean isReady = isReady(nbt);
+        return super.getUnlocalizedName() + (isReady ? ".complete":".empty");
+    }
+
+    public boolean isReady(NBTTagCompound nbt){
+        boolean isReady = nbt != null &&
+                nbt.hasKey(AbstractPrefab.NBT_CONSTRUCT_READY) &&
+                nbt.getBoolean(AbstractPrefab.NBT_CONSTRUCT_READY);
+        return isReady;
     }
 
     public static String getPrefabName(ItemStack stack){
@@ -41,9 +69,26 @@ public class PrefabItem extends Item {
     }
 
     @Override
-    public String getItemStackDisplayName(ItemStack stack) {
-        String name = getPrefabName(stack);
-        return name;
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+        NBTTagCompound nbt = stack.getTagCompound();
+        String name = Strings.EMPTY;
+        if(nbt != null){
+            if(nbt.hasKey(AbstractPrefab.NBT_PREFAB_NAME)){
+                name = nbt.getString(AbstractPrefab.NBT_PREFAB_NAME);
+            }
+            tooltip.add(name.isEmpty() ? "NoName" : name);
+
+            if(nbt.hasKey(AbstractPrefab.NBT_SIZE_X)) {
+                Vec3i size = new Vec3i(
+                        nbt.getInteger(AbstractPrefab.NBT_SIZE_X),
+                        nbt.getInteger(AbstractPrefab.NBT_SIZE_Y),
+                        nbt.getInteger(AbstractPrefab.NBT_SIZE_Z)
+                );
+                tooltip.add(I18n.format("movement.tooltip.prefab.size")+
+                        ":"+
+                        size.getX() + " * " + size.getY() + " * " + size.getZ());
+            }
+        }
     }
 
     @Override

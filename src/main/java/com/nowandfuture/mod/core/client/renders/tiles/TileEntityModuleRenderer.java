@@ -32,13 +32,6 @@ public class TileEntityModuleRenderer<T extends TileEntityModule> extends TileEn
                 }
             }
         }
-        //        if(te.isRenderValid() && te.getModuleBase().getPrefab() != null) {
-//            GlStateManager.pushMatrix();
-//            GlStateManager.translate(x,y,z);
-//            te.renderTileEntities(partialTicks);
-//            GlStateManager.popMatrix();
-//            RenderHandler.addRenderer(te);
-//        }
     }
 
     @Override

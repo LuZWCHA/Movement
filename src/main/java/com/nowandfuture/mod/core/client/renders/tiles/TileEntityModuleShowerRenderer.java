@@ -28,6 +28,7 @@ public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<Til
 
     public void renderBlock(TileEntityShowModule te, double x, double y, double z){
         Minecraft.getMinecraft().entityRenderer.enableLightmap();
+        RenderHelper.disableStandardItemLighting();
         GlStateManager.pushMatrix();
         GlStateManager.translate(x-te.getPos().getX(),y-te.getPos().getY(),z-te.getPos().getZ());
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -48,6 +49,7 @@ public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<Til
         bufferBuilder.finishDrawing();
         worldVertexBufferUploader.draw(bufferBuilder);
 
+        RenderHelper.enableStandardItemLighting();
         GlStateManager.popMatrix();
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
 
