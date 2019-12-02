@@ -173,8 +173,11 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         for (MyGui t :
                 guiList) {
             t.draw(mouseX,mouseY,partialTicks);
+            t.draw2(mouseX, mouseY, partialTicks);
         }
         rootView.draw(mouseX, mouseY, partialTicks);
+        rootView.draw2(mouseX, mouseY, partialTicks);
+
         RenderHelper.enableStandardItemLighting();
         GlStateManager.enableLighting();
     }
@@ -339,6 +342,16 @@ public abstract class AbstractGuiContainer extends GuiContainer {
 
     protected void childFocused(MyGui gui){
 
+    }
+
+    @Override
+    public void onGuiClosed() {
+        onDestroy();
+        super.onGuiClosed();
+    }
+
+    public void onDestroy(){
+        rootView.clear();
     }
 
     @Override

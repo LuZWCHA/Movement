@@ -159,6 +159,13 @@ public class CubesRenderer implements IRender{
         this.render(layer);
         this.renderPost(p);
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
+    }
+
+    public void renderBlockRenderLayerStatic(BlockRenderLayer layer){
+        if(!isBuilt()) return;
+        this.renderPre(getPrefab().getBasePos(),0);
+        this.render(layer);
+        this.renderPost(0);
 
     }
 
@@ -212,6 +219,57 @@ public class CubesRenderer implements IRender{
                             tileEntry.getKey().getY(),
                             tileEntry.getKey().getZ(),
                             (float) p, -1, 1);
+
+                    if (isGlobal) {
+                        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+                    }
+                });
+
+        //enableStandardItemLighting in drawBatch(int pass);
+//        dispatcher.drawBatch(ForgeHooksClient.getWorldRenderPass());
+        RenderHelper.disableStandardItemLighting();
+        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+    }
+
+    public void renderTileEntityStatic() {
+        LocalWorld localWorld = prefab.getLocalWorld();
+        LocalWorldWrap worldWrap = prefab.getWorldWrap();
+
+        GlStateManager.resetColor();
+        Minecraft.getMinecraft().entityRenderer.enableLightmap();
+        final TileEntityRendererDispatcher dispatcher = TileEntityRendererDispatcher.instance;
+        RenderHelper.enableStandardItemLighting();
+
+//        dispatcher.preDrawBatch();
+
+        localWorld.getTileEntitySet()
+                .forEach(tileEntry -> {
+                    TileEntity tileEntity = tileEntry.getValue();
+
+                    if (tileEntity == null || localWorld.isBaned(tileEntity)) return;
+
+                    tileEntity.setPos(tileEntry.getKey());
+                    tileEntity.setWorld(worldWrap);
+
+                    BlockPos blockPos = tileEntity.getPos();
+
+                    int i = localWorld.getActCombinedLight(blockPos, 0,false);
+                    int j = i % 65536;int k = i / 65536;
+                    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                    TileEntitySpecialRenderer renderer = dispatcher.getRenderer(tileEntity.getClass());
+                    boolean isGlobal = (renderer != null && renderer.isGlobalRenderer(tileEntity));
+
+                    if (isGlobal) {
+                        Minecraft.getMinecraft().entityRenderer.disableLightmap();
+                    }
+
+                    dispatcher.render(tileEntry.getValue(),
+                            tileEntry.getKey().getX(),
+                            tileEntry.getKey().getY(),
+                            tileEntry.getKey().getZ(),
+                            (float) 0, -1, 1);
 
                     if (isGlobal) {
                         Minecraft.getMinecraft().entityRenderer.enableLightmap();

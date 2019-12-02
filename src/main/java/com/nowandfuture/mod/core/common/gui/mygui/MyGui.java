@@ -13,6 +13,7 @@ public interface MyGui {
     void setWidth(int width);
     void setHeight(int height);
     void draw(int mouseX, int mouseY, float partialTicks);
+    void draw2(int mouseX, int mouseY, float partialTicks);
 
     boolean mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException;
     boolean mouseLongClicked(int mouseX, int mouseY, int mouseButton) throws IOException;

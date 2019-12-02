@@ -7,6 +7,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.MyComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.PreviewView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
@@ -20,7 +21,7 @@ import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.MovementMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
-import net.minecraft.client.Minecraft;
+import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -30,9 +31,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Quaternion;
+import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import javax.vecmath.AxisAngle4f;
@@ -49,14 +51,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private InventoryPlayer inventoryPlayer;
     private KeyFrameLine timeLine;
 
-    private TimeLineView view;
+    private TimeLineView timelineView;
+    private PreviewView previewView;
+
     private MyButton reStartBtn;
 
     private MyComboBox comboBox;
 
+
     //for scale need one
     //for pos need three
-    //for rotation need seven (center,aix,angle)
+    //for rotation need six (center{vet3},aixRotAngle{vet3})
     private MyLabel numLabel0;
     private MyTextField numBox0;
     private MyLabel numLabel1;
@@ -88,7 +93,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         this.inventoryPlayer = playerInv;
         timeLine = new KeyFrameLine();
 
-        view = new TimeLineView(getRootView());
+        timelineView = new TimeLineView(getRootView());
+        previewView = new PreviewView(getRootView());
         comboBox = new MyComboBox(getRootView());
 
         tileMovementModule.setSlotChanged(new ChangeListener() {
@@ -111,21 +117,31 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     public void onLoad() {
         timeLine = tileMovementModule.getLine().clone();
         //trans a clone of keyframe line not the origin one
-        view.init(timeLine,tileMovementModule.getPrefab());
+        timelineView.init(timeLine,tileMovementModule.getPrefab());
+        //test
+        previewView.setPrefab(tileMovementModule.getPrefab());
 
-        view.setX(8);
-        view.setY(16);
-        view.setWidth(88);
-        view.setHeight(48);
+        //test
+        previewView.setX(100);
+        previewView.setY(0);
+        previewView.setWidth(100);
+        previewView.setHeight(60);
 
-        view.setSelectKeyFrameChange(new Consumer<KeyFrame>() {
+        addView(previewView);
+
+        timelineView.setX(8);
+        timelineView.setY(16);
+        timelineView.setWidth(88);
+        timelineView.setHeight(48);
+
+        timelineView.setSelectKeyFrameChange(new Consumer<KeyFrame>() {
             @Override
             public void accept(KeyFrame keyFrame) {
                 updateEditGroup(keyFrame);
             }
         });
 
-        addView(view);
+        addView(timelineView);
 
         List<String> list = new ArrayList<>();
         list.add(R.name(R.id.text_module_cmb_mode_rcy_id));
@@ -382,16 +398,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numBox1.setVisible(true);
                     numBox2.setVisible(true);
 
-                    numBox3.setText(String.valueOf(rotationKeyFrame.axisAngle4f.x));
-                    numBox4.setText(String.valueOf(rotationKeyFrame.axisAngle4f.y));
-                    numBox5.setText(String.valueOf(rotationKeyFrame.axisAngle4f.z));
+                    Vector3f vector3f = MathHelper.quaternionToEulerAngles(rotationKeyFrame.quaternion);
+                    numBox3.setText(String.valueOf(vector3f.x));
+                    numBox4.setText(String.valueOf(vector3f.y));
+                    numBox5.setText(String.valueOf(vector3f.z));
 
                     numBox3.setVisible(true);
                     numBox4.setVisible(true);
                     numBox5.setVisible(true);
 
-                    numBox6.setText(String.valueOf(rotationKeyFrame.axisAngle4f.angle));
-                    numBox6.setVisible(true);
+//                    numBox6.setText(String.valueOf(rotationKeyFrame.axisAngle4f.angle));
+//                    numBox6.setVisible(true);
 
                     keyTitle.setLine(0, R.name(R.id.text_module_lab_key_title2_id) + String.valueOf(keyFrame.getBeginTick()));
 
@@ -448,21 +465,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         DrawHelper.drawTexturedModalRect(this.guiLeft, this.guiTop,this.zLevel, 0, 0, this.xSize, this.ySize,this.xSize,this.ySize);
 
         this.mc.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-
-        drawPrefab(partialTicks);
     }
 
-    private void drawPrefab(float partialTicks){
-        GlStateManager.enableDepth();
-        RenderHelper.enableGUIStandardItemLighting();
-        GlStateManager.pushMatrix();
 
-        if(tileMovementModule.getModuleBase().getPrefab().isLocalWorldInit())
-            tileMovementModule.getModuleBase().renderForGui(partialTicks,(float) (timeLine.getProgress(partialTicks) * 360));
-        RenderHelper.enableGUIStandardItemLighting();
-        GlStateManager.popMatrix();
-        GL11.glDepthFunc(GL11.GL_LEQUAL);
-    }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
@@ -494,7 +499,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     private void submitValue(){
-        KeyFrame keyFrame = view.getSelectFrame();
+        KeyFrame keyFrame = timelineView.getSelectFrame();
         if(currentType == KeyFrame.KeyFrameType.LINEAR.ordinal()){
             if(keyFrame instanceof LinearTransformNode.LinearKeyFrame){
                 double x,y,z;
@@ -522,7 +527,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         }else if(currentType == KeyFrame.KeyFrameType.ROTATION.ordinal()){
             if(keyFrame instanceof RotationTransformNode.RotationKeyFrame) {
                 int centerX, centerY, centerZ;
-                float rotX, rotY, rotZ,angle;
+                float rotX, rotY, rotZ;
                 try {
                     centerX = Integer.parseInt(numBox0.getText());
                     centerY = Integer.parseInt(numBox1.getText());
@@ -532,12 +537,14 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     rotY = Float.parseFloat(numBox4.getText());
                     rotZ = Float.parseFloat(numBox5.getText());
 
-                    angle = Float.parseFloat(numBox6.getText());
+                    //rotW = Float.parseFloat(numBox6.getText());
+
+                    Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(rotX,rotY,rotZ);
 
                     ((RotationTransformNode.RotationKeyFrame) keyFrame).center =
                             new BlockPos(centerX, centerY, centerZ);
-                    ((RotationTransformNode.RotationKeyFrame) keyFrame).axisAngle4f =
-                            new AxisAngle4f(rotX, rotY, rotZ,angle);
+                    ((RotationTransformNode.RotationKeyFrame) keyFrame).quaternion =
+                            quaternion;
 
                 } catch (NumberFormatException e) {
                     onError();
@@ -548,8 +555,10 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private void slotChange(){
         if(tileMovementModule.getStackInSlot(0).isEmpty()){
+            System.out.println("empty");
             //do nothing
         }else{
+            System.out.println("full"); 
             //do nothing
         }
 

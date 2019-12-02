@@ -2,9 +2,12 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -58,6 +61,8 @@ public abstract class ViewGroup extends Gui implements MyGui {
     }
 
     public int getAbsoluteX(){
+        final ScaledResolution res = new ScaledResolution(getRoot().context);
+
         if(parent != null)
             return parent.getAbsoluteX() + x;
         else
@@ -65,6 +70,8 @@ public abstract class ViewGroup extends Gui implements MyGui {
     }
 
     public int getAbsoluteY(){
+        final ScaledResolution res = new ScaledResolution(getRoot().context);
+
         if(parent != null)
             return parent.getAbsoluteY() + y;
         else
@@ -144,7 +151,22 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
     }
 
+    @Override
+    public void draw2(int mouseX, int mouseY, float partialTicks) {
+        onDraw2(mouseX, mouseY, partialTicks);
+        for (ViewGroup view :
+                children) {
+            if(view.isVisible()) {
+                view.draw2(mouseX, mouseY, partialTicks);
+            }
+        }
+    }
+
     protected abstract void onDraw(int mouseX, int mouseY, float partialTicks);
+
+    protected void onDraw2(int mouseX, int mouseY, float partialTicks){
+
+    }
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
@@ -293,6 +315,10 @@ public abstract class ViewGroup extends Gui implements MyGui {
     }
 
     public void clear(){
+        for (ViewGroup view :
+                children) {
+            view.clear();
+        }
         children.clear();
     }
 
@@ -321,5 +347,22 @@ public abstract class ViewGroup extends Gui implements MyGui {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    public void drawString3D(String s, float x, float y , float z, int r, int g, int b, int a){
+        drawString3D(s, x, y, z, r, g, b, a,new Vector3f(0,0,1));
+    }
+    public void drawString3D(String s, float x, float y , float z, int r, int g, int b, int a,Vector3f nomal){
+        drawString3D(s, x, y, z, r, g, b, a,nomal,0.05f);
+    }
+    public void drawString3D(String s, float x, float y , float z, int r, int g, int b, int a, Vector3f nomal,float scale){
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x,y,z);
+        GlStateManager.glNormal3f(nomal.x,nomal.y,nomal.z);
+        GlStateManager.scale(scale,scale,1);
+        GlStateManager.translate(0,getRoot().context.fontRenderer.FONT_HEIGHT,0);
+        GlStateManager.rotate(180,1,0,0);
+        drawString(getRoot().context.fontRenderer,s,0,(int)0,DrawHelper.colorInt(r,g,b,a));
+        GlStateManager.popMatrix();
     }
 }

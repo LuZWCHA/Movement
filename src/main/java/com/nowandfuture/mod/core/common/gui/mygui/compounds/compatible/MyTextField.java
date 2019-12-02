@@ -62,6 +62,11 @@ public class MyTextField extends GuiTextField implements MyGui,IType,IUpdate {
     }
 
     @Override
+    public void draw2(int mouseX, int mouseY, float partialTicks) {
+        //do nothing
+    }
+
+    @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
         return super.mouseClicked(mouseX, mouseY, mouseButton);
     }

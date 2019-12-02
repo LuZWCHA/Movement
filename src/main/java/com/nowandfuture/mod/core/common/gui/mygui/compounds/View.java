@@ -33,6 +33,11 @@ public abstract class View extends ViewGroup {
         return true;
     }
 
+
+    /**
+     * this method would execute at the first time of the view been load (at parent view's onLoad)
+     * and it only execute one time on a view's life
+     */
     @Override
     protected void onLoad() {
 
@@ -50,7 +55,6 @@ public abstract class View extends ViewGroup {
 
     @Override
     public final void draw(int mouseX, int mouseY, float partialTicks) {
-        ;
         if(isScissor) {
             final ScaledResolution res = new ScaledResolution(getRoot().context);
             final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
@@ -70,4 +74,6 @@ public abstract class View extends ViewGroup {
     public void setScissor(boolean scissor) {
         isScissor = scissor;
     }
+
+
 }

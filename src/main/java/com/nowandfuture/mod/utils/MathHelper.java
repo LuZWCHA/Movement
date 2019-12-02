@@ -1,9 +1,10 @@
 package com.nowandfuture.mod.utils;
 
-import com.sun.javafx.geom.Vec3f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Quaternion;
+import org.lwjgl.util.vector.Vector3f;
 
 import javax.vecmath.Quat4f;
 
@@ -36,6 +37,36 @@ public class MathHelper {
         to.y = from.y;
         to.z = from.z;
         to.w = from.w;
+    }
+
+    public static Quaternion interpolate(Quaternion var1, Quaternion var2, float var3) {
+        double var4 = (double)(var2.x * var1.x + var2.y * var1.y + var2.z * var1.z + var2.w * var1.w);
+        if (var4 < 0.0D) {
+            var1.x = -var1.x;
+            var1.y = -var1.y;
+            var1.z = -var1.z;
+            var1.w = -var1.w;
+            var4 = -var4;
+        }
+
+        double var6;
+        double var8;
+        if (1.0D - var4 > 1.0E-6D) {
+            double var10 = Math.acos(var4);
+            double var12 = Math.sin(var10);
+            var6 = Math.sin((1.0D - (double)var3) * var10) / var12;
+            var8 = Math.sin((double)var3 * var10) / var12;
+        } else {
+            var6 = 1.0D - (double)var3;
+            var8 = (double)var3;
+        }
+
+        float w = (float)(var6 * (double)var1.w + var8 * (double)var2.w);
+        float x = (float)(var6 * (double)var1.x + var8 * (double)var2.x);
+        float y = (float)(var6 * (double)var1.y + var8 * (double)var2.y);
+        float z = (float)(var6 * (double)var1.z + var8 * (double)var2.z);
+
+        return new Quaternion(x,y,z,w);
     }
 
     public static boolean isInCuboid(Vec3i vecIn,Vec3i min,Vec3i max){
@@ -110,6 +141,7 @@ public class MathHelper {
         Vec4 ans = MulQuaternion(MulQuaternion(Q2, Qsrc), Q1);
         return new Vec3d(ans.y, ans.z, ans.w);
     }
+
     private static Vec4 MulQuaternion(Vec4 q1, Vec4 q2)
     {
         return new Vec4(
@@ -119,6 +151,63 @@ public class MathHelper {
                 q1.x*q2.w + q2.x*q1.w + (q1.y*q2.z - q1.z*q2.y)
         );
     }
+
+    public static Quaternion inverse(Quaternion quaternion) {
+        float length = quaternion.lengthSquared();
+        if (length != 1f && length != 0f) {
+            length = (float) (1.0 / Math.sqrt(length));
+            return new Quaternion(-quaternion.x * length, -quaternion.y * length, -quaternion.z * length, quaternion.w * length);
+        }
+        return new Quaternion(-quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
+    }
+
+    public static Vector3f mult(Vector3f v,Quaternion quaternion) {
+        if (v.x == 0 && v.y == 0 && v.z == 0) {
+            return new Vector3f(0, 0, 0);
+        } else {
+            float w = quaternion.w,x = quaternion.x,y = quaternion.y ,z = quaternion.z;
+            float vx = v.x, vy = v.y, vz = v.z;
+            float rx = w * w * vx + 2 * y * w * vz - 2 * z * w * vy + x * x * vx + 2 * y * x * vy + 2 * z * x * vz
+                    - z * z * vx - y * y * vx;
+            float ry = 2 * x * y * vx + y * y * vy + 2 * z * y * vz + 2 * w * z * vx - z * z * vy + w * w * vy
+                    - 2 * x * w * vz - x * x * vy;
+            float rz = 2 * x * z * vx + 2 * y * z * vy + z * z * vz - 2 * w * y * vx - y * y * vz + 2 * w * x * vy
+                    - x * x * vz + w * w * vz;
+            return new Vector3f(rx, ry, rz);
+        }
+    }
+
+    public static Matrix4f mult(Matrix4f org,Quaternion quaternion) {
+        float x = quaternion.x;
+        float y = quaternion.y;
+        float z = quaternion.z;
+        float w = quaternion.w;
+
+        Matrix4f left = new Matrix4f();
+//                1.0f - 2.0f*y*y - 2.0f*z*z, 2.0f*x*y - 2.0f*z*w, 2.0f*x*z + 2.0f*y*w, 0.0f,
+//                2.0f*x*y + 2.0f*z*w, 1.0f - 2.0f*x*x - 2.0f*z*z, 2.0f*y*z - 2.0f*x*w, 0.0f,
+//                2.0f*x*z - 2.0f*y*w, 2.0f*y*z + 2.0f*x*w, 1.0f - 2.0f*x*x - 2.0f*y*y, 0.0f,
+//                0.0f, 0.0f, 0.0f, 1.0f;
+        left.m00 = 1.0f - 2.0f*y*y - 2.0f*z*z;
+        left.m01 = 2.0f*x*y - 2.0f*z*w;
+        left.m02 = 2.0f*x*z + 2.0f*y*w;
+        left.m03 = 0;
+        left.m10 = 2.0f*x*y + 2.0f*z*w;
+        left.m11 = 1.0f - 2.0f*x*x - 2.0f*z*z;
+        left.m12 = 2.0f*y*z - 2.0f*x*w;
+        left.m13 = 0;
+        left.m20 = 2.0f*x*z - 2.0f*y*w;
+        left.m21 = 2.0f*y*z + 2.0f*x*w;
+        left.m22 = 1.0f - 2.0f*x*x - 2.0f*y*y;
+        left.m23 = 0;
+        left.m30 = 0;
+        left.m31 = 0;
+        left.m32 = 0;
+        left.m33 = 1;
+
+        return Matrix4f.mul(left,org,new Matrix4f());
+    }
+
 
     public static Vec3d Slerp(float t, Vec3d base, Vec3d goal)
     {
@@ -132,6 +221,41 @@ public class MathHelper {
                 (base.y*Pb + goal.y*Pg)/sinTh,
                 (base.z*Pb + goal.z*Pg)/sinTh
         );
+    }
+
+    //x-y-z
+    public static Quaternion eulerAnglesToQuaternion(float roll,float pitch,float hdg)
+    {
+        float cosRoll = net.minecraft.util.math.MathHelper.cos(roll * 0.5f);
+        float sinRoll = net.minecraft.util.math.MathHelper.sin(roll * 0.5f);
+
+        float cosPitch = net.minecraft.util.math.MathHelper.cos(pitch * 0.5f);
+        float sinPitch = net.minecraft.util.math.MathHelper.sin(pitch * 0.5f);
+
+        float cosHeading = net.minecraft.util.math.MathHelper.cos(hdg * 0.5f);
+        float sinHeading = net.minecraft.util.math.MathHelper.sin(hdg * 0.5f);
+
+        float q0 = cosRoll * cosPitch * cosHeading + sinRoll * sinPitch * sinHeading;
+        float q1 = sinRoll * cosPitch * cosHeading - cosRoll * sinPitch * sinHeading;
+        float q2 = cosRoll * sinPitch * cosHeading + sinRoll * cosPitch * sinHeading;
+        float q3 = cosRoll * cosPitch * sinHeading - sinRoll * sinPitch * cosHeading;
+
+        return new Quaternion(q1,q2,q3,q0);
+    }
+
+    //x-y-z
+    public static Vector3f quaternionToEulerAngles(Quaternion quaternion)
+    {
+        float q0 = quaternion.w;
+        float q1 = quaternion.x;
+        float q2 = quaternion.y;
+        float q3 = quaternion.z;
+
+        float roll = (float) net.minecraft.util.math.MathHelper.atan2(2.f * (q2 * q3 + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3);
+        float pitch = (float) Math.asin(2.f * (q0 * q2 - q1 * q3));
+        float yaw = (float) net.minecraft.util.math.MathHelper.atan2(2.f * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3);
+
+        return new Vector3f(roll,pitch,yaw);
     }
 
     public static boolean approximate(double a,double b,double accuracy){

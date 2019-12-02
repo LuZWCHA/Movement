@@ -7,7 +7,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 
 public class RootView implements MyGui{
-    protected Minecraft context = Minecraft.getMinecraft();
+    public Minecraft context = Minecraft.getMinecraft();
 
     protected long LONG_CLICK = 1000;//ms
 
@@ -118,6 +118,12 @@ public class RootView implements MyGui{
         GlStateManager.translate(getX(),getY(),0);
         topView.draw(mouseX - getX(), mouseY - getY(), partialTicks);
         GlStateManager.popMatrix();
+
+    }
+
+    @Override
+    public void draw2(int mouseX, int mouseY, float partialTicks) {
+        topView.draw2(mouseX, mouseY, partialTicks);
     }
 
     @Override
