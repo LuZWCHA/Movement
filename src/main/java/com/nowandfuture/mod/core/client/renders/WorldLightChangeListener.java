@@ -2,6 +2,7 @@ package com.nowandfuture.mod.core.client.renders;
 
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,7 +14,6 @@ import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -46,7 +46,7 @@ public class WorldLightChangeListener implements IWorldEventListener {
                         World actWorld = world.getParentWorld();
 
                         int light = actWorld.getLightFor(EnumSkyBlock.BLOCK,pos);
-                        Vector3f actLocalPos = CubesBuilder.getLocalPos(localPos,cubesRenderer);
+                        Vector3f actLocalPos = CubesBuilder.getLocalPos(localPos, cubesRenderer);
                         world.setLightForCoord(light,actLocalPos.getX(),actLocalPos.getY(),actLocalPos.getZ());
                         renderCube.markUpdate(true);
                     }

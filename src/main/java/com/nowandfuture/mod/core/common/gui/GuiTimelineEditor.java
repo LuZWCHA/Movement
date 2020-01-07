@@ -6,12 +6,14 @@ import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.MyComboBox;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.PreviewView;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TimeLineView;
+import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
+import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.transformers.LinearTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
@@ -21,9 +23,7 @@ import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.MovementMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.MathHelper;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
@@ -32,12 +32,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
-import javax.vecmath.AxisAngle4f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -45,7 +42,13 @@ import java.util.function.Function;
 
 public class GuiTimelineEditor extends AbstractGuiContainer{
     public static final int GUI_ID = 0x103;
-    private final static ResourceLocation MODULE_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/movement_module.png");
+
+    public static final int SLOT_PREFAB = 0;
+    public static final int SLOT_TIMELINE = 1;
+    private final static ResourceLocation MODULE_GUI_TEXTURE =
+            new ResourceLocation(Movement.MODID,
+                    "textures/gui/movement_module.png");
+    private final FrameLayout rightLayout;
 
     private TileEntityTimelineEditor tileMovementModule;
     private InventoryPlayer inventoryPlayer;
@@ -57,7 +60,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private MyButton reStartBtn;
 
     private MyComboBox comboBox;
-
 
     //for scale need one
     //for pos need three
@@ -74,16 +76,19 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private MyTextField numBox4;
     private MyLabel numLabel5;
     private MyTextField numBox5;
-    private MyLabel numLabel6;
-    private MyTextField numBox6;
+//    private MyLabel numLabel6;
+//    private MyTextField numBox6;
 
     private MyLabel keyTitle;
-    private MyButton applyBtn;
-    private MyButton exportBtn;
-    private MyButton importBtn;
+    private MyButton applyBtn,exportBtn,importBtn;
 
     private MyLabel totalTimeLabel;
     private MyTextField totalTimeBox;
+
+    private SliderView xSliderView,ySliderView,zSliderView;
+
+    private MyButton resetBtn,recoverBtn;
+
 
     private int currentType = -1;
 
@@ -94,13 +99,21 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine = new KeyFrameLine();
 
         timelineView = new TimeLineView(getRootView());
-        previewView = new PreviewView(getRootView());
         comboBox = new MyComboBox(getRootView());
 
-        tileMovementModule.setSlotChanged(new ChangeListener() {
+        rightLayout =new FrameLayout(getRootView());
+
+        previewView = new PreviewView(getRootView(), rightLayout);
+        xSliderView = new SliderView(getRootView(), rightLayout);
+        ySliderView = new SliderView(getRootView(), rightLayout);
+        zSliderView = new SliderView(getRootView(), rightLayout);
+
+        rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView);
+
+        tileMovementModule.setSlotChanged(new ChangeListener.ChangeEvent() {
             @Override
-            public void changed() {
-                GuiTimelineEditor.this.slotChange();
+            public void changed(int index) {
+                GuiTimelineEditor.this.slotChange(index);
             }
         });
 
@@ -118,16 +131,65 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine = tileMovementModule.getLine().clone();
         //trans a clone of keyframe line not the origin one
         timelineView.init(timeLine,tileMovementModule.getPrefab());
-        //test
+
+        rightLayout.setX(xSize);
+        rightLayout.setY(0);
+        rightLayout.setWidth(100);
+        rightLayout.setHeight(180);
+
         previewView.setPrefab(tileMovementModule.getPrefab());
 
-        //test
-        previewView.setX(100);
+        previewView.setX(0);
         previewView.setY(0);
         previewView.setWidth(100);
-        previewView.setHeight(60);
+        previewView.setHeight(80);
 
-        addView(previewView);
+        resetBtn = createMyButton(270,90,50,16,R.name(R.id.text_module_btn_preview_reset_id));
+        recoverBtn = createMyButton(324,90,50,16,R.name(R.id.text_module_btn_preview_recover_id));
+
+        xSliderView.setRange(180,-180,0);
+        xSliderView.setX(0);
+        xSliderView.setY(110);
+        xSliderView.setWidth(100);
+        xSliderView.setHeight(10);
+        xSliderView.setProgressChanging(new Consumer<Float>() {
+            @Override
+            public void accept(Float aFloat) {
+                previewView.setXAngle(aFloat);
+                numBox3.setText(String.valueOf(previewView.getXAngle()));
+                previewView.saveToFrame();
+            }
+        });
+
+        ySliderView.setRange(180,-180,0);
+        ySliderView.setX(0);
+        ySliderView.setY(120);
+        ySliderView.setWidth(100);
+        ySliderView.setHeight(10);
+        ySliderView.setProgressChanging(new Consumer<Float>() {
+            @Override
+            public void accept(Float aFloat) {
+                previewView.setYAngle(aFloat);
+                numBox4.setText(String.valueOf(previewView.getYAngle()));
+                previewView.saveToFrame();
+            }
+        });
+
+        zSliderView.setRange(180,-180,0);
+        zSliderView.setX(0);
+        zSliderView.setY(130);
+        zSliderView.setWidth(100);
+        zSliderView.setHeight(10);
+        zSliderView.setProgressChanging(new Consumer<Float>() {
+            @Override
+            public void accept(Float aFloat) {
+                previewView.setZAngle(aFloat);
+                numBox5.setText(String.valueOf(previewView.getZAngle()));
+                previewView.saveToFrame();
+            }
+        });
+
+        addView(rightLayout);
 
         timelineView.setX(8);
         timelineView.setY(16);
@@ -164,16 +226,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         importBtn = createMyButton(12,130,26,20,R.name(R.id.text_module_btn_import_id));
         exportBtn = createMyButton(42,130,26,20,R.name(R.id.text_module_btn_export_id));
         keyTitle = createMyLabel(160,4,40,12,-1)
-                .addLine("").enableBackDraw(false);
+                .enableBackDraw(false);
 
         totalTimeLabel = createMyLabel(12,80,30,18,-1)
-                .addLine(R.name(R.id.text_module_lab_total_time_id)).enableBackDraw(false);
+                .setFirst(R.name(R.id.text_module_lab_total_time_id))
+                .enableBackDraw(false);
 
         totalTimeBox = createMyTextField(50,80,26,18,"");
         totalTimeBox.setValidator(new Predicate<String>() {
             @Override
             public boolean apply(@Nullable String input) {
-                if("".equals(input)) {
+                if("".equals(input) || input ==null) {
                     return true;
                 }
                 try {
@@ -222,6 +285,24 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             }
         });
 
+        bind(resetBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                previewView.resetView();
+            }
+        });
+
+        bind(recoverBtn, new ActionClick() {
+            @Override
+            public void clicked(MyGui gui, int button) {
+                previewView.reload();
+                previewView.saveToFrame();
+                xSliderView.setProgress(0);
+                ySliderView.setProgress(0);
+                zSliderView.setProgress(0);
+            }
+        });
+
         int color = -1;
         numLabel0 = createMyLabel(100,16,20,12,color);
         numLabel1 = createMyLabel(160,16,20,12,color);
@@ -231,15 +312,15 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         numLabel4 = createMyLabel(160,35,20,12,color);
         numLabel5 = createMyLabel(230,35,20,12,color);
 
-        numLabel6 = createMyLabel(100,54,20,12,color);
+//        numLabel6 = createMyLabel(100,54,20,12,color);
 
-        numLabel0.addLine("").enableBackDraw(false);
-        numLabel1.addLine("").enableBackDraw(false);
-        numLabel2.addLine("").enableBackDraw(false);
-        numLabel3.addLine("").enableBackDraw(false);
-        numLabel4.addLine("").enableBackDraw(false);
-        numLabel5.addLine("").enableBackDraw(false);
-        numLabel6.addLine("").enableBackDraw(false);
+        numLabel0.enableBackDraw(false);
+        numLabel1.enableBackDraw(false);
+        numLabel2.enableBackDraw(false);
+        numLabel3.enableBackDraw(false);
+        numLabel4.enableBackDraw(false);
+        numLabel5.enableBackDraw(false);
+//        numLabel6.addLine("").enableBackDraw(false);
 
         numBox0 = createMyTextField(120,16,20,12,"");
         numBox1 = createMyTextField(180,16,20,12,"");
@@ -249,7 +330,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         numBox4 = createMyTextField(180,35,20,12,"");
         numBox5 = createMyTextField(240,35,20,12,"");
 
-        numBox6 = createMyTextField(120,54,20,12,"");
+//        numBox6 = createMyTextField(120,54,20,12,"");
 
         Function<Character,Boolean> numFilter = new Function<Character, Boolean>() {
             @Override
@@ -266,13 +347,15 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         numBox3.setFilter(numFilter);
         numBox4.setFilter(numFilter);
         numBox5.setFilter(numFilter);
-        numBox6.setFilter(numFilter);
+//        numBox6.setFilter(numFilter);
 
         addGuiCompoundsRelative(
                 reStartBtn,
                 applyBtn,
                 exportBtn,
                 importBtn,
+                recoverBtn,
+                resetBtn,
                 keyTitle,
                 totalTimeLabel,
                 totalTimeBox,
@@ -282,17 +365,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 numBox3,
                 numBox4,
                 numBox5,
-                numBox6,
+//                numBox6,
                 numLabel0,
                 numLabel1,
                 numLabel2,
                 numLabel3,
                 numLabel4,
-                numLabel5,
-                numLabel6
+                numLabel5
+//                numLabel6
         );
         clearAllEnum();
-        slotChange();
+        slotChange(SLOT_TIMELINE);//init import and export buttons
     }
 
     private void importTimeline(){
@@ -346,108 +429,91 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     public void updateEditGroup(KeyFrame keyFrame){
         clearAllEnum();
-        keyTitle.setLine(0, "");
-
+        keyTitle.empty();
         if(keyFrame != null){
 
             switch (keyFrame.getType()){
                 case 0://linear
                     LinearTransformNode.LinearKeyFrame linearKeyFrame = (LinearTransformNode.LinearKeyFrame) keyFrame;
-                    numLabel0.setLine(0,R.name(R.id.text_module_lab_value_x_id));
-                    numLabel1.setLine(0,R.name(R.id.text_module_lab_value_y_id));
-                    numLabel2.setLine(0,R.name(R.id.text_module_lab_value_z_id));
-                    numLabel0.visible = true;
-                    numLabel1.visible = true;
-                    numLabel2.visible = true;
+                    numLabel0.setFirst(R.name(R.id.text_module_lab_value_x_id));
+                    numLabel1.setFirst(R.name(R.id.text_module_lab_value_y_id));
+                    numLabel2.setFirst(R.name(R.id.text_module_lab_value_z_id));
 
                     numBox0.setText(String.valueOf(linearKeyFrame.curPos.x));
                     numBox1.setText(String.valueOf(linearKeyFrame.curPos.y));
                     numBox2.setText(String.valueOf(linearKeyFrame.curPos.z));
 
-                    numBox0.setVisible(true);
-                    numBox1.setVisible(true);
-                    numBox2.setVisible(true);
+                    keyTitle.setFirst(R.name(R.id.text_module_lab_key_title1_id) + String.valueOf(keyFrame.getBeginTick()));
 
-                    keyTitle.setLine(0,R.name(R.id.text_module_lab_key_title1_id) + String.valueOf(keyFrame.getBeginTick()));
+                    setVisible(true,numBox0,numBox1,numBox2,numLabel0,numLabel1,numLabel2);
                     break;
                 case 1://rotation
                     RotationTransformNode.RotationKeyFrame rotationKeyFrame = (RotationTransformNode.RotationKeyFrame) keyFrame;
 
-                    numLabel0.setLine(0,R.name(R.id.text_module_lab_value_x_id));
-                    numLabel1.setLine(0,R.name(R.id.text_module_lab_value_y_id));
-                    numLabel2.setLine(0,R.name(R.id.text_module_lab_value_z_id));
-                    numLabel0.visible = true;
-                    numLabel1.visible = true;
-                    numLabel2.visible = true;
+                    numLabel0.setFirst(R.name(R.id.text_module_lab_value_x_id));
+                    numLabel1.setFirst(R.name(R.id.text_module_lab_value_y_id));
+                    numLabel2.setFirst(R.name(R.id.text_module_lab_value_z_id));
 
-                    numLabel3.setLine(0,R.name(R.id.text_module_lab_value_x_id));
-                    numLabel4.setLine(0,R.name(R.id.text_module_lab_value_y_id));
-                    numLabel5.setLine(0,R.name(R.id.text_module_lab_value_z_id));
-                    numLabel3.visible = true;
-                    numLabel4.visible = true;
-                    numLabel5.visible = true;
+                    numLabel3.setFirst(R.name(R.id.text_module_lab_value_x_id));
+                    numLabel4.setFirst(R.name(R.id.text_module_lab_value_y_id));
+                    numLabel5.setFirst(R.name(R.id.text_module_lab_value_z_id));
 
-                    numLabel6.setLine(0,R.name(R.id.text_module_lab_value_angle_id));
-                    numLabel6.visible = true;
+//                    numLabel6.setLine(0,R.name(R.id.text_module_lab_value_angle_id));
+//                    numLabel6.visible = true;
 
                     numBox0.setText(String.valueOf(rotationKeyFrame.center.getX()));
                     numBox1.setText(String.valueOf(rotationKeyFrame.center.getY()));
                     numBox2.setText(String.valueOf(rotationKeyFrame.center.getZ()));
 
-                    numBox0.setVisible(true);
-                    numBox1.setVisible(true);
-                    numBox2.setVisible(true);
-
-                    Vector3f vector3f = MathHelper.quaternionToEulerAngles(rotationKeyFrame.quaternion);
+                    Vector3f vector3f = new Vector3f(rotationKeyFrame.rotX,rotationKeyFrame.rotY,rotationKeyFrame.rotZ);
                     numBox3.setText(String.valueOf(vector3f.x));
                     numBox4.setText(String.valueOf(vector3f.y));
                     numBox5.setText(String.valueOf(vector3f.z));
 
-                    numBox3.setVisible(true);
-                    numBox4.setVisible(true);
-                    numBox5.setVisible(true);
-
 //                    numBox6.setText(String.valueOf(rotationKeyFrame.axisAngle4f.angle));
 //                    numBox6.setVisible(true);
 
-                    keyTitle.setLine(0, R.name(R.id.text_module_lab_key_title2_id) + String.valueOf(keyFrame.getBeginTick()));
+                    keyTitle.setFirst(R.name(R.id.text_module_lab_key_title2_id) + keyFrame.getBeginTick());
 
+                    previewView.setPreKeyFrame((RotationTransformNode.RotationKeyFrame) timeLine.getPreFrame(rotationKeyFrame)
+                            .orElse(new RotationTransformNode.RotationKeyFrame()));
+
+                    previewView.setNextKeyFrame(rotationKeyFrame);
+
+                    previewView.setXAngle(rotationKeyFrame.rotX);
+                    previewView.setYAngle(rotationKeyFrame.rotY);
+                    previewView.setZAngle(rotationKeyFrame.rotZ);
+
+                    xSliderView.setProgress(previewView.getXAngle());
+                    ySliderView.setProgress(previewView.getYAngle());
+                    zSliderView.setProgress(previewView.getZAngle());
+
+                    setVisible(true,
+                            numLabel3,numLabel4,numLabel5,numLabel0,numLabel1,numLabel2,
+                            numBox0,numBox1,numBox2,numBox3,numBox4,numBox5,
+                            rightLayout,resetBtn,recoverBtn);
                     break;
                 case 2://scale
                     ScaleTransformNode.ScaleKeyFrame scaleKeyFrame = (ScaleTransformNode.ScaleKeyFrame) keyFrame;
-                    numLabel0.setLine(0,R.name(R.id.text_module_lab_value_scale_id));
+                    numLabel0.setFirst(R.name(R.id.text_module_lab_value_scale_id));
                     numBox0.setText(String.valueOf(scaleKeyFrame.scale));
 
-                    numLabel0.visible = true;
-                    numBox0.setVisible(true);
+                    keyTitle.setFirst(R.name(R.id.text_module_lab_key_title3_id) + String.valueOf(keyFrame.getBeginTick()));
 
-                    keyTitle.setLine(0, R.name(R.id.text_module_lab_key_title3_id) + String.valueOf(keyFrame.getBeginTick()));
-
+                    setVisible(true,numLabel0,numBox0);
                     break;
             }
             currentType = keyFrame.getType();
         }
     }
 
-    //mojang gui design ? no design
     public void clearAllEnum(){
         currentType = -1;
 
-        numBox0.setVisible(false);
-        numBox1.setVisible(false);
-        numBox2.setVisible(false);
-        numBox3.setVisible(false);
-        numBox4.setVisible(false);
-        numBox5.setVisible(false);
-        numBox6.setVisible(false);
-
-        numLabel0.visible = false;
-        numLabel1.visible = false;
-        numLabel2.visible = false;
-        numLabel3.visible = false;
-        numLabel4.visible = false;
-        numLabel5.visible = false;
-        numLabel6.visible = false;
+        setVisible(false,
+                numLabel3,numLabel4,numLabel5,numLabel0,numLabel1,numLabel2,
+                numBox0,numBox1,numBox2,numBox3,numBox4,numBox5,
+                rightLayout,resetBtn,recoverBtn);
     }
 
     @Override
@@ -466,8 +532,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
         this.mc.renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
     }
-
-
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
@@ -539,12 +603,13 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
                     //rotW = Float.parseFloat(numBox6.getText());
 
-                    Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(rotX,rotY,rotZ);
+                    //Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(rotX,rotY,rotZ);
 
                     ((RotationTransformNode.RotationKeyFrame) keyFrame).center =
                             new BlockPos(centerX, centerY, centerZ);
-                    ((RotationTransformNode.RotationKeyFrame) keyFrame).quaternion =
-                            quaternion;
+                    ((RotationTransformNode.RotationKeyFrame) keyFrame).rotX = rotX;
+                    ((RotationTransformNode.RotationKeyFrame) keyFrame).rotY = rotY;
+                    ((RotationTransformNode.RotationKeyFrame) keyFrame).rotZ = rotZ;
 
                 } catch (NumberFormatException e) {
                     onError();
@@ -553,21 +618,23 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         }
     }
 
-    private void slotChange(){
-        if(tileMovementModule.getStackInSlot(0).isEmpty()){
-            System.out.println("empty");
-            //do nothing
+    private void slotChange(int index){
+        if(index == SLOT_PREFAB) {
+            if (tileMovementModule.getStackInSlot(index).isEmpty()) {
+                previewView.setPrefab(null);
+                //do nothing
+            } else {
+                previewView.setPrefab(tileMovementModule.getPrefab());
+                //do nothing
+            }
         }else{
-            System.out.println("full"); 
-            //do nothing
-        }
-
-        if(tileMovementModule.getStackInSlot(1).isEmpty()){
-            exportBtn.enabled = false;
-            importBtn.enabled = false;
-        }else{
-            exportBtn.enabled = true;
-            importBtn.enabled = true;
+            if(tileMovementModule.getStackInSlot(index).isEmpty()){
+                exportBtn.enabled = false;
+                importBtn.enabled = false;
+            }else{
+                exportBtn.enabled = true;
+                importBtn.enabled = true;
+            }
         }
     }
 

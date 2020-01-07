@@ -4,9 +4,14 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+//not finished
 public abstract class AbstractLayout<T extends LayoutParameter> extends ViewGroup{
 
     private List<T> layoutParameters;
+
+    public AbstractLayout(@Nonnull RootView rootView){
+        super(rootView);
+    }
 
     public AbstractLayout(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);

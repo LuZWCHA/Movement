@@ -1,30 +1,34 @@
-package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
+package com.nowandfuture.mod.core.common.gui.custom;
 
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
-import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Trackball;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.BlockRenderHelper;
-import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
+import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.utils.DrawHelper;
 import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.Quaternion;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
+
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class PreviewView extends View {
 
-    private KeyFrame nextKeyFrame;
-    private KeyFrame preKeyFrame;
+    private RotationTransformNode.RotationKeyFrame nextKeyFrame;
+    private RotationTransformNode.RotationKeyFrame preKeyFrame;
+
     private AbstractPrefab prefab;
     private Trackball trackball;
 
@@ -41,9 +45,10 @@ public class PreviewView extends View {
     private float x,y,z;
 
     private BlockRenderHelper blockRenderHelper;
+    private boolean isPressed;
 
-    public PreviewView(@Nonnull RootView rootView) {
-        super(rootView);
+    public PreviewView(@Nonnull RootView rootView, ViewGroup parent) {
+        super(rootView,parent);
         axisDisplacement = new Vector3f();
         trackball = new Trackball();
         trackball.tbInit(0);
@@ -61,6 +66,50 @@ public class PreviewView extends View {
         this.axisDisplacement = axisDisplacement;
     }
 
+    public void saveToFrame(){
+        if(nextKeyFrame == null) nextKeyFrame = new RotationTransformNode.RotationKeyFrame();
+        nextKeyFrame.center = new BlockPos(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
+        nextKeyFrame.rotX = xAngle;
+        nextKeyFrame.rotY = yAngle;
+        nextKeyFrame.rotZ = zAngle;
+    }
+
+    public float getXAngle() {
+        return xAngle;
+    }
+
+    public float getYAngle() {
+        return yAngle;
+    }
+
+    public float getZAngle() {
+        return zAngle;
+    }
+
+    public float getRelativeXAngle() {
+        return xAngle + preKeyFrame.rotX;
+    }
+
+    public float getRelativeYAngle() {
+        return yAngle + preKeyFrame.rotY;
+    }
+
+    public float getRelativeZAngle() {
+        return zAngle + preKeyFrame.rotZ;
+    }
+
+    public void setRelativeXAngle(float xAngle) {
+        this.xAngle = preKeyFrame.rotX + xAngle;
+    }
+
+    public void setRelativeYAngle(float yAngle) {
+        this.yAngle = preKeyFrame.rotY + yAngle;
+    }
+
+    public void setRelativeZAngle(float zAngle) {
+        this.zAngle = preKeyFrame.rotZ + zAngle;
+    }
+
     public void setXAngle(float xAngle) {
         this.xAngle = xAngle;
     }
@@ -73,34 +122,64 @@ public class PreviewView extends View {
         this.zAngle = zAngle;
     }
 
+    public void setPreKeyFrame(RotationTransformNode.RotationKeyFrame preKeyFrame) {
+        this.preKeyFrame = preKeyFrame;
+    }
+
+    public void setNextKeyFrame(RotationTransformNode.RotationKeyFrame nextKeyFrame) {
+        this.nextKeyFrame = nextKeyFrame;
+        resetModel(nextKeyFrame);
+    }
+
     /**
      * set the prefab to draw at this view
      */
-    public void setPrefab(AbstractPrefab prefab){
-        this.prefab = prefab;
+    public void setPrefab(@Nullable AbstractPrefab prefab){
+        if(this.prefab != prefab && prefab != null) {//change one to anther
+            clearPreview();
+            this.prefab = prefab;
+            reload();
+        }else if(this.prefab != null && prefab == null){//one to empty
+            clearPreview();
+            this.prefab = null;
+        } else{
+            this.prefab = prefab;
+        }
     }
 
     public AbstractPrefab getPrefab() {
         return prefab;
     }
 
-    public void resetState(){
+    public void resetModel(RotationTransformNode.RotationKeyFrame keyFrame){
+        xAngle = keyFrame.rotX;
+        yAngle = keyFrame.rotY;
+        zAngle = keyFrame.rotZ;
+        axisDisplacement = new Vector3f(keyFrame.center.getX(),keyFrame.center.getY(),keyFrame.center.getZ());
+    }
 
+    public void resetView(){
+        trackball.curquat.setIdentity();
     }
 
     @Override
     protected void onLoad() {
         super.onLoad();
         setScissor(false);
-        if(checkNotNull()) {
-            blockRenderHelper = new BlockRenderHelper(prefab.getLocalWorld());
-            blockRenderHelper.init();
-        }
+        isPressed = false;
+        reload();
     }
 
     public void reload(){
-        clear();
-        onLoad();
+        if(checkNotNull()) {
+            blockRenderHelper = new BlockRenderHelper(prefab.getLocalWorld());
+            blockRenderHelper.init();
+
+            if(preKeyFrame == null){
+                preKeyFrame = new RotationTransformNode.RotationKeyFrame();
+            }
+            resetModel(preKeyFrame);
+        }
     }
 
     @Override
@@ -114,11 +193,10 @@ public class PreviewView extends View {
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
         drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(0,0,0,255));
-
     }
 
     @Override
-    protected void onDraw2(int mouseX, int mouseY, float partialTicks) {
+    protected void onDrawAtRootView(int mouseX, int mouseY, float partialTicks) {
         if(checkNotNull()){
             drawModule();
         }
@@ -139,7 +217,11 @@ public class PreviewView extends View {
     }
 
     protected void saveAsFrame(){
-
+        nextKeyFrame = new RotationTransformNode.RotationKeyFrame();
+        nextKeyFrame.rotX = xAngle;
+        nextKeyFrame.rotY = yAngle;
+        nextKeyFrame.rotZ = zAngle;
+        nextKeyFrame.center = new BlockPos(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
     }
 
     @Override
@@ -147,6 +229,8 @@ public class PreviewView extends View {
         lastX = mouseX;
         lastY = mouseY;
         trackball.mousePressed(state,mouseX,mouseY);
+
+        isPressed = true;
         return super.onPressed(mouseX, mouseY, state);
     }
 
@@ -160,7 +244,9 @@ public class PreviewView extends View {
         x = (2.0f * x - getWidth()) / getWidth();
         y = (getHeight() - 2.0f * y) / getHeight();
 
-        z = trackball.tb_project_to_sphere(trackball.TRACKBALLSIZE,x,y);
+        z = trackball.projectToSphere(trackball.TRACKBALLSIZE,x,y);
+
+        isPressed = false;
         super.onReleased(mouseX, mouseY, state);
     }
 
@@ -186,28 +272,21 @@ public class PreviewView extends View {
         x = (2.0f * x - getWidth()) / getWidth();
         y = (getHeight() - 2.0f * y) / getHeight();
 
-        z = trackball.tb_project_to_sphere(trackball.TRACKBALLSIZE,x,y);
+        z = trackball.projectToSphere(trackball.TRACKBALLSIZE,x,y);
 
         lastX = mouseX;
         lastY = mouseY;
 
+        isPressed = true;
         return super.onMousePressedMove(mouseX, mouseY, state);
     }
 
     private void drawModule(){
 
-        //CubesRenderer renderer = ModuleRenderManager.INSTANCE.getRenderer(prefab);
-
         final ScaledResolution res = new ScaledResolution(getRoot().context);
 
         final int ax = getAbsoluteX();
         final int ay = getAbsoluteY();
-
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.alphaFunc(516, 0.1F);
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        GlStateManager.cullFace(GlStateManager.CullFace.BACK);
 
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
 
@@ -217,7 +296,7 @@ public class PreviewView extends View {
         Project.gluPerspective(60, getWidth()/(float)getHeight(), 0.05F, 256);
 
 
-        //-------------------------------------------draw----------------------------------------------------
+        //---------------------------------------------draw----------------------------------------------------
 
         GlStateManager.matrixMode(GL11.GL_MODELVIEW);
         GlStateManager.loadIdentity();
@@ -226,19 +305,18 @@ public class PreviewView extends View {
 
         GlStateManager.pushMatrix();
 
-        GlStateManager.rotate(trackball.curquat);
-
-        GlStateManager.translate(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
-        GlStateManager.rotate(zAngle,0,0,1);
-        GlStateManager.rotate(yAngle,0,1,0);
-        GlStateManager.rotate(xAngle,1,0,0);
-        GlStateManager.translate(-axisDisplacement.x,-axisDisplacement.y,-axisDisplacement.z);
+        GlStateManager.rotate(new org.lwjgl.util.vector.Quaternion(trackball.curquat.x,
+                trackball.curquat.y,trackball.curquat.z,trackball.curquat.w));
 
         Vector3f p1 = new Vector3f(x, y, z);
         Quaternion inverseQ = MathHelper.inverse(trackball.curquat);
         p1 = MathHelper.mult(p1,inverseQ);
 
-        DrawHelper.drawLine(0,0,0,p1.x,p1.y,p1.z,1,0,0);
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
+        GlStateManager.enableDepth();
+
+        if(isPressed)
+            DrawHelper.drawLine(0,0,0,p1.x,p1.y,p1.z,1,0,0);
         DrawHelper.drawLine(0,0,0,0,0,5,0,1,1,0.5f,3);//z
         DrawHelper.drawLine(0,0,0,0,5,0,0,1,0,0.5f,3);//y
         DrawHelper.drawLine(0,0,0,5,0,0,0,0,1,0.5f,3);//x
@@ -253,9 +331,14 @@ public class PreviewView extends View {
         GlStateManager.enableCull();
         GlStateManager.popMatrix();
 
-        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
-        GlStateManager.enableDepth();
+
         GlStateManager.pushMatrix();
+
+        GlStateManager.translate(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
+        GlStateManager.rotate(zAngle,0,0,1);
+        GlStateManager.rotate(yAngle,0,1,0);
+        GlStateManager.rotate(xAngle,1,0,0);
+        GlStateManager.translate(-axisDisplacement.x,-axisDisplacement.y,-axisDisplacement.z);
 
         if(blockRenderHelper != null && blockRenderHelper.isInit()){
             GlStateManager.disableLighting();
@@ -293,10 +376,16 @@ public class PreviewView extends View {
         GlStateManager.translate(0.0F, 0.0F, -2000.0F);
     }
 
+    private void clearPreview(){
+        if(blockRenderHelper != null && blockRenderHelper.isInit()) {
+            blockRenderHelper.clear();
+            blockRenderHelper = null;
+        }
+    }
+
     @Override
     public void clear() {
-        if(blockRenderHelper != null)
-            blockRenderHelper.clear();
+        clearPreview();
         super.clear();
     }
 }

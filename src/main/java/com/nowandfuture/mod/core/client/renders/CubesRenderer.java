@@ -7,12 +7,16 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.nowandfuture.asm.IRender;
+import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
 import com.nowandfuture.mod.core.prefab.LocalWorldWrap;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -28,8 +32,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.optifine.shaders.ShadersRender;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
 
 import java.nio.FloatBuffer;
 import java.util.*;
@@ -76,6 +78,10 @@ public class CubesRenderer implements IRender{
                 EnumFacing.values()) {
             eachFaceCubes.put(facing,new HashSet<>());
         }
+    }
+
+    public void setModelMatrix(Matrix4f modelMatrix) {
+        this.modelMatrix = modelMatrix;
     }
 
     public void build(){
@@ -145,10 +151,6 @@ public class CubesRenderer implements IRender{
             this.build();
         }
     }
-
-//    public void buildTranslucent(float p){
-//        this.buildTranslucent();
-//    }
 
     private void renderBlockRenderLayerIn(BlockRenderLayer layer,double p){
         if(!isBuilt()) return;
@@ -322,18 +324,26 @@ public class CubesRenderer implements IRender{
             final Function<RenderCube,Boolean> frustumFilter = new Function<RenderCube, Boolean>() {
                 @Override
                 public Boolean apply(RenderCube cube) {
-                    boolean flag = true;
-                    if(!OptifineHelper.isActive()) flag = CubesBuilder.checkRenderChunkIsRender(cube,prefab.getBasePos());
+                    boolean flag;
 
                     Vector3f center = CubesBuilder.getTransformPos(cube.getBounding().getCenter(),CubesRenderer.this)
                             .translate(prefab.getBasePos().getX(),prefab.getBasePos().getY(),prefab.getBasePos().getZ());
-                    return entity.getDistanceSq(center.getX(),center.getY(),center.getZ()) <=
+                    flag = entity.getDistanceSq(center.getX(),center.getY(),center.getZ()) <=
                             (Minecraft.getMinecraft().gameSettings.renderDistanceChunks * Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8) &&
                             ModuleRenderManager.INSTANCE.getClippingHelper()
                             .isOBBInFrustum(cube.getTransformedOBBounding()
                                     .translate(prefab.getBasePos().getX() - x,
                                             prefab.getBasePos().getY() - y,
-                                            prefab.getBasePos().getZ() - z)) && flag;
+                                            prefab.getBasePos().getZ() - z));
+                    if(flag){
+                        try {
+                            flag = CubesBuilder.checkRenderChunkIsRender(cube,prefab.getBasePos());
+                        } catch (NoSuchFieldException | IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    return flag;
                 }
             };
 
@@ -362,6 +372,8 @@ public class CubesRenderer implements IRender{
             frameCounter ++;
 
             checkShader();
+
+//            System.out.println(visibleCubes.size());
 
             for (RenderCube cube :
                     visibleCubes) {
@@ -412,16 +424,18 @@ public class CubesRenderer implements IRender{
 
     private void render(BlockRenderLayer layer){
         if(!isBuilt()) return;
+
+//        Movement.logger.info(visibleCubes.size());
         for (RenderCube cube :
                 visibleCubes) {
-
             if (!cube.getCubeCompileTask().isLayerEmpty(layer) || cube.isVboBind(layer)) {
                 cubesToRender.add(cube);
             }
         }
 
-        if(!cubesToRender.isEmpty())
+        if(!cubesToRender.isEmpty()) {
             renderBlockLayer(layer);
+        }
     }
 
     public void invalid(){

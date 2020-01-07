@@ -1,11 +1,14 @@
 package com.nowandfuture.mod.core.selection;
 
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
+import com.nowandfuture.mod.utils.math.Vector4f;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+
 
 public class OBBox {
     private Vector3f xyz000;
@@ -339,6 +342,16 @@ public class OBBox {
         return dest;
     }
 
+
+    public static Vec3d transformCoordinate(Matrix4f left, Vec3d right) {
+
+        double x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30;
+        double y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31;
+        double z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32;
+
+        return new Vec3d(x,y,z);
+    }
+
     public static Vector3f transformVector(Matrix4f left, Vector3f right, Vector3f dest) {
         if (dest == null)
             dest = new Vector3f();
@@ -368,6 +381,24 @@ public class OBBox {
 
     public boolean intersect(OBBox other){
         return Collision.intersect(this,other);
+    }
+
+    public RayTraceResult intersect(Vec3d start,Vec3d end){
+
+        return null;
+    }
+
+    public String toString(){
+
+        return "box[" +
+                xyz000.toString() + "," +
+                xyz001.toString() + "," +
+                xyz010.toString() + "," +
+                xyz011.toString() + "," +
+                xyz100.toString() + "," +
+                xyz101.toString() + "," +
+                xyz110.toString() + "," +
+                xyz111.toString() + "]";
     }
 
     public static class Collision{
@@ -518,11 +549,11 @@ public class OBBox {
 
             switch (index){
                 case 0:
-                    return (Vector3f) Vector3f.cross(x,y,new Vector3f()).normalise();
+                    return Vector3f.cross(x,y,new Vector3f()).normalise();
                 case 1:
-                    return (Vector3f) Vector3f.cross(x,z,new Vector3f()).normalise();
+                    return Vector3f.cross(x,z,new Vector3f()).normalise();
                 default:
-                    return (Vector3f) Vector3f.cross(y,z,new Vector3f()).normalise();
+                    return Vector3f.cross(y,z,new Vector3f()).normalise();
             }
         }
     }

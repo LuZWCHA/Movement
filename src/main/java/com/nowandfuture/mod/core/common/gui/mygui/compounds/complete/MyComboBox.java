@@ -81,7 +81,7 @@ public class MyComboBox extends ViewGroup {
     public void setIndex(int index){
         if(index >= 0 && index < contents.size()) {
             selectIndex = index;
-            label.setLine(0, contents.get(index));
+            label.setFirst(contents.get(index));
         }
     }
 
@@ -90,7 +90,7 @@ public class MyComboBox extends ViewGroup {
     }
 
     public void setShowString(String string){
-        label.setLine(0,string);
+        label.setFirst(string);
     }
 
     @Override

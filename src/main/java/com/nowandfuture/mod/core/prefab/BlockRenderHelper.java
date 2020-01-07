@@ -48,7 +48,6 @@ public class BlockRenderHelper {
     }
 
     public void init(){
-
         listNum = (int) Math.ceil((double)localWorld.getRenderBlocks().size()/(double)perListSize);
         listStartIndex = GLAllocation.generateDisplayLists(listNum);
         currentIndex = 0;
@@ -216,8 +215,6 @@ public class BlockRenderHelper {
         currentIndex = 0;
         listNum = 0;
         init = false;
-
-
     }
 
     public boolean isInit() {

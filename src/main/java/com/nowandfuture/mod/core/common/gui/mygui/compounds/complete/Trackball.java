@@ -1,15 +1,10 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
-import com.nowandfuture.mod.core.selection.OBBox;
-import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.MathHelper;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+
+import com.nowandfuture.mod.utils.math.Quaternion;
+import com.nowandfuture.mod.utils.math.Vector3f;
+import com.nowandfuture.mod.utils.math.Vector4f;
+
 
 import java.nio.FloatBuffer;
 
@@ -22,7 +17,7 @@ public class Trackball{
      */
     public float TRACKBALLSIZE = 5f;
 
-    Quaternion curquat = new Quaternion();
+    public Quaternion curquat = new Quaternion();
     Quaternion lastquat = new Quaternion();
     int beginx, beginy;
 
@@ -37,7 +32,7 @@ public class Trackball{
         trackball(curquat, 0.0f, 0.0f, 0.0f, 0.0f);
     }
 
-    public Vector tbMatrix(FloatBuffer matrix) {
+    public Quaternion tbMatrix(FloatBuffer matrix) {
         return curquat.store(matrix);
     }
 
@@ -62,13 +57,13 @@ public class Trackball{
         }
     }
 
-    void _tbStartMotion(int x, int y) {
+    void startMotion(int x, int y) {
         tb_tracking = true;
         beginx = x;
         beginy = y;
     }
 
-    void _tbStopMotion() {
+    void stopMotion() {
         tb_tracking = false;
     }
 
@@ -79,7 +74,7 @@ public class Trackball{
      */
     public void mousePressed(int button, int x, int y) {
         if (button == tb_button)
-            _tbStartMotion(x, y);
+            startMotion(x, y);
     }
 
     /**
@@ -90,7 +85,7 @@ public class Trackball{
     public void mouseReleased(int button, int x, int y) {
         // else if (state == GLUT_UP && button == tb_button)
         if (button == tb_button)
-            _tbStopMotion();
+            stopMotion();
     }
 
     /**
@@ -136,9 +131,9 @@ public class Trackball{
          * First, figure out z-coordinates for projection of P1 and P2 to
          * deformed sphere
          */
-        p1 = new Vector3f(p1x, p1y, tb_project_to_sphere(TRACKBALLSIZE, p1x,
+        p1 = new Vector3f(p1x, p1y, projectToSphere(TRACKBALLSIZE, p1x,
                 p1y));
-        p2 = new Vector3f(p2x, p2y, tb_project_to_sphere(TRACKBALLSIZE, p2x,
+        p2 = new Vector3f(p2x, p2y, projectToSphere(TRACKBALLSIZE, p2x,
                 p2y));
 
 
@@ -175,9 +170,9 @@ public class Trackball{
      *            point on the sphere or inside it?
      * @param y
      *            point on the sphere or inside it?
-     * @return ???
+     * @return transformed Z
      */
-    public float tb_project_to_sphere(float r, float x, float y) {
+    public float projectToSphere(float r, float x, float y) {
         float d, z;
 
         d = (float) Math.sqrt(x * x + y * y);

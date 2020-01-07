@@ -2,6 +2,7 @@ package com.nowandfuture.mod.utils;
 
 import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -16,7 +17,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector3f;
 
 import java.nio.ByteBuffer;
 import java.util.List;

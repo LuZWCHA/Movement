@@ -188,4 +188,9 @@ public class RootView implements MyGui{
     public void clear(){
         topView.clear();
     }
+
+    public void setVisible(boolean v){
+        if(topView != null)
+            topView.setVisible(v);
+    }
 }

@@ -3,12 +3,15 @@ package com.nowandfuture.mod.core.client.renders;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.nowandfuture.asm.RenderHook;
+import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Matrix4f;
+import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.client.renderer.chunk.VisGraph;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
@@ -17,9 +20,9 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
-import org.lwjgl.util.vector.Vector3f;
 
-import javax.annotation.Nonnull;
+
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -219,11 +222,13 @@ public class CubesBuilder {
     }
 
     //check is the renderchunks are render(which chunks are contain the cube)
-    public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos){
+    public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos) throws NoSuchFieldException, IllegalAccessException {
+
         OBBox bounding = cube.getTransformedOBBounding();
+
         for (Vector3f vex :
                 bounding.asArray()) {
-            if (RenderHook.getRenderChunks().containsKey(
+            if (Utils.getRenderChunkMap().containsKey(
                     converRenderChunkPos(vex.x + basePos.getX(), vex.y + basePos.getY(), vex.z + basePos.getZ()))) {
                 return true;
             }

@@ -264,30 +264,30 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        tileConstructor.setLockChanged(new ChangeListener() {
+        tileConstructor.setLockChanged(new ChangeListener.ChangeEvent() {
             @Override
             public void changed() {
                 updateBtn();
             }
         });
 
-        tileConstructor.setConstructChanged(new ChangeListener() {
+        tileConstructor.setConstructChanged(new ChangeListener.ChangeEvent() {
             @Override
             public void changed() {
                 updateBtn();
             }
         });
 
-        tileConstructor.setAreaSizeChanged(new ChangeListener() {
+        tileConstructor.setAreaSizeChanged(new ChangeListener.ChangeEvent() {
             @Override
             public void changed() {
-                xLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
-                yLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
-                zLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
+                xLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
+                yLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
+                zLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
             }
         });
 
-        tileConstructor.setSlotChanged(new ChangeListener() {
+        tileConstructor.setSlotChanged(new ChangeListener.ChangeEvent() {
             @Override
             public void changed() {
                 GuiConstructor.this.slotChanged();
@@ -366,19 +366,21 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
     @Override
     protected void childLoseFocus(MyGui gui) {
-        if(gui instanceof GuiTextField){
-            if(gui == nameTexField){
-                if(!tileConstructor.isEmpty() &&
-                        !tileConstructor.getPrefabName().equals(nameTexField.getText())) {
-                    NetworkHandler.INSTANCE.sendMessageToServer(
-                            new MovementMessage.RenamePrefabMessage(
-                                    tileConstructor.getPos(),
-                                    nameTexField.getText())
-                    );
-                }
 
+        if(gui == nameTexField){
+            nameTexField.setFocused(false);
+            if(!tileConstructor.isEmpty() &&
+                    !tileConstructor.getPrefabName()
+                            .equals(nameTexField.getText())) {
+
+                NetworkHandler.INSTANCE.sendMessageToServer(
+                        new MovementMessage.RenamePrefabMessage(
+                                tileConstructor.getPos(),
+                                nameTexField.getText())
+                );
             }
         }
+
     }
 
 
@@ -387,7 +389,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         Slot prefabSlot = inventorySlots.getSlot(0);
         if(prefabSlot instanceof PrefabOnlySlot){
             if(!prefabSlot.getStack().isEmpty()) {
-                String s = ((PrefabItem)(prefabSlot.getStack().getItem())).getPrefabName(prefabSlot.getStack());
+                String s = PrefabItem.getPrefabName(prefabSlot.getStack());
                 nameTexField.setEnabled(true);
                 nameTexField.setVisible(true);
                 nameTexField.setText(Strings.isNullOrEmpty(s) ? "NoName" : s);
@@ -419,9 +421,9 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             nameTexField.setEnabled(false);
         }
 
-        xLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
-        yLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
-        zLengthLab.setLine(0, String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
+        xLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
+        yLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
+        zLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
 
         updateBtn();
     }

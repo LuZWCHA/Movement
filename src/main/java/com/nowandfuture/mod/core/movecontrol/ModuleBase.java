@@ -7,6 +7,7 @@ import com.nowandfuture.mod.core.prefab.EmptyPrefab;
 import com.nowandfuture.mod.core.transformers.*;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import joptsimple.internal.Strings;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ITickable;
@@ -36,6 +37,7 @@ public class ModuleBase implements IModule,ITickable {
     private final Object lock = new Object();
     private AbstractPrefab prefab;
     private AbstractTransformNode transformerHead;
+    private Matrix4f transRes;
 
     private boolean enable;
 
@@ -45,7 +47,7 @@ public class ModuleBase implements IModule,ITickable {
         super();
         prefab = new EmptyPrefab();
         line = new KeyFrameLine();
-
+        transRes = new Matrix4f();
         //all animation only create on client
     }
 
@@ -119,8 +121,7 @@ public class ModuleBase implements IModule,ITickable {
             transformerHead = TransformNodeManager.INSTANCE.getDefaultAttributeNode();
     }
 
-    @SideOnly(Side.CLIENT)
-    public void transformPre(double p, CubesRenderer renderer){
+    public void transformPre(double p, Matrix4f matrix4f){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -131,13 +132,12 @@ public class ModuleBase implements IModule,ITickable {
 
                 if(section == null || section.isEmpty()) continue;
 
-                transformerHead.transformStart(renderer, (float) line.getSectionProgress(section, (float) p),
+                transformerHead.transformStart(matrix4f, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
             }
     }
 
-    @SideOnly(Side.CLIENT)
-    public void transformPost(double p,CubesRenderer renderer){
+    public void transformPost(double p,Matrix4f matrix4f){
         KeyFrameLine.TimeSection section;
 
         if(transformerHead != null)
@@ -148,13 +148,9 @@ public class ModuleBase implements IModule,ITickable {
 
                 if(section == null || section.isEmpty()) continue;
 
-                transformerHead.transformEnd(renderer, (float) line.getSectionProgress(section, (float) p),
+                transformerHead.transformEnd(matrix4f, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
             }
-    }
-
-    public void renderForGui(float p, float rotAngel){
-
     }
 
     public void setUseFixLight(boolean enable){
@@ -164,9 +160,17 @@ public class ModuleBase implements IModule,ITickable {
     @Override
     public void update() {
         if(!isEnable()) return;
+
         if(prefab != null && line != null) {
             prefab.update();
+            updateBox();
         }
+    }
+
+    private void updateBox(){
+        transRes.setIdentity();
+        transformPre(0,transRes);
+        transformPost(0,transRes);
     }
 
     public AxisAlignedBB getMinAABB(){
@@ -218,6 +222,10 @@ public class ModuleBase implements IModule,ITickable {
             line.deserializeNBT(keysNBT);
         }
 
+    }
+
+    public Matrix4f getTransRes() {
+        return transRes;
     }
 
     public World getModuleWorld(){

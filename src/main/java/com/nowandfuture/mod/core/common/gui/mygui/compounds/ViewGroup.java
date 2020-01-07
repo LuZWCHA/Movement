@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
+import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.utils.DrawHelper;
@@ -11,6 +12,7 @@ import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,6 +44,8 @@ public abstract class ViewGroup extends Gui implements MyGui {
         this.root = rootView;
     }
 
+
+
     public ViewGroup getParent() {
         return parent;
     }
@@ -60,6 +64,10 @@ public abstract class ViewGroup extends Gui implements MyGui {
         return x;
     }
 
+
+    /**
+     * @return get absolute location at root view
+     */
     public int getAbsoluteX(){
         final ScaledResolution res = new ScaledResolution(getRoot().context);
 
@@ -69,6 +77,9 @@ public abstract class ViewGroup extends Gui implements MyGui {
             return x;
     }
 
+    /**
+     * @return get absolute location at root view
+     */
     public int getAbsoluteY(){
         final ScaledResolution res = new ScaledResolution(getRoot().context);
 
@@ -134,6 +145,12 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
     }
 
+    /**
+     * @param mouseX relative location-x at parent view
+     * @param mouseY relative location-y at parent view
+     * @param partialTicks
+     * draw at root-view
+     */
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
         onDraw(mouseX, mouseY, partialTicks);
@@ -151,9 +168,15 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
     }
 
+    /**
+     * @param mouseX absolute location-x at root view
+     * @param mouseY absolute location-y at root view
+     * @param partialTicks
+     * draw at root-view
+     */
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
-        onDraw2(mouseX, mouseY, partialTicks);
+        onDrawAtRootView(mouseX, mouseY, partialTicks);
         for (ViewGroup view :
                 children) {
             if(view.isVisible()) {
@@ -162,9 +185,21 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
     }
 
+    /**
+     * @param mouseX relative location-x at parent view
+     * @param mouseY relative location-y at parent view
+     * @param partialTicks
+     * draw at root-view
+     */
     protected abstract void onDraw(int mouseX, int mouseY, float partialTicks);
 
-    protected void onDraw2(int mouseX, int mouseY, float partialTicks){
+    /**
+     * @param mouseX absolute location-x at root view
+     * @param mouseY absolute location-y at root view
+     * @param partialTicks
+     * draw at root-view
+     */
+    protected void onDrawAtRootView(int mouseX, int mouseY, float partialTicks){
 
     }
 
@@ -298,6 +333,10 @@ public abstract class ViewGroup extends Gui implements MyGui {
         children.add(viewGroup);
     }
 
+    public void addChildren(ViewGroup... viewGroup){
+        children.addAll(Lists.newArrayList(viewGroup));
+    }
+
     public void addChild(int index ,ViewGroup viewGroup){
         children.add(index,viewGroup);
     }
@@ -314,6 +353,10 @@ public abstract class ViewGroup extends Gui implements MyGui {
         children.addAll(viewGroups);
     }
 
+
+    /**
+     * when GUI close
+     */
     public void clear(){
         for (ViewGroup view :
                 children) {
@@ -349,9 +392,12 @@ public abstract class ViewGroup extends Gui implements MyGui {
         this.visible = visible;
     }
 
-    public void drawString3D(String s, float x, float y , float z, int r, int g, int b, int a){
+    //--------------------------------------tool-------------------------------------------------------------
+
+    public void drawString3D(String s, float x, float y, float z, int r, int g, int b, int a, com.nowandfuture.mod.utils.math.Vector3f vector3f){
         drawString3D(s, x, y, z, r, g, b, a,new Vector3f(0,0,1));
     }
+
     public void drawString3D(String s, float x, float y , float z, int r, int g, int b, int a,Vector3f nomal){
         drawString3D(s, x, y, z, r, g, b, a,nomal,0.05f);
     }

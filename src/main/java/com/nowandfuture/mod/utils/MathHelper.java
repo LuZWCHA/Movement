@@ -1,10 +1,11 @@
 package com.nowandfuture.mod.utils;
 
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Quaternion;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Quaternion;
-import org.lwjgl.util.vector.Vector3f;
+
 
 import javax.vecmath.Quat4f;
 
@@ -161,7 +162,7 @@ public class MathHelper {
         return new Quaternion(-quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
     }
 
-    public static Vector3f mult(Vector3f v,Quaternion quaternion) {
+    public static Vector3f mult(Vector3f v, Quaternion quaternion) {
         if (v.x == 0 && v.y == 0 && v.z == 0) {
             return new Vector3f(0, 0, 0);
         } else {
@@ -177,7 +178,7 @@ public class MathHelper {
         }
     }
 
-    public static Matrix4f mult(Matrix4f org,Quaternion quaternion) {
+    public static Matrix4f mult(Matrix4f org, Quaternion quaternion) {
         float x = quaternion.x;
         float y = quaternion.y;
         float z = quaternion.z;
@@ -205,7 +206,7 @@ public class MathHelper {
         left.m32 = 0;
         left.m33 = 1;
 
-        return Matrix4f.mul(left,org,new Matrix4f());
+        return Matrix4f.mul(left,org,org);
     }
 
 
@@ -226,6 +227,11 @@ public class MathHelper {
     //x-y-z
     public static Quaternion eulerAnglesToQuaternion(float roll,float pitch,float hdg)
     {
+        final double factor = Math.PI / 180;
+        roll *= factor;
+        pitch *= factor;
+        hdg *= factor;
+
         float cosRoll = net.minecraft.util.math.MathHelper.cos(roll * 0.5f);
         float sinRoll = net.minecraft.util.math.MathHelper.sin(roll * 0.5f);
 
@@ -254,6 +260,11 @@ public class MathHelper {
         float roll = (float) net.minecraft.util.math.MathHelper.atan2(2.f * (q2 * q3 + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3);
         float pitch = (float) Math.asin(2.f * (q0 * q2 - q1 * q3));
         float yaw = (float) net.minecraft.util.math.MathHelper.atan2(2.f * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3);
+
+        final double factor =  180 / Math.PI;
+        roll *= factor;
+        pitch *= factor;
+        yaw *= factor;
 
         return new Vector3f(roll,pitch,yaw);
     }

@@ -1,17 +1,14 @@
 package com.nowandfuture.mod.core.transformers;
 
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.utils.MathHelper;
-import net.minecraft.client.renderer.GlStateManager;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
-import javax.vecmath.Matrix4f;
 
 public class LinearTransformNode extends AbstractTransformNode<LinearTransformNode.LinearKeyFrame> {
 
@@ -23,18 +20,18 @@ public class LinearTransformNode extends AbstractTransformNode<LinearTransformNo
     }
 
     @Override
-    protected void transform(CubesRenderer renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
+    protected void transform(Matrix4f renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
         transformMatrix(renderer, p, preKey, key);
     }
 
     @Override
-    public void transformMatrix(CubesRenderer renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
+    public void transformMatrix(Matrix4f renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
         temp = MathHelper.Lerp(p,preKey.curPos, key.curPos);
-        renderer.getModelMatrix().translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
+        renderer.translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
     }
 
     @Override
-    protected void transformPost(CubesRenderer renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
+    protected void transformPost(Matrix4f renderer, float p, LinearKeyFrame preKey, LinearKeyFrame key) {
     }
 
     @Override

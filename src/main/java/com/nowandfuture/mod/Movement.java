@@ -21,7 +21,7 @@ public class Movement {
 
         public static final String MODID = "movement";
         public static final String NAME = "Movement Mod";
-        public static final String VERSION = "0.04";
+        public static final String VERSION = "0.06";
 
         @Mod.Instance
         public static Movement instance;
@@ -37,6 +37,8 @@ public class Movement {
             logger = event.getModLog();
             proxy.preInit(event);
             NetworkHandler.INSTANCE.init();
+            MinecraftForge.EVENT_BUS.register(new CollisionHandler());
+
         }
 
         @Mod.EventHandler

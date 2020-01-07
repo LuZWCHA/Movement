@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.core.transformers;
 
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.nbt.NBTTagCompound;
 
 public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyFarmVisitor<T> {
@@ -32,7 +32,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     }
 
     //transform start from the root to this, because of GL Matrix use the stack,so the final order is form the this to next
-    public final void transformStart(final CubesRenderer renderer, float p, KeyFrame pre, KeyFrame now){
+    public final void transformStart(final Matrix4f renderer, float p, KeyFrame pre, KeyFrame now){
         if(pre == null) pre = now;
         if(now == null) now = pre;
 
@@ -46,7 +46,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         }
     };
 
-    public final void transformEnd(final CubesRenderer renderer, float p, KeyFrame pre, KeyFrame now){
+    public final void transformEnd(final Matrix4f renderer, float p, KeyFrame pre, KeyFrame now){
         if(pre == null) pre = now;
         if(now == null) now = pre;
 
@@ -61,9 +61,9 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     }
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);
-    protected abstract void transform(final CubesRenderer renderer, float p,T preKey,T key);
-    public abstract void transformMatrix(final CubesRenderer renderer, float p,T preKey,T key);
-    protected abstract void transformPost(final CubesRenderer renderer, float p,T preKey,T key);
+    protected abstract void transform(final Matrix4f renderer, float p,T preKey,T key);
+    public abstract void transformMatrix(final Matrix4f renderer, float p,T preKey,T key);
+    protected abstract void transformPost(final Matrix4f renderer, float p,T preKey,T key);
 
     public void readFromNBT(NBTTagCompound compound){
         readParametersFromNBT(compound);

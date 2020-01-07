@@ -25,14 +25,14 @@ movement.module.btn.stop=停止
 movement.module.btn.apply=应用
 movement.module.btn.export=导出
 movement.module.btn.import=导入
-movement.module.lab.title1=平移帧:
-movement.module.lab.title2=旋转帧:
+movement.module.lab.title1=线性平移帧:
+movement.module.lab.title2=姿态旋转帧:
 movement.module.lab.title3=缩放帧:
 movement.module.btn.hide=隐藏
 movement.module.btn.show=显示
 movement.module.btn.collision.enable=启用碰撞（测试）
 movement.module.btn.collision.disable=关闭碰撞（测试）
-movement.module.lab.collision.tip=仅使用最小包围盒检测碰撞仅客户端生效
+movement.module.lab.collision.tip=仅使用最小包围盒检测碰撞
 
 movement.tooltip.prefab.size=大小
 movement.tooltip.timeline.mode=模式:
@@ -49,4 +49,7 @@ item.timeline.name=时间线
 item.prefab.empty.name=空白预制件
 item.prefab.complete.name=预制件
 
-itemGroup.Movemen Mod=运动
+itemGroup.Movement Mod=运动渲染
+
+movement.module.btn.preview.reset=重置视角
+movement.module.lab.preview.recover=恢复视图

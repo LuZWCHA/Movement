@@ -97,6 +97,30 @@ public class KeyFrameLine extends TimeLine {
         return Optional.empty();
     }
 
+    public Optional<KeyFrame> getPreFrame(KeyFrame frame){
+        Optional<KeyFrame> pre = Optional.empty();
+        for (KeyFrame kf :
+                getKeyFrames(KeyFrame.KeyFrameType.as(frame.type))) {
+            if(frame.equals(kf))
+                return pre;
+            pre = Optional.of(kf);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<KeyFrame> getNextFrame(KeyFrame frame){
+        boolean reach = false;
+        for (KeyFrame kf :
+                getKeyFrames(KeyFrame.KeyFrameType.as(frame.type))) {
+            if(reach){
+                return Optional.of(kf);
+            }
+            if(frame.equals(kf)) {
+                reach = true;
+            }
+        }
+        return Optional.empty();
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 

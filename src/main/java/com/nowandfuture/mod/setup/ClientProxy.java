@@ -26,7 +26,7 @@ public class ClientProxy extends DefaultClientProxy {
         FMLCommonHandler.instance().bus().register(new ClientTickHandler());
         FMLCommonHandler.instance().bus().register(new RenderHandler());
 //        FMLCommonHandler.instance().bus().register(new KeyBindHandler());
-        MinecraftForge.EVENT_BUS.register(new CollisionHandler());
+
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityConstructor.class,new SelectAreaRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTimelineEditor.class,new TileEntityTimeLineEditorRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityShowModule.class,new TileEntityModuleShowerRenderer());

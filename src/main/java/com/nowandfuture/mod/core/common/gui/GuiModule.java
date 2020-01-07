@@ -49,8 +49,9 @@ public class GuiModule extends AbstractGuiContainer {
             @Override
             public void accept(Float aFloat) {
                 long total = tileEntityShowModule.getLine().getTotalTick();
-                long tick = (long)(total * aFloat);
-                MovementMessage.LongDataMessage message = new MovementMessage.LongDataMessage(MovementMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
+                long tick = aFloat.longValue();
+                MovementMessage.LongDataMessage message =
+                        new MovementMessage.LongDataMessage(MovementMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
                 message.setPos(tileEntityShowModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
                 tileEntityShowModule.getLine().setTick(tick);
@@ -60,21 +61,22 @@ public class GuiModule extends AbstractGuiContainer {
             @Override
             public void accept(Float aFloat) {
                 long total = tileEntityShowModule.getLine().getTotalTick();
-                long tick = (long)(total * aFloat);
+                long tick = aFloat.longValue();
 
-                tickLabel.setLine(0, String.valueOf(tick));
+                tickLabel.setFirst(String.valueOf(tick));
             }
         });
         addView(view);
 
         long tick = tileEntityShowModule.getLine().getTick();
         long total = tileEntityShowModule.getLine().getTotalTick();
+        view.setRange(total,0,0);
         tickLabel = createMyLabel(130,70,20,12,-1);
         tipLabel = createMyLabel(8,10,157,16,-1);
         tickLabel.addLine(String.valueOf(tick)).enableBackDraw(false);
         tipLabel.addLine(R.name(R.id.text_module_lab_collision_tip_id)).enableBackDraw(false);
 
-        view.setProgress(tick / (float)total);
+        view.setProgress(tick);
 
         startBtn = createMyButton(134,30,26,16,R.name(R.id.text_module_btn_start_id));
         hideBlockBtn = createMyButton(104,30,26,16,R.name(R.id.text_module_btn_hide_id));
@@ -186,9 +188,10 @@ public class GuiModule extends AbstractGuiContainer {
             long tick = tileEntityShowModule.getLine().getTick();
             long total = tileEntityShowModule.getLine().getTotalTick();
 
+            view.setRange(total,0,0);
             if(!view.isDrag()) {
-                tickLabel.setLine(0, String.valueOf(tick));
-                view.setProgress(tick / (float) total);
+                tickLabel.setFirst(String.valueOf(tick));
+                view.setProgress(tick);
             }
         }
 

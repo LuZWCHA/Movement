@@ -6,17 +6,24 @@ import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
 import com.nowandfuture.mod.core.selection.AxisAlignedBBWrap;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.DrawHelper;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.world.GetCollisionBoxesEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
+import paulscode.sound.libraries.ChannelLWJGLOpenAL;
 
 import java.util.List;
 import java.util.Queue;
@@ -26,11 +33,10 @@ import java.util.function.Predicate;
 //not finished,just test
 public class CollisionHandler {
     public static Queue<TileEntityModule> modules = new ConcurrentLinkedQueue<>();
-    private long time;
 
     @SubscribeEvent
-    @SideOnly(Side.CLIENT)
     public void handleCollision(GetCollisionBoxesEvent event){
+
         Entity entity = event.getEntity();
         AxisAlignedBB abb = event.getAabb();
         List<AxisAlignedBB> list = event.getCollisionBoxesList();
@@ -44,21 +50,26 @@ public class CollisionHandler {
 
         for (TileEntityModule module:
                 modules) {
+
             if(!module.isEnable() || !module.isEnableCollision()) continue;
+
             AxisAlignedBB axisAlignedBB = module.getModuleBase().getMinAABB();
-            CubesRenderer renderer = ModuleRenderManager.INSTANCE.getRenderer(module.getPrefab());
-            if(axisAlignedBB != null && renderer != null){
+            if(axisAlignedBB != null){
+
                 OBBox obBox = new OBBox(axisAlignedBB);
-                Matrix4f matrix4f = renderer.getModelMatrix();
+                Matrix4f matrix4f = module.getModuleBase().getTransRes();
                 obBox.mulMatrix(matrix4f);
                 obBox.translate(module.getModulePos());
 
                 try {
                     if(obBox.intersect(abb)){
+
                         float impactTime = 0;
-                        Vector3f v = null;
+                        Vector3f v;
                         //noinspection PointlessNullCheck
                         if(entity != null) {
+
+                            Movement.logger.info(entity.getName() + entity.getClass());
                             AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
                             v = new Vector3f(
                                     (float) (abb.minX - orgAABB.minX),
@@ -72,8 +83,11 @@ public class CollisionHandler {
                                 impactTime = -1;
                             }
 //                            Movement.logger.info(impactTime);
+                            list.add(new AxisAlignedBBWrap(obBox,impactTime,v));
+                        }else{
+                            //conclusion with particles or blocks
                         }
-                        list.add(new AxisAlignedBBWrap(obBox,impactTime,v));
+
                     }
                 }catch (Exception e){
                     e.printStackTrace();
