@@ -407,46 +407,46 @@ public class OBBox {
         //this test has guarantee the impact must happen in a future time(less than "1"),so always consider the
         //time and direction is opptive
         public static float sweepTest(OBBox moveOBB,OBBox staticOBB,Vector3f v){
-            float maxTime = 0;
+            float minTime = 1;
             Vector3f axis = null;
             for (int i = 0; i <3; i++)
             {
                 Vector3f axis0 = getFaceDirection(moveOBB,i);
-                float length = Math.abs(Vector3f.dot(axis0,v));
+                float length = Math.abs(Vector3f.dot(axis0,v)/v.length());
 
                 float[] res1 = getInterval(moveOBB, axis0);
                 float[] res2 = getInterval(staticOBB, axis0);
                 if (res1[1] < res2[0]) {
                     float a = (res2[0] - res1[1]) / length;
-                    if (a > maxTime && a < 1) {
-                        maxTime = a;
+                    if (a < minTime) {
+                        minTime = a;
                         axis = axis0;
                     }
                 }
                 else if(res2[1] < res1[0]){
-                    float a = (res2[1] - res1[0])/length;
-                    if(a > maxTime && a < 1) {
-                        maxTime = a;
+                    float a = (-res2[1] + res1[0])/length;
+                    if(a < minTime) {
+                        minTime = a;
                         axis = axis0;
                     }
                 }
 
                 Vector3f axis1 = getFaceDirection(staticOBB,i);
-                length = Math.abs(Vector3f.dot(axis1,v));
+                length = Math.abs(Vector3f.dot(axis1,v)/v.length());
 
                 float[] res3 = getInterval(moveOBB,axis1);
                 float[] res4 = getInterval(staticOBB, axis1);
                 if (res3[1] < res4[0]) {
                     float a = (res4[0] - res3[1]) / length;
-                    if (a > maxTime && a < 1) {
-                        maxTime = a;
+                    if (a < minTime) {
+                        minTime = a;
                         axis = axis1;
                     }
                 }
                 else if(res3[0] > res4[1]){
-                    float a = (res3[0] - res4[1])/length;
-                    if( a> maxTime && a < 1) {
-                        maxTime = a;
+                    float a = (-res3[0] + res4[1])/length;
+                    if( a < minTime) {
+                        minTime = a;
                         axis = axis1;
                     }
                 }
@@ -460,28 +460,28 @@ public class OBBox {
                     Vector3f.cross(getEdgeDirection(moveOBB,i), getEdgeDirection(staticOBB,j),axis2);
                     if(axis2.lengthSquared() == 0) continue;
                     axis2.normalise();
-                    float length = Math.abs(Vector3f.dot(axis2,v));
+                    float length = Math.abs(Vector3f.dot(axis2,v)/v.length());
 
                     float[] res1 = getInterval(moveOBB, axis2);
                     float[] res2 = getInterval(staticOBB, axis2);
                     if (res1[1] < res2[0]){
                         float a = (res2[0] - res1[1])/length;
-                        if( a> maxTime && a < 1) {
-                            maxTime = a;
+                        if( a < minTime) {
+                            minTime = a;
                             axis = axis2;
                         }
                     }
                     else if(res2[1] < res1[0]){
-                        float a = (res2[1] - res1[0])/length;
-                        if(a > maxTime && a < 1) {
-                            maxTime = a;
+                        float a = (-res2[1] + res1[0])/length;
+                        if(a < minTime) {
+                            minTime = a;
                             axis = axis2;
                         }
                     }
                 }
             }
 
-            return maxTime;
+            return minTime;
         }
 
         public static boolean intersect(OBBox a,OBBox b){
@@ -529,16 +529,16 @@ public class OBBox {
             return new float[]{min,max};
         }
 
-        private static float projectPoint(Vector3f point, Vector3f axis){
-            return Vector3f.dot(point,axis) * point.length();
+        private static float projectPoint( Vector3f axis,Vector3f point){
+            return Vector3f.dot(point,axis) / axis.length();
         }
 
         private static Vector3f getEdgeDirection(OBBox obBox,int index){
             switch (index){
-                case 0: return (Vector3f) new Vector3f(obBox.xyz100.getX() - obBox.xyz000.getX(),obBox.xyz100.getY() - obBox.xyz000.getY(),obBox.xyz100.getZ() - obBox.xyz000.getZ()).normalise();
-                case 1: return (Vector3f) new Vector3f(obBox.xyz010.getX() - obBox.xyz000.getX(),obBox.xyz010.getY() - obBox.xyz000.getY(),obBox.xyz010.getZ() - obBox.xyz000.getZ()).normalise();
+                case 0: return new Vector3f(obBox.xyz100.getX() - obBox.xyz000.getX(),obBox.xyz100.getY() - obBox.xyz000.getY(),obBox.xyz100.getZ() - obBox.xyz000.getZ());
+                case 1: return new Vector3f(obBox.xyz010.getX() - obBox.xyz000.getX(),obBox.xyz010.getY() - obBox.xyz000.getY(),obBox.xyz010.getZ() - obBox.xyz000.getZ());
                 default:
-                    return (Vector3f) new Vector3f(obBox.xyz001.getX() - obBox.xyz000.getX(),obBox.xyz001.getY() - obBox.xyz000.getY(),obBox.xyz001.getZ() - obBox.xyz000.getZ()).normalise();
+                    return new Vector3f(obBox.xyz001.getX() - obBox.xyz000.getX(),obBox.xyz001.getY() - obBox.xyz000.getY(),obBox.xyz001.getZ() - obBox.xyz000.getZ());
             }
         }
 
@@ -549,11 +549,11 @@ public class OBBox {
 
             switch (index){
                 case 0:
-                    return Vector3f.cross(x,y,new Vector3f()).normalise();
+                    return Vector3f.cross(x,y,new Vector3f());
                 case 1:
-                    return Vector3f.cross(x,z,new Vector3f()).normalise();
+                    return Vector3f.cross(x,z,new Vector3f());
                 default:
-                    return Vector3f.cross(y,z,new Vector3f()).normalise();
+                    return Vector3f.cross(y,z,new Vector3f());
             }
         }
     }

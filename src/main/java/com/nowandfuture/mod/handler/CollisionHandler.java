@@ -82,7 +82,7 @@ public class CollisionHandler {
                             }else{
                                 impactTime = -1;
                             }
-//                            Movement.logger.info(impactTime);
+                            Movement.logger.info(impactTime);
                             list.add(new AxisAlignedBBWrap(obBox,impactTime,v));
                         }else{
                             //conclusion with particles or blocks
