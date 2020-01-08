@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
+package com.nowandfuture.mod.core.common.gui.custom;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;

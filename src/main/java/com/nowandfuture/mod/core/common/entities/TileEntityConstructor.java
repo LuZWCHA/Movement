@@ -102,7 +102,7 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
             Item item = constructorItemStacks.get(0).getItem();
             if(item instanceof PrefabItem){
                 ItemStack itemStack = constructorItemStacks.get(0);
-                return ((PrefabItem) item).getPrefabName(itemStack);
+                return PrefabItem.getPrefabName(itemStack);
             }
         }
         return Strings.EMPTY;
@@ -114,7 +114,7 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
             Item item = constructorItemStacks.get(0).getItem();
             if(item instanceof PrefabItem){
                 ItemStack itemStack = constructorItemStacks.get(0);
-                ((PrefabItem) item).setPrefabName(itemStack,name);
+                PrefabItem.setPrefabName(itemStack,name);
             }
         }
     }
@@ -182,6 +182,8 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
     public ItemStack removeStackFromSlot(int index) {
         return ItemStackHelper.getAndRemove(this.constructorItemStacks, index);
     }
+
+
 
     @Override
     public void setInventorySlotContents(int index,@Nonnull ItemStack stack) {

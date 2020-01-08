@@ -7,6 +7,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class MyLabel extends Gui implements MyGui {
@@ -54,6 +55,18 @@ public class MyLabel extends Gui implements MyGui {
     public MyLabel setLine(int index,String line)
     {
         this.labels.set(index,I18n.format(line));
+        return this;
+    }
+
+    public MyLabel empty(){
+        labels.clear();
+        labels.add("");
+        return this;
+    }
+
+    public MyLabel setFirst(String line){
+        if(labels.isEmpty()) labels.add("");
+        setLine(0,I18n.format(line));
         return this;
     }
 
@@ -185,6 +198,11 @@ public class MyLabel extends Gui implements MyGui {
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
         drawLabel(mouseX,mouseY);
+    }
+
+    @Override
+    public void draw2(int mouseX, int mouseY, float partialTicks) {
+
     }
 
     @Override

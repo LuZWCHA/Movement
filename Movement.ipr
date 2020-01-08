@@ -19,6 +19,7 @@
   </component>
   <component name="CopyrightManager" default="" />
   <component name="DependencyValidationManager">
+    <scope name="Unnamed" pattern="lib:*..*" />
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
   <component name="GradleUISettings">
@@ -35,48 +36,7 @@
     <version value="1.0" />
   </component>
   <component name="JavadocGenerationManager">
-    <option name="OUTPUT_DIRECTORY" />
-    <option name="OPTION_SCOPE" value="protected" />
-    <option name="OPTION_HIERARCHY" value="true" />
-    <option name="OPTION_NAVIGATOR" value="true" />
-    <option name="OPTION_INDEX" value="true" />
-    <option name="OPTION_SEPARATE_INDEX" value="true" />
-    <option name="OPTION_DOCUMENT_TAG_USE" value="false" />
-    <option name="OPTION_DOCUMENT_TAG_AUTHOR" value="false" />
-    <option name="OPTION_DOCUMENT_TAG_VERSION" value="false" />
-    <option name="OPTION_DOCUMENT_TAG_DEPRECATED" value="true" />
-    <option name="OPTION_DEPRECATED_LIST" value="true" />
     <option name="OTHER_OPTIONS" value="" />
-    <option name="HEAP_SIZE" />
-    <option name="LOCALE" />
-    <option name="OPEN_IN_BROWSER" value="true" />
-  </component>
-  <component name="NullableNotNullManager">
-    <option name="myDefaultNullable" value="org.jetbrains.annotations.Nullable" />
-    <option name="myDefaultNotNull" value="javax.annotation.Nonnull" />
-    <option name="myNullables">
-      <value>
-        <list size="6">
-          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.Nullable" />
-          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nullable" />
-          <item index="2" class="java.lang.String" itemvalue="javax.annotation.CheckForNull" />
-          <item index="3" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.Nullable" />
-          <item index="4" class="java.lang.String" itemvalue="android.support.annotation.Nullable" />
-          <item index="5" class="java.lang.String" itemvalue="androidx.annotation.Nullable" />
-        </list>
-      </value>
-    </option>
-    <option name="myNotNulls">
-      <value>
-        <list size="5">
-          <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
-          <item index="1" class="java.lang.String" itemvalue="javax.annotation.Nonnull" />
-          <item index="2" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
-          <item index="3" class="java.lang.String" itemvalue="android.support.annotation.NonNull" />
-          <item index="4" class="java.lang.String" itemvalue="androidx.annotation.NonNull" />
-        </list>
-      </value>
-    </option>
   </component>
   <component name="Palette2">
     <group name="Swing">
@@ -204,7 +164,7 @@
       <module fileurl="file://$PROJECT_DIR$/Movement.iml" filepath="$PROJECT_DIR$/Movement.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="SvnBranchConfigurationManager">
@@ -212,15 +172,6 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-  </component>
-  <component name="libraryTable">
-    <library name="OptiFine_1.12.2_HD_U_D3">
-      <CLASSES>
-        <root url="jar://$PROJECT_DIR$/libs/OptiFine_1.12.2_HD_U_D3.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES />
-    </library>
   </component>
   <component name="masterDetails">
     <states>

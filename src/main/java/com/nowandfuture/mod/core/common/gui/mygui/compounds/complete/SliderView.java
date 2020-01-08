@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 
 public class SliderView extends View {
 
-    private int sliderHalfWidth = 4;
-    private int sliderHalfHeight = 6;
+    private int sliderHalfWidth = 3;
+    private int sliderHalfHeight = 4;
     private boolean isVertical = false;
 
     private boolean enable;
@@ -24,6 +24,7 @@ public class SliderView extends View {
 
     private Consumer<Float> progressChanged;//trigger after not dragging
     private Consumer<Float> progressChanging;//if progress changed and is dragging
+    private float MAX_VALUE,MIN_VALUE,progress,DEFAULT_PROGRESS;
 
     public SliderView(@Nonnull RootView rootView) {
         super(rootView);
@@ -35,16 +36,31 @@ public class SliderView extends View {
 
     @Override
     protected void onLoad() {
-        setProgress(0);
+        setProgress(DEFAULT_PROGRESS);
+    }
+
+    public void setRange(float Max,float Min,float defaultValue){
+        MIN_VALUE = Min;
+        MAX_VALUE = Max;
+        if(defaultValue <= Max && defaultValue >= Min)
+            DEFAULT_PROGRESS = defaultValue;
+        else{
+            DEFAULT_PROGRESS = MIN_VALUE;
+        }
+        progress = DEFAULT_PROGRESS;
     }
 
     public void setProgress(float progress) {
+        this.progress = progress;
+        final float range = MAX_VALUE - MIN_VALUE;
+        progress -= MIN_VALUE;
+
         float length = isVertical ? (getHeight() - (sliderHalfHeight) << 1): (getWidth() - (sliderHalfWidth << 1));
         if(isVertical){
-            sliderY = (int) (length * progress + sliderHalfHeight);
+            sliderY = (int) (length * progress / range + sliderHalfHeight);
             sliderX = getWidth() >> 1;
         }else{
-            sliderX = (int) (length * progress + sliderHalfWidth);
+            sliderX = (int) (length * progress / range + sliderHalfWidth);
             sliderY = getHeight() >> 1;
         }
     }
@@ -54,11 +70,16 @@ public class SliderView extends View {
     }
 
     public float getProgress() {
+        return progress;
+    }
+
+    private float getRealProgress() {
+        final float range = MAX_VALUE - MIN_VALUE;
         float length = isVertical ? (getHeight() - (sliderHalfHeight << 1)) : (getWidth() - (sliderHalfWidth << 1));
         if(isVertical){
-            return (sliderY - sliderHalfHeight) / length;
+            return (sliderY - sliderHalfHeight) / length * range + MIN_VALUE;
         }else {
-            return (sliderX - sliderHalfWidth) / length;
+            return (sliderX - sliderHalfWidth) / length * range + MIN_VALUE;
         }
     }
 
@@ -69,20 +90,22 @@ public class SliderView extends View {
         drawSlider();
     }
 
-    private void drawBackground(){
+    protected void drawBackground(){
 
     }
 
-    private void drawLine(){
-        drawHorizontalLine(sliderHalfWidth,getWidth() - sliderHalfWidth,getHeight() / 2,-1);
+    protected void drawLine(){
+        drawHorizontalLine(sliderHalfWidth,getWidth() - sliderHalfWidth,getHeight() / 2,DrawHelper.colorInt(180,180,180,180));
     }
 
-    private void drawSlider(){
+    protected void drawSlider(){
         drawRect(sliderX - sliderHalfWidth,sliderY - sliderHalfHeight,sliderX + sliderHalfWidth,sliderY + sliderHalfHeight,
-                DrawHelper.colorInt(255,255,255,255));
+                DrawHelper.colorInt(80,80,80,200));
+        drawRect(sliderX - sliderHalfWidth + 1,sliderY - sliderHalfHeight + 1,sliderX + sliderHalfWidth - 1,sliderY + sliderHalfHeight - 1,
+                DrawHelper.colorInt(220,220,220,255));
         if(drag){
-            drawRect(sliderX - sliderHalfWidth,sliderY - sliderHalfHeight,sliderX + sliderHalfWidth,sliderY + sliderHalfHeight,
-                    DrawHelper.colorInt(120,120,120,120));
+            drawRect(sliderX - sliderHalfWidth + 1,sliderY - sliderHalfHeight + 1,sliderX + sliderHalfWidth - 1,sliderY + sliderHalfHeight - 1,
+                    DrawHelper.colorInt(180,180,180,180));
         }
     }
 
@@ -94,7 +117,8 @@ public class SliderView extends View {
     @Override
     protected void onReleased(int mouseX, int mouseY, int state) {
         drag = false;
-        final float curProgress = getProgress();
+        final float curProgress = getRealProgress();
+        progress = curProgress;
         if(curProgress != lastProgress){
             onProgressChanged(curProgress);
         }
@@ -109,7 +133,8 @@ public class SliderView extends View {
         else {
             sliderY = fixMouse(mouseY,true);
         }
-        final float curProgress = getProgress();
+        final float curProgress = getRealProgress();
+        progress = curProgress;
         if(curProgress != lastProgress2) {
             onProgressChanging(curProgress);
             lastProgress2 = curProgress;

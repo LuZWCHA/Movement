@@ -62,8 +62,7 @@ public class TileEntityTimelineEditor extends TileEntityModule {
 
     @Override
     protected void slotChanged(int index, ItemStack stack) {
-        if(slotChanged != null)
-            slotChanged.changed();
+
 
         if(index == 0) {
             if(stack.isEmpty() || stack.getTagCompound() == null){
@@ -78,6 +77,9 @@ public class TileEntityTimelineEditor extends TileEntityModule {
                 }
             }
         }
+
+        if(slotChanged != null)
+            slotChanged.changed(index);
     }
 
     @Override
@@ -125,7 +127,7 @@ public class TileEntityTimelineEditor extends TileEntityModule {
         return "module_gui";
     }
 
-    public void setSlotChanged(ChangeListener slotChanged) {
+    public void setSlotChanged(ChangeListener.ChangeEvent slotChanged) {
         this.slotChanged = slotChanged;
     }
 }

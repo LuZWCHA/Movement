@@ -2,6 +2,7 @@ package com.nowandfuture.mod.utils;
 
 import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -16,7 +17,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector3f;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -101,7 +101,7 @@ public class DrawHelper {
         GlStateManager.pushMatrix();
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GL11.glLineWidth(5F);
+        GL11.glLineWidth(1F);
         GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
@@ -114,6 +114,52 @@ public class DrawHelper {
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glDisable(GL11.GL_BLEND);
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawLine(float sx,float sy,float sz,float ex,float ey,float ez,float r, float b, float g,float a,float width){
+        GlStateManager.pushMatrix();
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glLineWidth(width);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+
+        GL11.glColor4d(r, b, g, a);
+        GL11.glLineWidth(2.0F);
+
+        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+        bufferBuilder.begin(GL11.GL_LINES,DefaultVertexFormats.POSITION);
+        bufferBuilder.pos(sx,sy,sz).endVertex();
+        bufferBuilder.pos(ex,ey,ez).endVertex();
+        Tessellator.getInstance().draw();
+
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawLine(float sx,float sy,float sz,float ex,float ey,float ez,float r, float b, float g){
+        GlStateManager.pushMatrix();
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glLineWidth(1F);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+
+        GL11.glColor4d(r, b, g, 1.0F);
+        GL11.glLineWidth(2.0F);
+
+        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
+        bufferBuilder.begin(GL11.GL_LINES,DefaultVertexFormats.POSITION);
+        bufferBuilder.pos(sx,sy,sz).endVertex();
+        bufferBuilder.pos(ex,ey,ez).endVertex();
+        Tessellator.getInstance().draw();
+
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glDisable(GL11.GL_BLEND);
         GlStateManager.popMatrix();
     }

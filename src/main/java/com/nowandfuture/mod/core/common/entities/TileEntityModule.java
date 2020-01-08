@@ -8,6 +8,7 @@ import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -38,7 +39,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     private final static String NBT_ENABLE = "Enable";
     private final static String NBT_ENABLE_COLLISION = "EnableCollision";
 
-    private final static int FORCE_UPDATE_TIME = 50;
+    private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;
     private boolean enableCollision = false;
 
@@ -54,19 +55,18 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return INFINITE_EXTENT_AABB;
     }
 
-    // TODO: 2019/8/1 fix client
     @Override
     public double getMaxRenderDistanceSquared() {
-        return (Minecraft.getMinecraft().gameSettings.renderDistanceChunks * Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8);
+        return (Minecraft.getMinecraft().gameSettings.renderDistanceChunks *
+                Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8);
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
-        if(world.isRemote){
-            moduleBase.createDefaultTransformer();
-            CollisionHandler.modules.add(this);
-        }
+        moduleBase.createDefaultTransformer();
+        CollisionHandler.modules.add(this);
+
     }
 
     public void setModuleBase(@Nonnull ModuleBase moduleBase) {
@@ -138,7 +138,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void update() {
 
         if(moduleBase.updateLine()){
-            if(!world.isRemote){//sync with client every FORCE_UPDATE_TIME time tick
+            if(!world.isRemote){//sync with client every FORCE_UPDATE_TIME tick
                 if(tick ++ % FORCE_UPDATE_TIME == 0) {
                     NetworkHandler.syncToTrackingClients(world, this,
                             getTimelineUpdatePacket(moduleBase.getLine().getTick(), moduleBase.getLine().isEnable()));
@@ -146,6 +146,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
             }
         }
         moduleBase.update();
+
     }
 
     @Override
@@ -153,8 +154,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         super.invalidate();
         if(world.isRemote)
             moduleBase.invalid();
-        if(world.isRemote)
-            CollisionHandler.modules.remove(this);
+//        if(world.isRemote)
+        CollisionHandler.modules.remove(this);
     }
 
     @Override

@@ -19,6 +19,11 @@ public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Comparable<
         KeyFrameType(int i){
             typeId = i;
         }
+        public static KeyFrameType as(int i){
+            if(i > values().length - 1)
+                return null;
+            return values()[i];
+        }
     }
 
     //shoudong baozheng type xiangtong

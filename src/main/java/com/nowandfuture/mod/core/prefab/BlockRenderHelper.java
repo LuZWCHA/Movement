@@ -43,12 +43,11 @@ public class BlockRenderHelper {
     }
 
 
-    BlockRenderHelper(LocalWorld localWorld){
+    public BlockRenderHelper(LocalWorld localWorld){
         this.localWorld = localWorld;
     }
 
     public void init(){
-
         listNum = (int) Math.ceil((double)localWorld.getRenderBlocks().size()/(double)perListSize);
         listStartIndex = GLAllocation.generateDisplayLists(listNum);
         currentIndex = 0;
@@ -86,17 +85,13 @@ public class BlockRenderHelper {
     }
 
     private void preRender(){
-//        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-//        Movement.logger.info("preRender:"+ displayListState + "," + currentIndex + "," + listNum);
-        if(displayListState.equals(State.WORKING)){
+       if(displayListState.equals(State.WORKING)){
             for(int i=listStartIndex;i<listStartIndex + currentIndex;++i) {
                 GL11.glCallList(i);
-//                Movement.logger.info("call list:"+ i);
             }
         }else if(displayListState.equals(State.FINISHED)){
             for(int i=listStartIndex;i<listStartIndex + listNum;++i) {
                 GL11.glCallList(i);
-//                Movement.logger.info("call list:"+ i);
             }
         }
 
@@ -214,13 +209,12 @@ public class BlockRenderHelper {
     }
 
     public void clear(){
+        GLAllocation.deleteDisplayLists(listStartIndex,listNum);
         displayListState = State.IDLE;
         lastIndexInRenderList = 0;
         currentIndex = 0;
         listNum = 0;
         init = false;
-        GLAllocation.deleteDisplayLists(listStartIndex,listNum);
-
     }
 
     public boolean isInit() {

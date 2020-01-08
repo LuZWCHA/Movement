@@ -3,7 +3,10 @@ package com.nowandfuture.mod.core.client.renders.tiles;
 import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.handler.RenderHandler;
+import com.nowandfuture.mod.utils.DrawHelper;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraftforge.fml.relauncher.Side;
@@ -21,8 +24,14 @@ public class TileEntityModuleRenderer<T extends TileEntityModule> extends TileEn
                     GlStateManager.translate(x, y, z);
 
                     renderer.resetMatrix();
-                    te.getModuleBase().transformPre(partialTicks, renderer);
-                    te.getModuleBase().transformPost(partialTicks, renderer);
+                    te.getModuleBase().transformPre(partialTicks, renderer.getModelMatrix());
+                    te.getModuleBase().transformPost(partialTicks, renderer.getModelMatrix());
+
+                    OBBox obBox = new OBBox(te.getMinAABB());
+                    Matrix4f matrix4f = te.getModuleBase().getTransRes();
+                    obBox.mulMatrix(matrix4f);
+//                    obBox.translate(x,y,z);
+                    DrawHelper.drawOutlinedBoundingBox(obBox);
 
                     renderer.renderTileEntity(partialTicks);
                     GlStateManager.popMatrix();

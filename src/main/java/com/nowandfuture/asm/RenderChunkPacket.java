@@ -4,6 +4,7 @@ import com.nowandfuture.mod.Movement;
 import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -14,7 +15,9 @@ public class RenderChunkPacket extends TransPacket {
         return new String[]{TARGET_CLASS};
     }
 
+
     //collect render-chunks by minecraft (not use when shader on)
+
     @Override
     public MethodVisitor MethodAdapt(MethodVisitor mv, String name, String desc) {
 
@@ -36,7 +39,8 @@ public class RenderChunkPacket extends TransPacket {
                     super.visitInsn(opcode);
                 }
 
-                    @Override
+                @Override
+                @Deprecated
                 public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 
                     if (owner.equals("com/google/common/collect/Lists") && name.equals("newArrayList")) {
@@ -63,6 +67,8 @@ public class RenderChunkPacket extends TransPacket {
 
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
                 }
+
+
             };
         }
 
@@ -86,6 +92,12 @@ public class RenderChunkPacket extends TransPacket {
         }
 
         return mv;
+    }
+
+    @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        super.visitInnerClass(name, outerName, innerName, access);
+//        System.out.println(name);
     }
 
     public static String mapMethodName(String owner, String methodName, String desc) {

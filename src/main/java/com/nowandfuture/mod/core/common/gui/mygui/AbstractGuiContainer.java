@@ -1,6 +1,5 @@
 package com.nowandfuture.mod.core.common.gui.mygui;
 
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.*;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
@@ -24,7 +23,7 @@ public abstract class AbstractGuiContainer extends GuiContainer {
     private List<MyGui> guiList;
     private MyGui focusGui;
 
-    private MyGui nowPressGui;
+    private MyGui nowPressedGui;
     private long pressTime;
     private long lastPressTime;
     private boolean isFirstInit = true;
@@ -173,8 +172,11 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         for (MyGui t :
                 guiList) {
             t.draw(mouseX,mouseY,partialTicks);
+            t.draw2(mouseX, mouseY, partialTicks);
         }
         rootView.draw(mouseX, mouseY, partialTicks);
+        rootView.draw2(mouseX, mouseY, partialTicks);
+
         RenderHelper.enableStandardItemLighting();
         GlStateManager.enableLighting();
     }
@@ -246,9 +248,9 @@ public abstract class AbstractGuiContainer extends GuiContainer {
             if (mouseButton == 0) {
                 for (MyGui gui : this.guiList) {
                     if (gui.mousePressed(mouseX, mouseY, mouseButton)) {
-                        nowPressGui = gui;
+                        nowPressedGui = gui;
                         setFocusGui(gui);
-                        myGuiWrapper = actions.get(nowPressGui.getId());
+                        myGuiWrapper = actions.get(nowPressedGui.getId());
                         if (myGuiWrapper != null && myGuiWrapper.action != null) {
                             myGuiWrapper.action.press(myGuiWrapper.gui, mouseButton);
                         }
@@ -275,29 +277,42 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         }
     }
 
+    protected void setVisible(boolean value,MyGui... guis){
+        for (MyGui gui :
+                guis) {
+            if (gui instanceof MyButton) ((MyButton) gui).visible = value;
+            else if(gui instanceof MyTextField) ((MyTextField) gui).setVisible(value);
+            else if(gui instanceof ViewGroup)
+                ((ViewGroup) gui).setVisible(value);
+            else if(gui instanceof RootView){
+                ((RootView) gui).setVisible(value);
+            }
+        }
+    }
+
     @Override
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         pressTime = Minecraft.getSystemTime() - lastPressTime;
 
         rootView.mouseReleased(mouseX, mouseY, state);
 
-        if (this.nowPressGui != null && state == 0)
+        if (this.nowPressedGui != null && state == 0)
         {
             try {
-                this.nowPressGui.mouseReleased(mouseX, mouseY,state);
+                this.nowPressedGui.mouseReleased(mouseX, mouseY,state);
 
-                MyGuiWrapper myGuiWrapper = actions.get(nowPressGui.getId());
+                MyGuiWrapper myGuiWrapper = actions.get(nowPressedGui.getId());
                 if(myGuiWrapper != null && myGuiWrapper.action != null){
                     myGuiWrapper.action.release(myGuiWrapper.gui,state);
                 }
 
                 if(pressTime > 0 && pressTime <1000) {
-                    nowPressGui.mouseClicked(mouseX, mouseY, state);
+                    nowPressedGui.mouseClicked(mouseX, mouseY, state);
                     if(myGuiWrapper != null && myGuiWrapper.action != null){
                         myGuiWrapper.action.clicked(myGuiWrapper.gui,state);
                     }
                 } else if(pressTime >= 1000){
-                    nowPressGui.mouseLongClicked(mouseX, mouseY,state);
+                    nowPressedGui.mouseLongClicked(mouseX, mouseY,state);
                     if(myGuiWrapper != null && myGuiWrapper.action != null){
                         myGuiWrapper.action.longClick(myGuiWrapper.gui,state,pressTime);
                     }
@@ -308,7 +323,7 @@ public abstract class AbstractGuiContainer extends GuiContainer {
             }
 
             pressTime = 0;
-            this.nowPressGui = null;
+            this.nowPressedGui = null;
         }
         super.mouseReleased(mouseX, mouseY, state);
     }
@@ -339,6 +354,16 @@ public abstract class AbstractGuiContainer extends GuiContainer {
 
     protected void childFocused(MyGui gui){
 
+    }
+
+    @Override
+    public void onGuiClosed() {
+        onDestroy();
+        super.onGuiClosed();
+    }
+
+    public void onDestroy(){
+        rootView.clear();
     }
 
     @Override

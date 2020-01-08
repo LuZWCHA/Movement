@@ -27,7 +27,6 @@ public interface R {
         public static final String text_module_lab_value_y_id = "movement.module.value.y";
         public static final String text_module_lab_value_z_id = "movement.module.value.z";
         public static final String text_module_lab_value_scale_id = "movement.module.value.scale";
-        public static final String text_module_lab_value_angle_id = "movement.module.value.angle";
 
         public static final String text_module_lab_total_time_id = "movement.module.lab.totaltime";
         public static final String text_module_btn_start_id = "movement.module.btn.start";
@@ -44,6 +43,9 @@ public interface R {
         public static final String text_module_btn_collision_enable_id = "movement.module.btn.collision.enable";
         public static final String text_module_btn_collision_disable_id = "movement.module.btn.collision.disable";
         public static final String text_module_lab_collision_tip_id = "movement.module.lab.collision.tip";
+
+        public static final String text_module_btn_preview_reset_id = "movement.module.btn.preview.reset";
+        public static final String text_module_btn_preview_recover_id = "movement.module.lab.preview.recover";
 
 
     }

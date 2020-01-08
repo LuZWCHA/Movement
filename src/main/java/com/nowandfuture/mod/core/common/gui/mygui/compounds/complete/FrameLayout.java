@@ -1,12 +1,18 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.LayoutParameter;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 
 import javax.annotation.Nonnull;
 
-public class FrameLayout extends AbstractLayout {
+public class FrameLayout extends AbstractLayout<FrameLayout.FrameLayoutParameter> {
+
+    public FrameLayout(@Nonnull RootView rootView) {
+        super(rootView);
+    }
+
 
     public FrameLayout(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
@@ -35,5 +41,9 @@ public class FrameLayout extends AbstractLayout {
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
         return false;
+    }
+
+    public static class FrameLayoutParameter extends LayoutParameter{
+
     }
 }

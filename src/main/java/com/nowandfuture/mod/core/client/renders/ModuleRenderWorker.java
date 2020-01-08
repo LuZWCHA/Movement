@@ -5,11 +5,11 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockRenderLayer;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 import java.util.List;

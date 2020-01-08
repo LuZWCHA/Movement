@@ -1,14 +1,12 @@
 package com.nowandfuture.mod.core.transformers;
 
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Quaternion;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import org.lwjgl.util.vector.Vector3f;
-
-import javax.vecmath.AxisAngle4f;
 
 public class RotationTransformNode extends AbstractTransformNode<RotationTransformNode.RotationKeyFrame> {
 
@@ -20,28 +18,25 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
     }
 
     @Override
-    protected void transform(CubesRenderer renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
+    protected void transform(Matrix4f renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
         transformMatrix(renderer, p, preKey, key);
     }
 
     @Override
-    public void transformMatrix(CubesRenderer renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
+    public void transformMatrix(Matrix4f renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
         vector3f.set(key.center.getX() + .5f,key.center.getY() + .5f,key.center.getZ() + .5f);
-        renderer.getModelMatrix().translate(vector3f);
-        final Vec3d mid = MathHelper.Lerp(p,
-                new Vec3d(preKey.axisAngle4f.x,preKey.axisAngle4f.y,preKey.axisAngle4f.z),
-                new Vec3d(key.axisAngle4f.x,key.axisAngle4f.y,key.axisAngle4f.z));
+        renderer.translate(vector3f);
 
-        final float angle = MathHelper.Lerp(p,preKey.axisAngle4f.angle,key.axisAngle4f.angle);
-        vector3f.set((float) mid.x,(float) mid.y,(float) mid.z);
-        renderer.getModelMatrix().rotate((float) (angle/180*Math.PI),vector3f.normalise(vector3f));
+        Quaternion res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX,preKey.rotY,preKey.rotZ),
+                MathHelper.eulerAnglesToQuaternion(key.rotX,key.rotY,key.rotZ),p);
+        MathHelper.mult(renderer,res);
 
         vector3f.set(-key.center.getX() - .5f,-key.center.getY() - .5f,-key.center.getZ() - .5f);
-        renderer.getModelMatrix().translate(vector3f);
+        renderer.translate(vector3f);
     }
 
     @Override
-    protected void transformPost(CubesRenderer renderer, float p, RotationKeyFrame pre, RotationKeyFrame key) {
+    protected void transformPost(Matrix4f renderer, float p, RotationKeyFrame pre, RotationKeyFrame key) {
     }
 
     @Override
@@ -60,7 +55,7 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         public final String NBT_ATTRIBUTE_ROT_X = "RotVetX";
         public final String NBT_ATTRIBUTE_ROT_Y = "RotVetY";
         public final String NBT_ATTRIBUTE_ROT_Z = "RotVetZ";
-        public final String NBT_ATTRIBUTE_ROT_Angle = "RotVetAngle";
+//        public final String NBT_ATTRIBUTE_ROT_W = "RotVetW";
 
         //useless
         public final String NBT_ATTRIBUTE_RADIUS = "Radius";
@@ -69,7 +64,9 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         public final String NBT_ATTRIBUTE_CENTER_Y = "CenterY";
         public final String NBT_ATTRIBUTE_CENTER_Z = "CenterZ";
 
-        public AxisAngle4f axisAngle4f;
+        //public AxisAngle4f axisAngle4f;
+        //public Quaternion quaternion;
+        public float rotX,rotY,rotZ;
 
         public BlockPos center;
 
@@ -78,7 +75,10 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
             RotationKeyFrame keyFrame = new RotationKeyFrame();
             keyFrame.setBeginTick(getBeginTick());
             keyFrame.center = new BlockPos(center);
-            keyFrame.axisAngle4f = new AxisAngle4f(axisAngle4f);
+            //keyFrame.quaternion = new Quaternion(quaternion);
+            keyFrame.rotX = rotX;
+            keyFrame.rotY = rotY;
+            keyFrame.rotZ = rotZ;
 
             return keyFrame;
         }
@@ -86,24 +86,22 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         public RotationKeyFrame(){
             type = 1;
             center = new BlockPos(0,0,0);
-            axisAngle4f = new AxisAngle4f(0,1,0,0);
+//            quaternion = new Quaternion();
+            rotY = rotZ = rotX = 0.0f;
+
         }
 
-        public RotationKeyFrame(AxisAngle4f axisAngle4f){
-            this(axisAngle4f,BlockPos.ORIGIN);
-        }
-
-        public RotationKeyFrame(AxisAngle4f axisAngle4f,BlockPos center){
+        public RotationKeyFrame(BlockPos center){
             this();
-            this.axisAngle4f = axisAngle4f;
+            rotY = rotZ = rotX = 0;
             this.center = center;
         }
 
         public NBTTagCompound writeParametersToNBT(NBTTagCompound compound) {
-            compound.setFloat(NBT_ATTRIBUTE_ROT_X, axisAngle4f.x);
-            compound.setFloat(NBT_ATTRIBUTE_ROT_Y, axisAngle4f.y);
-            compound.setFloat(NBT_ATTRIBUTE_ROT_Z, axisAngle4f.z);
-            compound.setFloat(NBT_ATTRIBUTE_ROT_Angle, axisAngle4f.angle);
+            compound.setFloat(NBT_ATTRIBUTE_ROT_X, rotX);
+            compound.setFloat(NBT_ATTRIBUTE_ROT_Y, rotY);
+            compound.setFloat(NBT_ATTRIBUTE_ROT_Z, rotZ);
+//            compound.setFloat(NBT_ATTRIBUTE_ROT_W, quaternion.w);
 
             compound.setInteger(NBT_ATTRIBUTE_CENTER_Z,center.getZ());
             compound.setInteger(NBT_ATTRIBUTE_CENTER_Y,center.getY());
@@ -115,11 +113,11 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         }
 
         public void readParametersFromNBT(NBTTagCompound compound) {
-            float rotX = compound.getFloat(NBT_ATTRIBUTE_ROT_X);
-            float rotY = compound.getFloat(NBT_ATTRIBUTE_ROT_Y);
-            float rotZ = compound.getFloat(NBT_ATTRIBUTE_ROT_Z);
-            float angle = compound.getFloat(NBT_ATTRIBUTE_ROT_Angle);
-            axisAngle4f = new AxisAngle4f(rotX,rotY,rotZ,angle);
+            rotX = compound.getFloat(NBT_ATTRIBUTE_ROT_X);
+            rotY = compound.getFloat(NBT_ATTRIBUTE_ROT_Y);
+            rotZ = compound.getFloat(NBT_ATTRIBUTE_ROT_Z);
+//            float angle = compound.getFloat(NBT_ATTRIBUTE_ROT_W);
+//            quaternion = new Quaternion(rotX,rotY,rotZ,angle);
 
             int cenX = compound.getInteger(NBT_ATTRIBUTE_CENTER_X);
             int cenY = compound.getInteger(NBT_ATTRIBUTE_CENTER_Y);

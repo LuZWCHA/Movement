@@ -5,6 +5,7 @@ import com.google.common.base.Objects;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
@@ -21,7 +22,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.optifine.shaders.SVertexBuilder;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector3f;
+
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;

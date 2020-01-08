@@ -30,6 +30,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static com.nowandfuture.mod.utils.MathHelper.*;
 
@@ -244,16 +245,10 @@ public abstract class MovementMessage implements IMessage {
                                     NBTTagCompound compound = ((TileEntityTimelineEditor)tileEntity).getLine()
                                             .serializeNBT(new NBTTagCompound());
                                     if(compound != null && !empty){
-//                                        ItemStack output = new ItemStack(new TimelineItem());
-////                                        output.setTagCompound(compound);
-//                                        //set slot packet should small enough,or decode will fail
-//                                        Movement.logger.info("start");
-//                                        ((TileEntityTimelineEditor) tileEntity).setStackForSlot(1,
-//                                                output);
+
                                         ((TileEntityTimelineEditor) tileEntity)
                                                 .getStackInSlot(1)
                                                 .setTagCompound(compound);
-//                                        Movement.logger.info("end");
 
                                         NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                     }
@@ -340,7 +335,7 @@ public abstract class MovementMessage implements IMessage {
             name = Strings.EMPTY;
             int length = buf.readInt();
             if(length > 0)
-                name = buf.readCharSequence(length,Charset.forName("UTF8")).toString();
+                name = buf.readCharSequence(length,StandardCharsets.UTF_8).toString();
         }
 
         @Override
@@ -349,7 +344,7 @@ public abstract class MovementMessage implements IMessage {
             if(name == null) name = Strings.EMPTY;
             buf.writeInt(name.length());
             if(name.length() > 0)
-                buf.writeCharSequence(name,Charset.forName("UTF8"));
+                buf.writeCharSequence(name, StandardCharsets.UTF_8);
         }
 
         public String getName() {
@@ -531,25 +526,16 @@ public abstract class MovementMessage implements IMessage {
                                     int p = (message.data >>> 16) & 0x00000003;
                                     switch (p) {
                                         case 0:
-                                        ((TileEntityConstructor) tileEntity).getAABBSelectArea()
-                                                    .setMaxX(offset);
-                                            break;
-                                        case 1:
-                                            ((TileEntityConstructor) tileEntity).getAABBSelectArea()
-                                                    .setMaxY(offset);
-                                            break;
-                                        case 2:
-                                            ((TileEntityConstructor) tileEntity).getAABBSelectArea()
-                                                    .setMaxZ(offset);
-                                            break;
                                         case 4:
                                             ((TileEntityConstructor) tileEntity).getAABBSelectArea()
                                                     .setMaxX(offset);
                                             break;
+                                        case 1:
                                         case 5:
                                             ((TileEntityConstructor) tileEntity).getAABBSelectArea()
                                                     .setMaxY(offset);
                                             break;
+                                        case 2:
                                         case 6:
                                             ((TileEntityConstructor) tileEntity).getAABBSelectArea()
                                                     .setMaxZ(offset);
@@ -596,7 +582,7 @@ public abstract class MovementMessage implements IMessage {
             this.flag = buf.readShort();
             int length = buf.readInt();
             if(length > 0)
-                this.data = buf.readCharSequence(length,Charset.forName("UTF-8")).toString();
+                this.data = buf.readCharSequence(length, StandardCharsets.UTF_8).toString();
             else
                 this.data = Strings.EMPTY;
         }
@@ -607,7 +593,7 @@ public abstract class MovementMessage implements IMessage {
             buf.writeShort(flag);
             if(data == null) data = "";
             buf.writeInt(data.length());
-            buf.writeCharSequence(data,Charset.forName("UTF-8"));
+            buf.writeCharSequence(data, StandardCharsets.UTF_8);
         }
 
         public String getData() {

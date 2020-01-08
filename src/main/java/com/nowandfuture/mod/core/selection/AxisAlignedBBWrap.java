@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.core.selection;
 
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
-import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
 

@@ -62,6 +62,11 @@ public class MyButton extends GuiButtonExt implements MyGui {
     }
 
     @Override
+    public void draw2(int mouseX, int mouseY, float partialTicks) {
+
+    }
+
+    @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         return false;
     }
