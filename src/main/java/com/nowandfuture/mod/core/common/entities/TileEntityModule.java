@@ -4,10 +4,12 @@ import com.nowandfuture.mod.api.IModule;
 import com.nowandfuture.mod.core.movecontrol.ModuleBase;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.EmptyPrefab;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -45,6 +47,10 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     protected ModuleBase moduleBase;
 
+    //---------------CLIENT_DEBUG----------------
+    private Vector3f impactAxis;
+    private OBBox renderBox;
+
     public TileEntityModule(){
         moduleBase = new ModuleBase();
         moduleBase.setModuleWorld(world);
@@ -65,8 +71,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void onLoad() {
         super.onLoad();
         moduleBase.createDefaultTransformer();
-        CollisionHandler.modules.add(this);
-
+        if(!world.isRemote)
+            CollisionHandler.modules.add(this);
     }
 
     public void setModuleBase(@Nonnull ModuleBase moduleBase) {
@@ -374,5 +380,21 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     public void setEnableCollision(boolean enableCollision) {
         this.enableCollision = enableCollision;
+    }
+
+    public Vector3f getImpactAxis() {
+        return impactAxis;
+    }
+
+    public void setImpactAxis(Vector3f impactAxis) {
+        this.impactAxis = impactAxis;
+    }
+
+    public OBBox getRenderBox() {
+        return renderBox;
+    }
+
+    public void setRenderBox(OBBox renderBox) {
+        this.renderBox = renderBox;
     }
 }

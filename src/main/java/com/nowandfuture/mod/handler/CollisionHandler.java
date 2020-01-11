@@ -1,29 +1,14 @@
 package com.nowandfuture.mod.handler;
 
-import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
-import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
 import com.nowandfuture.mod.core.selection.AxisAlignedBBWrap;
 import com.nowandfuture.mod.core.selection.OBBox;
-import com.nowandfuture.mod.utils.DrawHelper;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.world.GetCollisionBoxesEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import paulscode.sound.libraries.ChannelLWJGLOpenAL;
 
 import java.util.List;
 import java.util.Queue;
@@ -59,31 +44,34 @@ public class CollisionHandler {
                 OBBox obBox = new OBBox(axisAlignedBB);
                 Matrix4f matrix4f = module.getModuleBase().getTransRes();
                 obBox.mulMatrix(matrix4f);
+                module.setRenderBox(new OBBox(obBox));
+
                 obBox.translate(module.getModulePos());
+
 
                 try {
                     if(obBox.intersect(abb)){
 
                         float impactTime = 0;
                         Vector3f v;
-                        //noinspection PointlessNullCheck
                         if(entity != null) {
 
-                            Movement.logger.info(entity.getName() + entity.getClass());
                             AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
                             v = new Vector3f(
-                                    (float) (abb.minX - orgAABB.minX),
-                                    (float) (abb.minY - orgAABB.minY),
-                                    (float) (abb.minZ - orgAABB.minZ)
+                                    ((float) entity.motionX),
+                                    ((float) entity.motionY),
+                                    ((float) entity.motionZ)
                             );
+                            Vector3f axis = new Vector3f();
 
-                            if(!obBox.intersect(orgAABB)) {
-                                impactTime = obBox.sweepTest(orgAABB, v);
-                            }else{
-                                impactTime = -1;
+                            float time = obBox.collisionDetermination(orgAABB, v,axis);
+                            if(time >= 0) {
+                                module.setImpactAxis(axis);
+                                list.add(new AxisAlignedBBWrap(entity,orgAABB,obBox,impactTime,axis,v));
+                            }else if(time == Float.MIN_VALUE){
+                                module.setImpactAxis(null);
                             }
-                            Movement.logger.info(impactTime);
-                            list.add(new AxisAlignedBBWrap(obBox,impactTime,v));
+
                         }else{
                             //conclusion with particles or blocks
                         }

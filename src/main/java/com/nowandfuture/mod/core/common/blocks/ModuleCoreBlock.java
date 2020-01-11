@@ -177,60 +177,6 @@ public class ModuleCoreBlock extends BlockDirectional {
     }
 
     @Override
-    public void addCollisionBoxToList(IBlockState state, World worldIn, BlockPos pos, AxisAlignedBB entityBox, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entityIn, boolean isActualState) {
-
-//        TileEntity tileEntity = worldIn.getTileEntity(pos);
-//        if(tileEntity == null || tileEntity.isInvalid()) {
-//
-//
-//        }else{
-//            if(tileEntity instanceof TileEntityModule){
-//                TileEntityModule module = ((TileEntityModule) tileEntity);
-//                AxisAlignedBB axisAlignedBB = module.getModuleBase().getMinAABB();
-//                if(axisAlignedBB != null) {
-//
-//                    OBBox obBox = new OBBox(axisAlignedBB);
-//                    Matrix4f matrix4f = module.getModuleBase().getTransRes();
-//                    obBox.mulMatrix(matrix4f);
-//                    obBox.translate(module.getModulePos());
-//
-//                    doCollisionTest(obBox,entityBox, collidingBoxes, entityIn);
-//                    return;
-//                }
-//            }
-//        }
-        super.addCollisionBoxToList(state, worldIn, pos, entityBox, collidingBoxes, entityIn, isActualState);
-
-    }
-
-    public void doCollisionTest(OBBox box,AxisAlignedBB abb, List<AxisAlignedBB> collidingBoxes, @Nullable Entity entity){
-        if(entity != null){
-
-            float impactTime = 0;
-            Vector3f v;
-
-            //noinspection PointlessNullCheck
-            Movement.logger.info(entity.getName() + entity.getClass());
-            AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
-            v = new Vector3f(
-                    (float) (abb.minX - orgAABB.minX),
-                    (float) (abb.minY - orgAABB.minY),
-                    (float) (abb.minZ - orgAABB.minZ)
-            );
-
-            if(!box.intersect(orgAABB)) {
-                impactTime = box.sweepTest(orgAABB, v);
-            }else{
-                impactTime = -1;
-            }
-//                            Movement.logger.info(impactTime);
-            collidingBoxes.add(new AxisAlignedBBWrap(box,impactTime,v));
-
-        }
-
-    }
-
-    @Override
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, POWERED);
     }
