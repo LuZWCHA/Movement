@@ -105,7 +105,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
         if(this.v.z == 0) setZ = true;
         checkZeros = true;
     }
-    
+
     private void setV(Vector3f v){
         if(v.lengthSquared() == 0) {
             newV = new Vector3f(0,0,0);
@@ -161,9 +161,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 impactCount += 1;
                 limitZ = new Vector3f(1,0,0);
             }
-
-            System.out.println("impactCount = " + impactCount);
-
+            
             if(impactCount > 2){
                 v1 = new Vector3f(0,0,0);
             }
