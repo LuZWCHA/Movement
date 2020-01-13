@@ -62,12 +62,13 @@ public class CollisionHandler {
                                     ((float) entity.motionY),
                                     ((float) entity.motionZ)
                             );
+
                             Vector3f axis = new Vector3f();
 
                             float time = obBox.collisionDetermination(orgAABB, v,axis);
                             if(time >= 0) {
                                 module.setImpactAxis(axis);
-                                list.add(new AxisAlignedBBWrap(entity,orgAABB,obBox,impactTime,axis,v));
+                                list.add(new AxisAlignedBBWrap(entity,obBox,impactTime,axis,v));
                             }else if(time == Float.MIN_VALUE){
                                 module.setImpactAxis(null);
                             }
@@ -85,24 +86,4 @@ public class CollisionHandler {
         }
 
     }
-
-//    //not finished
-//    @SubscribeEvent
-//    public void handleServerTick(TickEvent.ServerTickEvent serverTickEvent){
-//        if(serverTickEvent.phase == TickEvent.Phase.START){
-//
-//        }
-//
-//        if(serverTickEvent.phase == TickEvent.Phase.END){
-//            time = MinecraftServer.getCurrentTimeMillis();
-////            for (TileEntityModule module:
-////                 modules) {
-////                if(module.isEnable()) {
-////                    module.getModuleBase().transform(0);
-////                }else if(module.isInvalid()){
-////                    modules.remove(module);
-////                }
-////            }
-//        }
-//    }
 }

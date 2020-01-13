@@ -430,19 +430,20 @@ public class OBBox {
             {
                 Vector3f axis0 = getFaceDirection(moveOBB,i).normalise();
                 float length = Math.abs(Vector3f.dot(axis0,v));
+//                System.out.println("length = " + length);
 
                 if(length > 0) {
                     float[] res1 = getInterval(moveOBB, axis0);
                     float[] res2 = getInterval(staticOBB, axis0);
                     if (res1[1] <= res2[0]) {
                         float a = (res2[0] - res1[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis0;
                         }
                     } else if (res2[1] <= res1[0]) {
                         float a = (-res2[1] + res1[0]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis0;
                         }
@@ -451,19 +452,20 @@ public class OBBox {
 
                 Vector3f axis1 = getFaceDirection(staticOBB,i).normalise();
                 length = Math.abs(Vector3f.dot(axis1,v));
+//                System.out.println("length = " + length);
 
                 if(length > 0) {
                     float[] res3 = getInterval(moveOBB, axis1);
                     float[] res4 = getInterval(staticOBB, axis1);
-                    if (res3[1] < res4[0]) {
+                    if (res3[1] <= res4[0]) {
                         float a = (res4[0] - res3[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis1;
                         }
-                    } else if (res3[0] > res4[1]) {
+                    } else if (res3[0] >= res4[1]) {
                         float a = (res3[0] - res4[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis1;
                         }
@@ -480,18 +482,18 @@ public class OBBox {
                     if(axis2.lengthSquared() == 0) continue;
                     axis2.normalise();
                     float length = Math.abs(Vector3f.dot(axis2,v));
-
+//                    System.out.println("length = " + length);
                     float[] res1 = getInterval(moveOBB, axis2);
                     float[] res2 = getInterval(staticOBB, axis2);
                     if (res1[1] <= res2[0]){
                         float a = (res2[0] - res1[1])/length;
-                        if(a > maxTime && a <= 1) {
+                        if(a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis2;
                         }
                     }else if(res2[1] <= res1[0]){
                         float a = (-res2[1] + res1[0])/length;
-                        if(a > maxTime && a <= 1) {
+                        if(a >= maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis2;
                         }
@@ -505,18 +507,6 @@ public class OBBox {
                 System.out.println("NOT FIND");
             }
 
-//            System.out.println("maxTime = " + maxTime);
-//            if(axis != null) {
-//                System.out.println("axis = " + axis.toString());
-//                float f = Vector3f.dot(v,axis);
-//                axis.x = f * axis.x;
-//                axis.y = f * axis.y;
-//                axis.z = f * axis.z;
-//                System.out.println("v1 = " + v.toString());
-//                Vector3f.sub(v,axis,v);
-//                System.out.println("v2 = " + v.toString());
-
-//            }
             return maxTime;
         }
 
