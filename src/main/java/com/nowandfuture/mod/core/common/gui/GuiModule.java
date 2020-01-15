@@ -50,6 +50,7 @@ public class GuiModule extends AbstractGuiContainer {
             public void accept(Float aFloat) {
                 long total = tileEntityShowModule.getLine().getTotalTick();
                 long tick = aFloat.longValue();
+                System.out.println("tick = " + tick);
                 MovementMessage.LongDataMessage message =
                         new MovementMessage.LongDataMessage(MovementMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
                 message.setPos(tileEntityShowModule.getPos());

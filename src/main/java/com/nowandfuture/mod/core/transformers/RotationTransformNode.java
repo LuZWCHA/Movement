@@ -5,6 +5,7 @@ import com.nowandfuture.mod.utils.MathHelper;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
@@ -31,8 +32,7 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
                 MathHelper.eulerAnglesToQuaternion(key.rotX,key.rotY,key.rotZ),p);
         MathHelper.mult(renderer,res);
 
-        vector3f.set(-key.center.getX() - .5f,-key.center.getY() - .5f,-key.center.getZ() - .5f);
-        renderer.translate(vector3f);
+        renderer.translate(vector3f.negate());
     }
 
     @Override
@@ -55,10 +55,6 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         public final String NBT_ATTRIBUTE_ROT_X = "RotVetX";
         public final String NBT_ATTRIBUTE_ROT_Y = "RotVetY";
         public final String NBT_ATTRIBUTE_ROT_Z = "RotVetZ";
-//        public final String NBT_ATTRIBUTE_ROT_W = "RotVetW";
-
-        //useless
-        public final String NBT_ATTRIBUTE_RADIUS = "Radius";
 
         public final String NBT_ATTRIBUTE_CENTER_X = "CenterX";
         public final String NBT_ATTRIBUTE_CENTER_Y = "CenterY";

@@ -97,6 +97,12 @@ public class MyTextField extends GuiTextField implements MyGui,IType,IUpdate {
             textboxKeyTyped(typedChar, keyCode);
     }
 
+    public boolean keyTyped2(char typedChar, int keyCode) {
+        if(filter != null && filter.apply(typedChar))
+            return textboxKeyTyped(typedChar, keyCode);
+        return false;
+    }
+
     public void setFilter(Function<Character, Boolean> filter) {
         this.filter = filter;
     }

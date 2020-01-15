@@ -184,29 +184,29 @@ public class MathHelper {
         float z = quaternion.z;
         float w = quaternion.w;
 
-        Matrix4f left = new Matrix4f();
-//                1.0f - 2.0f*y*y - 2.0f*z*z, 2.0f*x*y - 2.0f*z*w, 2.0f*x*z + 2.0f*y*w, 0.0f,
+        Matrix4f right = new Matrix4f();
+//                [1.0f - 2.0f*y*y - 2.0f*z*z, 2.0f*x*y - 2.0f*z*w, 2.0f*x*z + 2.0f*y*w, 0.0f,
 //                2.0f*x*y + 2.0f*z*w, 1.0f - 2.0f*x*x - 2.0f*z*z, 2.0f*y*z - 2.0f*x*w, 0.0f,
 //                2.0f*x*z - 2.0f*y*w, 2.0f*y*z + 2.0f*x*w, 1.0f - 2.0f*x*x - 2.0f*y*y, 0.0f,
-//                0.0f, 0.0f, 0.0f, 1.0f;
-        left.m00 = 1.0f - 2.0f*y*y - 2.0f*z*z;
-        left.m01 = 2.0f*x*y - 2.0f*z*w;
-        left.m02 = 2.0f*x*z + 2.0f*y*w;
-        left.m03 = 0;
-        left.m10 = 2.0f*x*y + 2.0f*z*w;
-        left.m11 = 1.0f - 2.0f*x*x - 2.0f*z*z;
-        left.m12 = 2.0f*y*z - 2.0f*x*w;
-        left.m13 = 0;
-        left.m20 = 2.0f*x*z - 2.0f*y*w;
-        left.m21 = 2.0f*y*z + 2.0f*x*w;
-        left.m22 = 1.0f - 2.0f*x*x - 2.0f*y*y;
-        left.m23 = 0;
-        left.m30 = 0;
-        left.m31 = 0;
-        left.m32 = 0;
-        left.m33 = 1;
+//                0.0f, 0.0f, 0.0f, 1.0f] = M^T
+        right.m00 = 1.0f - 2.0f*y*y - 2.0f*z*z;
+        right.m01 = 2.0f*x*y + 2.0f*z*w;
+        right.m02 = 2.0f*x*z - 2.0f*y*w;
+        right.m03 = 0;
+        right.m10 = 2.0f*x*y - 2.0f*z*w;
+        right.m11 = 1.0f - 2.0f*x*x - 2.0f*z*z;
+        right.m12 = 2.0f*y*z + 2.0f*x*w;
+        right.m13 = 0;
+        right.m20 = 2.0f*x*z + 2.0f*y*w;
+        right.m21 = 2.0f*y*z - 2.0f*x*w;
+        right.m22 = 1.0f - 2.0f*x*x - 2.0f*y*y;
+        right.m23 = 0;
+        right.m30 = 0;
+        right.m31 = 0;
+        right.m32 = 0;
+        right.m33 = 1;
 
-        return Matrix4f.mul(left,org,org);
+        return Matrix4f.mul(org,right,org);
     }
 
 

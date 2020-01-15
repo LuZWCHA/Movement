@@ -259,6 +259,8 @@ public abstract class AbstractGuiContainer extends GuiContainer {
                 }
             }
             setFocusGui(null);
+        }else{
+            setFocusGui(null);
         }
 
     }
@@ -282,8 +284,9 @@ public abstract class AbstractGuiContainer extends GuiContainer {
                 guis) {
             if (gui instanceof MyButton) ((MyButton) gui).visible = value;
             else if(gui instanceof MyTextField) ((MyTextField) gui).setVisible(value);
-            else if(gui instanceof ViewGroup)
+            else if(gui instanceof ViewGroup) {
                 ((ViewGroup) gui).setVisible(value);
+            }
             else if(gui instanceof RootView){
                 ((RootView) gui).setVisible(value);
             }
@@ -336,6 +339,7 @@ public abstract class AbstractGuiContainer extends GuiContainer {
             if (gui instanceof IUpdate)
                 ((IUpdate) gui).update();
         }
+        rootView.update();
     }
 
     @Override
@@ -368,8 +372,9 @@ public abstract class AbstractGuiContainer extends GuiContainer {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-
-        if (focusGui != null && keyCode != 1/* esc */) {
+        if(rootView.getFocusedView() != null){
+            rootView.handleKeyType(typedChar, keyCode);
+        }else if (focusGui != null && keyCode != 1/* esc */) {
             if(focusGui instanceof IType){
                 ((IType) focusGui).keyTyped(typedChar, keyCode);
             }

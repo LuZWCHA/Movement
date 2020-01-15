@@ -18,10 +18,11 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
     private Vector3f impactAxis;
 
     private Entity impactEntity;
-    private List<AxisAlignedBB> list;
     private boolean setVFinished = false;
     private AxisAlignedBB org;
 
+    //make up the minecraft's function--Entity#move()[V;AABB;FFF] drop of x,y,z offset when they are zero
+    //to see more go to Entity#move()[V;AABB;FFF]
     private boolean checkZeros = false;
     private boolean setX,setY,setZ;
 
@@ -111,13 +112,14 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             newV = new Vector3f(0,0,0);
             return;
         }
+
         if(!setVFinished){
             Vector3f v1 = new Vector3f(v);
 
             float x = v1.x,y = v1.y,z = v1.z;
             AxisAlignedBB other = org.offset(0,0,0);
 
-            list = world.getCollisionBoxes(impactEntity,org.expand(x,y,z));
+            List<AxisAlignedBB> list = world.getCollisionBoxes(impactEntity, org.expand(x, y, z));
 
             for (AxisAlignedBB a :
                     list) {
@@ -161,7 +163,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 impactCount += 1;
                 limitZ = new Vector3f(1,0,0);
             }
-            
+
             if(impactCount > 2){
                 v1 = new Vector3f(0,0,0);
             }
@@ -169,6 +171,8 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             if(impactCount == 0) {
                 if(impactAxis.lengthSquared() != 0)
                     subVOnAxis(v1, impactAxis.normalise(), 1);
+                else
+                    v1 = new Vector3f(0,0,0);
             } else if(impactCount == 2){
                 if(impactAxis.equals(new Vector3f(1,0,0)) && limitX != null){
                     if(limitY != null){

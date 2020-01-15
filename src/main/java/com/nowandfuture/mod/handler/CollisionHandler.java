@@ -48,7 +48,6 @@ public class CollisionHandler {
 
                 obBox.translate(module.getModulePos());
 
-
                 try {
                     if(obBox.intersect(abb)){
 
@@ -69,8 +68,9 @@ public class CollisionHandler {
                             if(time >= 0) {
                                 module.setImpactAxis(axis);
                                 list.add(new AxisAlignedBBWrap(entity,obBox,impactTime,axis,v));
-                            }else if(time == Float.MIN_VALUE){
+                            }else{
                                 module.setImpactAxis(null);
+                                System.out.println(111);
                             }
 
                         }else{

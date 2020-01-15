@@ -241,6 +241,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         }else if(pkt.getTileEntityType() == TIMELINE_UPDATE_PACKET){
             getLine().setEnable(nbtGet.getBoolean(NBT_ENABLE));
             getLine().update(nbtGet.getLong(NBT_TICK));
+            System.out.println("onDataPacket "+getLine().getTick() + getLine().isEnable());
+
         }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
             getModuleBase().getLine().deserializeNBT(nbtGet);
         }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){

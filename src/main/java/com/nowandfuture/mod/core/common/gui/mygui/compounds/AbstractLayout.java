@@ -34,6 +34,11 @@ public abstract class AbstractLayout<T extends LayoutParameter> extends ViewGrou
     }
 
     @Override
+    public boolean onKeyType(char typedChar, int keyCode) {
+        return false;
+    }
+
+    @Override
     protected void onChildrenLayout() {
         super.onChildrenLayout();
     }

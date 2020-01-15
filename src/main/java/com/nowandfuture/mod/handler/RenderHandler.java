@@ -29,14 +29,6 @@ public class RenderHandler {
     public void handleWorldRender(RenderWorldLastEvent renderWorldLastEvent) {
         Minecraft.getMinecraft().entityRenderer.enableLightmap();
 
-        //render Translucent at last to void conflict with shader
-//        for (IRender render:
-//                RenderHook.getRenderModules()) {
-//            if (render.isRenderValid()) {
-////                render.renderTranslucentBlocks(ForgeHooksClient.getWorldRenderPass(),renderWorldLastEvent.getPartialTicks());
-//            }
-//        }
-
         RenderHook.forceClear();
         while (!renderModules.isEmpty()){
             IRender iRender = renderModules.poll();

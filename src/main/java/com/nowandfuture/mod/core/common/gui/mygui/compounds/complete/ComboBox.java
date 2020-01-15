@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MyComboBox extends ViewGroup {
+public class ComboBox extends ViewGroup {
 
     private MyLabel label;
     private SimpleStringList simpleStringList;
@@ -24,7 +24,7 @@ public class MyComboBox extends ViewGroup {
 
     private Consumer<Integer> onItemClicked;
 
-    public MyComboBox(@Nonnull RootView rootView) {
+    public ComboBox(@Nonnull RootView rootView) {
         super(rootView);
 
         label = new MyLabel(Minecraft.getMinecraft().fontRenderer,0,0,0,getWidth(),labelHeight,DrawHelper.colorInt(255,255,255,255));

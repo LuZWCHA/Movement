@@ -122,6 +122,11 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
     }
 
     @Override
+    public boolean onKeyType(char typedChar, int keyCode) {
+        return false;
+    }
+
+    @Override
     protected boolean onLongClicked(int mouseX, int mouseY, int mouseButton) {
         return false;
     }

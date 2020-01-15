@@ -8,6 +8,7 @@ import com.nowandfuture.mod.handler.RenderHandler;
 import com.nowandfuture.mod.utils.DrawHelper;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraftforge.fml.relauncher.Side;
@@ -28,20 +29,13 @@ public class TileEntityModuleRenderer<T extends TileEntityModule> extends TileEn
                     te.getModuleBase().transformPre(partialTicks, renderer.getModelMatrix());
                     te.getModuleBase().transformPost(partialTicks, renderer.getModelMatrix());
 
-                   if(te.getRenderBox() != null) {
-                       DrawHelper.preDraw();
-                       DrawHelper.drawOutlinedBoundingBox(te.getRenderBox());
-                       DrawHelper.postDraw();
-                   }
+                    if(Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+                        OBBox obBox = new OBBox(te.getMinAABB());
+                        Matrix4f matrix4f = te.getModuleBase().getTransRes();
+                        obBox.mulMatrix(matrix4f);
 
-                    if(te.getImpactAxis() != null && te.getRenderBox() !=null){
-                        Vector3f axis = te.getImpactAxis();
-                        OBBox obBox = te.getRenderBox();
                         DrawHelper.preDraw();
-                        GlStateManager.pushMatrix();
-//                        GlStateManager.translate(obBox.getCenter().x,obBox.getCenter().y,obBox.getCenter().z);
-                        DrawHelper.drawLine(0,0,0,axis.x * 5,axis.y * 5,axis.z * 5,1,0,0);
-                        GlStateManager.popMatrix();
+                        DrawHelper.drawOutlinedBoundingBox(obBox);
                         DrawHelper.postDraw();
                     }
 

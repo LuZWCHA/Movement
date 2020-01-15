@@ -33,6 +33,15 @@ public abstract class View extends ViewGroup {
         return true;
     }
 
+    @Override
+    public boolean handleKeyType(char typedChar, int keyCode) {
+        return super.handleKeyType(typedChar, keyCode);
+    }
+
+    @Override
+    public boolean onKeyType(char typedChar, int keyCode) {
+        return false;
+    }
 
     /**
      * this method would execute at the first time of the view been load (at parent view's onLoad)
@@ -82,4 +91,20 @@ public abstract class View extends ViewGroup {
     }
 
 
+    interface ClickListener{
+        void onClicked(View v);
+        void onLongClicked(View v);
+    }
+
+    public static abstract class ActionListener implements ClickListener{
+        @Override
+        public void onClicked(View v) {
+
+        }
+
+        @Override
+        public void onLongClicked(View v) {
+
+        }
+    }
 }

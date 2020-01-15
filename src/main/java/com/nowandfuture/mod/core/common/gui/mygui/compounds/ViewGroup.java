@@ -44,8 +44,6 @@ public abstract class ViewGroup extends Gui implements MyGui {
         this.root = rootView;
     }
 
-
-
     public ViewGroup getParent() {
         return parent;
     }
@@ -264,7 +262,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
             }
         }
         flag = visible && onPressed(mouseX, mouseY, state);
-        if(flag)
+        if(flag && this != root.getFocusedView())
             root.setFocusedView(this);
         return flag;
     }
@@ -311,6 +309,29 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
 
         return false;
+    }
+
+    public boolean onKeyType(char typedChar, int keyCode){
+        return false;
+    }
+
+    public void onUpdate(){
+        for (ViewGroup vg:
+                children){
+            if(vg.isVisible()){
+                vg.onUpdate();
+            }
+        }
+    }
+
+    public boolean handleKeyType(char typedChar, int keyCode){
+        for (ViewGroup vg:
+                children){
+            if(vg.handleKeyType(typedChar, keyCode)){
+                return true;
+            }
+        }
+        return isFocused && onKeyType(typedChar, keyCode);
     }
 
     public void focused(){
@@ -390,6 +411,16 @@ public abstract class ViewGroup extends Gui implements MyGui {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+        if(isFocused && !visible){
+            if(root.getFocusedView() == this){
+                root.setFocusedView(null);
+            }
+            this.loseFocus();
+        }
+        for (ViewGroup vg :
+                children) {
+            vg.setVisible(visible);
+        }
     }
 
     //--------------------------------------tool-------------------------------------------------------------

@@ -2,6 +2,7 @@ package com.nowandfuture.mod;
 
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.GuiHandler;
+import com.nowandfuture.mod.handler.RenderHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.setup.IProxy;
 import net.minecraftforge.common.MinecraftForge;
@@ -9,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.apache.logging.log4j.Logger;
 
@@ -46,5 +48,16 @@ public class Movement {
         {
             proxy.init(event);
             NetworkRegistry.INSTANCE.registerGuiHandler(this,new GuiHandler());
+        }
+
+        @Mod.EventHandler
+        public void stop(FMLServerStoppedEvent event){
+            CollisionHandler.modules.clear();
+            try {
+//                RenderHandler.getRenderModules().clear();
+            }catch (Exception e){
+                //do nothing
+            }
+
         }
 }

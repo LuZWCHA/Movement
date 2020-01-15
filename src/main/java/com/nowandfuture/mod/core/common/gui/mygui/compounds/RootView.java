@@ -28,19 +28,26 @@ public class RootView implements MyGui{
         return context.fontRenderer;
     }
 
-    final ViewGroup getFocusedView(){
+    final public ViewGroup getFocusedView(){
         return focusedView;
     }
 
     final void setFocusedView(ViewGroup viewGroup){
         if(focusedView != null){
             focusedView.setFocused(false);
-            if(viewGroup != null)
+
+            if(viewGroup != null) {
+                focusedView = viewGroup;
                 viewGroup.setFocused(true);
-            focusedView = viewGroup;
+            }else{
+                focusedView = null;
+            }
+
         }else{
-            if(viewGroup != null)
-                viewGroup.setFocused(true);
+            if(viewGroup != null) {
+                focusedView = viewGroup;
+                focusedView.setFocused(true);
+            }
         }
     }
 
@@ -167,6 +174,15 @@ public class RootView implements MyGui{
         if(RootView.isInside(topView,mouseX,mouseY))
             return topView.handleMouseInput(mouseX, mouseY);
         return true;
+    }
+
+    public boolean handleKeyType(char typedChar, int keyCode){
+        return topView.handleKeyType(typedChar, keyCode);
+    }
+
+    //gametick update
+    public void update(){
+        topView.onUpdate();
     }
 
     public void add(ViewGroup viewGroup){

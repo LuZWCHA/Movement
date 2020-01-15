@@ -482,7 +482,6 @@ public class OBBox {
                     if(axis2.lengthSquared() == 0) continue;
                     axis2.normalise();
                     float length = Math.abs(Vector3f.dot(axis2,v));
-//                    System.out.println("length = " + length);
                     float[] res1 = getInterval(moveOBB, axis2);
                     float[] res2 = getInterval(staticOBB, axis2);
                     if (res1[1] <= res2[0]){
@@ -504,7 +503,6 @@ public class OBBox {
             if(axis != null) {
                 ar.set(axis.x, axis.y, axis.z);
             }else{
-                System.out.println("NOT FIND");
             }
 
             return maxTime;

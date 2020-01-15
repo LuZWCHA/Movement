@@ -7,12 +7,13 @@ import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.MyComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
 import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
 import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.transformers.LinearTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
@@ -29,6 +30,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.input.Keyboard;
@@ -59,7 +61,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private MyButton reStartBtn;
 
-    private MyComboBox comboBox;
+    private ComboBox comboBox;
 
     //for scale need one
     //for pos need three
@@ -76,8 +78,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private MyTextField numBox4;
     private MyLabel numLabel5;
     private MyTextField numBox5;
-//    private MyLabel numLabel6;
-//    private MyTextField numBox6;
 
     private MyLabel keyTitle;
     private MyButton applyBtn,exportBtn,importBtn;
@@ -86,6 +86,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private MyTextField totalTimeBox;
 
     private SliderView xSliderView,ySliderView,zSliderView;
+    private NumberBox xOffset,yOffset,zOffset;
 
     private MyButton resetBtn,recoverBtn;
 
@@ -99,7 +100,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine = new KeyFrameLine();
 
         timelineView = new TimeLineView(getRootView());
-        comboBox = new MyComboBox(getRootView());
+        comboBox = new ComboBox(getRootView());
 
         rightLayout =new FrameLayout(getRootView());
 
@@ -107,8 +108,12 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         xSliderView = new SliderView(getRootView(), rightLayout);
         ySliderView = new SliderView(getRootView(), rightLayout);
         zSliderView = new SliderView(getRootView(), rightLayout);
+        xOffset = new NumberBox(getRootView(),rightLayout);
+        yOffset = new NumberBox(getRootView(),rightLayout);
+        zOffset = new NumberBox(getRootView(),rightLayout);
 
-        rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView);
+        rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView,
+                xOffset,yOffset,zOffset);
 
         tileMovementModule.setSlotChanged(new ChangeListener.ChangeEvent() {
             @Override
@@ -135,7 +140,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         rightLayout.setX(xSize);
         rightLayout.setY(0);
         rightLayout.setWidth(100);
-        rightLayout.setHeight(180);
+        rightLayout.setHeight(220);
 
         previewView.setPrefab(tileMovementModule.getPrefab());
 
@@ -186,6 +191,47 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 previewView.setZAngle(aFloat);
                 numBox5.setText(String.valueOf(previewView.getZAngle()));
                 previewView.saveToFrame();
+            }
+        });
+
+        xOffset.setX(0);
+        xOffset.setY(160);
+        xOffset.setWidth(100);
+        xOffset.setHeight(10);
+        yOffset.setX(0);
+        yOffset.setY(180);
+        yOffset.setWidth(100);
+        yOffset.setHeight(10);
+        zOffset.setX(0);
+        zOffset.setY(200);
+        zOffset.setWidth(100);
+        zOffset.setHeight(10);
+
+        xOffset.setDefaultValue(0);
+        yOffset.setDefaultValue(0);
+        zOffset.setDefaultValue(0);
+        xOffset.setValueChangedListener(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer v) {
+                numBox0.setText(String.valueOf(v));
+                previewView.setOffsetX(v);
+                submitValue();
+            }
+        });
+        yOffset.setValueChangedListener(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer v) {
+                numBox1.setText(String.valueOf(v));
+                previewView.setOffsetY(v);
+                submitValue();
+            }
+        });
+        zOffset.setValueChangedListener(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer v) {
+                numBox2.setText(String.valueOf(v));
+                previewView.setOffsetZ(v);
+                submitValue();
             }
         });
 
@@ -374,7 +420,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 numLabel5
 //                numLabel6
         );
-        clearAllEnum();
+        clearAllUIState();
         slotChange(SLOT_TIMELINE);//init import and export buttons
     }
 
@@ -387,7 +433,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     private void exportTimeline(){
-        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
+        MovementMessage.VoidMessage voidMessage =
+                new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
         voidMessage.setPos(tileMovementModule.getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
     }
@@ -405,7 +452,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine.setStep(1);
 
         NBTTagCompound compound = timeLine.serializeNBT(new NBTTagCompound());
-        MovementMessage.NBTMessage nbtMessage = new MovementMessage.NBTMessage(MovementMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
+        MovementMessage.NBTMessage nbtMessage =
+                new MovementMessage.NBTMessage(MovementMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
         nbtMessage.setPos(tileMovementModule.getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
     }
@@ -428,7 +476,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     public void updateEditGroup(KeyFrame keyFrame){
-        clearAllEnum();
+        clearAllUIState();
         keyTitle.empty();
         if(keyFrame != null){
 
@@ -470,9 +518,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numBox4.setText(String.valueOf(vector3f.y));
                     numBox5.setText(String.valueOf(vector3f.z));
 
-//                    numBox6.setText(String.valueOf(rotationKeyFrame.axisAngle4f.angle));
-//                    numBox6.setVisible(true);
-
                     keyTitle.setFirst(R.name(R.id.text_module_lab_key_title2_id) + keyFrame.getBeginTick());
 
                     previewView.setPreKeyFrame((RotationTransformNode.RotationKeyFrame) timeLine.getPreFrame(rotationKeyFrame)
@@ -484,9 +529,35 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     previewView.setYAngle(rotationKeyFrame.rotY);
                     previewView.setZAngle(rotationKeyFrame.rotZ);
 
+                    previewView.setOffsetX(rotationKeyFrame.center.getX());
+                    previewView.setOffsetY(rotationKeyFrame.center.getY());
+                    previewView.setOffsetZ(rotationKeyFrame.center.getZ());
+
                     xSliderView.setProgress(previewView.getXAngle());
                     ySliderView.setProgress(previewView.getYAngle());
                     zSliderView.setProgress(previewView.getZAngle());
+
+                    xOffset.setCurValue(rotationKeyFrame.center.getX());
+                    yOffset.setCurValue(rotationKeyFrame.center.getY());
+                    zOffset.setCurValue(rotationKeyFrame.center.getZ());
+
+                    if(tileMovementModule.getPrefab() == null || tileMovementModule.getPrefab().getMinAABB() == null) {
+                        xOffset.setMax(xOffset.getCurValue());
+                        yOffset.setMax(yOffset.getCurValue());
+                        zOffset.setMax(zOffset.getCurValue());
+                    }else{
+                        AxisAlignedBB a = tileMovementModule.getPrefab().getMinAABB();
+                        xOffset.setMax(256);
+                        yOffset.setMax(256);
+                        zOffset.setMax(256);
+                    }
+
+                    numBox0.setEnabled(false);
+                    numBox1.setEnabled(false);
+                    numBox2.setEnabled(false);
+                    numBox3.setEnabled(false);
+                    numBox4.setEnabled(false);
+                    numBox5.setEnabled(false);
 
                     setVisible(true,
                             numLabel3,numLabel4,numLabel5,numLabel0,numLabel1,numLabel2,
@@ -507,8 +578,15 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         }
     }
 
-    public void clearAllEnum(){
+    public void clearAllUIState(){
         currentType = -1;
+
+        numBox0.setEnabled(true);
+        numBox1.setEnabled(true);
+        numBox2.setEnabled(true);
+        numBox3.setEnabled(true);
+        numBox4.setEnabled(true);
+        numBox5.setEnabled(true);
 
         setVisible(false,
                 numLabel3,numLabel4,numLabel5,numLabel0,numLabel1,numLabel2,
@@ -543,7 +621,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     @Override
     protected void childLoseFocus(MyGui gui) {
         if(gui instanceof MyTextField){
-            //MyTextField will be focused when click,but not auto lose focus by this system;
+            //MyTextField will be focused when clicking,but not auto lose focus by this system;
 
             if(gui != totalTimeBox) {
                 ((MyTextField) gui).setFocused(false);
@@ -600,10 +678,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     rotX = Float.parseFloat(numBox3.getText());
                     rotY = Float.parseFloat(numBox4.getText());
                     rotZ = Float.parseFloat(numBox5.getText());
-
-                    //rotW = Float.parseFloat(numBox6.getText());
-
-                    //Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(rotX,rotY,rotZ);
 
                     ((RotationTransformNode.RotationKeyFrame) keyFrame).center =
                             new BlockPos(centerX, centerY, centerZ);

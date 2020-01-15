@@ -99,12 +99,6 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     public NBTTagCompound writeParametersToNBT(NBTTagCompound compound){
         compound.setLong(NBT_TYPE, typeId);
 
-//        if(basePos != null){
-//            compound.setDouble(NBT_BASE_X,basePos.x);
-//            compound.setDouble(NBT_BASE_Y,basePos.y);
-//            compound.setDouble(NBT_BASE_Z,basePos.z);
-//        }
-
         compound.setInteger(NBT_INTERPOLATION_TYPE,type.ordinal());
 
         if(next != null){
@@ -150,12 +144,6 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         this.type = type;
         interpolation = TimeInterpolation.Factory.build(type);
     }
-
-//    public TimeLine getLine() {
-//        if(line == null) line = new TimeLine();
-//
-//        return line;
-//    }
 
     public static class Builder{
         private AbstractTransformNode now;

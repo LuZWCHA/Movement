@@ -52,9 +52,10 @@ public class ModuleBase implements IModule,ITickable {
     }
 
     public void createDefaultTransformer(){
-        LinearTransformNode node = new LinearTransformNode();
-        ScaleTransformNode node1 = new ScaleTransformNode();
-        RotationTransformNode node2 = new RotationTransformNode();
+        LinearTransformNode node2 = new LinearTransformNode();
+        RotationTransformNode node1 = new RotationTransformNode();
+        ScaleTransformNode node = new ScaleTransformNode();
+
 
         node.setInterpolation(TimeInterpolation.Type.HIGHER_POWER_DOWN);
 
@@ -169,6 +170,7 @@ public class ModuleBase implements IModule,ITickable {
 
     private void updateBox(){
         transRes.setIdentity();
+
         transformPre(0,transRes);
         transformPost(0,transRes);
     }

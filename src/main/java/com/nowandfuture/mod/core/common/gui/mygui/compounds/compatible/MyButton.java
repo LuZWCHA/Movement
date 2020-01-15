@@ -57,6 +57,11 @@ public class MyButton extends GuiButtonExt implements MyGui {
     }
 
     @Override
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
         drawButton(Minecraft.getMinecraft(),mouseX,mouseY,partialTicks);
     }

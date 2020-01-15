@@ -127,7 +127,6 @@ public class DrawHelper {
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
 
         GL11.glColor4d(r, b, g, a);
-        GL11.glLineWidth(2.0F);
 
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         bufferBuilder.begin(GL11.GL_LINES,DefaultVertexFormats.POSITION);

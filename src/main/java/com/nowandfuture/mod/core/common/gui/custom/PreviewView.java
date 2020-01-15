@@ -66,6 +66,18 @@ public class PreviewView extends View {
         this.axisDisplacement = axisDisplacement;
     }
 
+    public void setOffsetX(int x) {
+        this.axisDisplacement.x = x;
+    }
+
+    public void setOffsetY(int y) {
+        this.axisDisplacement.y = y;
+    }
+
+    public void setOffsetZ(int z) {
+        this.axisDisplacement.z = z;
+    }
+
     public void saveToFrame(){
         if(nextKeyFrame == null) nextKeyFrame = new RotationTransformNode.RotationKeyFrame();
         nextKeyFrame.center = new BlockPos(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
@@ -192,7 +204,7 @@ public class PreviewView extends View {
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(0,0,0,255));
+        drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(128,128,128,128));
     }
 
     @Override
@@ -316,29 +328,31 @@ public class PreviewView extends View {
         GlStateManager.enableDepth();
 
         if(isPressed)
-            DrawHelper.drawLine(0,0,0,p1.x,p1.y,p1.z,1,0,0);
-        DrawHelper.drawLine(0,0,0,0,0,5,0,1,1,0.5f,3);//z
-        DrawHelper.drawLine(0,0,0,0,5,0,0,1,0,0.5f,3);//y
-        DrawHelper.drawLine(0,0,0,5,0,0,0,0,1,0.5f,3);//x
+            DrawHelper.drawLine(0,0,0,p1.x,p1.y,p1.z,0.5f,0,0);
+        DrawHelper.drawLine(0,0,0,0,0,5,1,1,1,0.6f,4);//z
+        DrawHelper.drawLine(0,0,0,0,5,0,1,1,1,0.6f,4);//y
+        DrawHelper.drawLine(0,0,0,5,0,0,1,1,1,0.6f,4);//x
 
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
 
-        drawString3D("Z",0,0,5,100,100,100,255,new Vector3f(0,1,0));
-        drawString3D("Y",0,5,0,100,100,100,255,new Vector3f(0,1,0));
-        drawString3D("X",5,0,0,100,100,255,255,new Vector3f(0,1,0));
+        drawString3D("Z",0,0,5,255,255,255,200,new Vector3f(0,1,0));
+        drawString3D("Y",0,5,0,255,255,255,200,new Vector3f(0,1,0));
+        drawString3D("X",5,0,0,255,255,255,200,new Vector3f(0,1,0));
 
         GlStateManager.enableCull();
         GlStateManager.popMatrix();
 
-
         GlStateManager.pushMatrix();
 
-        GlStateManager.translate(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
+        GlStateManager.translate(axisDisplacement.x + .5,axisDisplacement.y + .5,axisDisplacement.z + .5);
+        DrawHelper.drawLine(0,0,-5,0,0,5,1,0,0,0.8f,3);//z
+        DrawHelper.drawLine(0,-5,0,0,5,0,0,1,0,0.8f,3);//y
+        DrawHelper.drawLine(-5,0,0,5,0,0,0,0,1,0.8f,3);//x
         GlStateManager.rotate(zAngle,0,0,1);
         GlStateManager.rotate(yAngle,0,1,0);
         GlStateManager.rotate(xAngle,1,0,0);
-        GlStateManager.translate(-axisDisplacement.x,-axisDisplacement.y,-axisDisplacement.z);
+        GlStateManager.translate(-axisDisplacement.x - .5,-axisDisplacement.y - .5,-axisDisplacement.z - .5);
 
         if(blockRenderHelper != null && blockRenderHelper.isInit()){
             GlStateManager.disableLighting();

@@ -716,6 +716,7 @@ public abstract class MovementMessage implements IMessage {
                     case GUI_TICK_SLIDE:
                         if(tileEntity instanceof TileEntityShowModule) {
                             ((TileEntityShowModule) tileEntity).getLine().setTick(message.data);
+                            System.out.println(message.data);
                             NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityShowModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityShowModule) tileEntity).getLine().isEnable()));
                         }
                         break;
