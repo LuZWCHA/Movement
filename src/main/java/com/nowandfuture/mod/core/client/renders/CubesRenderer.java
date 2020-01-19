@@ -373,8 +373,6 @@ public class CubesRenderer implements IRender{
 
             checkShader();
 
-//            System.out.println(visibleCubes.size());
-
             for (RenderCube cube :
                     visibleCubes) {
 
@@ -422,10 +420,10 @@ public class CubesRenderer implements IRender{
 //        }
 //    }
 
+    private int lastSize = 0;
     private void render(BlockRenderLayer layer){
         if(!isBuilt()) return;
 
-//        Movement.logger.info(visibleCubes.size());
         for (RenderCube cube :
                 visibleCubes) {
             if (!cube.getCubeCompileTask().isLayerEmpty(layer) || cube.isVboBind(layer)) {
@@ -433,6 +431,10 @@ public class CubesRenderer implements IRender{
             }
         }
 
+        if(lastSize != visibleCubes.size()) {
+            System.out.println("visibleCubes = " + visibleCubes.size());
+            lastSize = visibleCubes.size();
+        }
         if(!cubesToRender.isEmpty()) {
             renderBlockLayer(layer);
         }

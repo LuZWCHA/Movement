@@ -86,7 +86,7 @@ public class PrefabItem extends Item {
                 );
                 tooltip.add(I18n.format("movement.tooltip.prefab.size")+
                         ":"+
-                        size.getX() + " * " + size.getY() + " * " + size.getZ());
+                        size.getX() + "x" + size.getY() + "x" + size.getZ());
             }
         }
     }

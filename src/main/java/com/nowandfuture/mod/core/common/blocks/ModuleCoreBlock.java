@@ -58,12 +58,6 @@ public class ModuleCoreBlock extends BlockDirectional {
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-
-        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-    }
-
-    @Override
     public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
         if(!worldIn.isRemote){
             updateState(worldIn,pos,state);
@@ -91,61 +85,26 @@ public class ModuleCoreBlock extends BlockDirectional {
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        EnumFacing enumfacing;
-
-        switch (meta & 7)
-        {
-            case 0:
-                enumfacing = EnumFacing.DOWN;
-                break;
-            case 1:
-                enumfacing = EnumFacing.EAST;
-                break;
-            case 2:
-                enumfacing = EnumFacing.WEST;
-                break;
-            case 3:
-                enumfacing = EnumFacing.SOUTH;
-                break;
-            case 4:
-                enumfacing = EnumFacing.NORTH;
-                break;
-            case 5:
-            default:
-                enumfacing = EnumFacing.UP;
-        }
-
-        return this.getDefaultState().withProperty(POWERED, (meta & 8) != 0);
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getFront(meta & 7));
     }
 
     @Override
     public int getMetaFromState(IBlockState state) {
         int i = 0;
+        i = i | state.getValue(FACING).getIndex();
 
-//        switch (state.getValue(FACING))
-//        {
-//            case EAST:
-//                i = 1;
-//                break;
-//            case WEST:
-//                i = 2;
-//                break;
-//            case SOUTH:
-//                i = 3;
-//                break;
-//            case NORTH:
-//                i = 4;
-//                break;
-//            case UP:
-//            default:
-//                i = 5;
-//                break;
-//            case DOWN:
-//                i = 0;
-//        }
-        return i|(state.getValue(POWERED) ? 8:0);
+        if (state.getValue(POWERED))
+        {
+            i |= 8;
+        }
+
+        return i;
     }
 
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer)
+    {
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer).getOpposite());
+    }
 
     @Override
     public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
@@ -159,7 +118,6 @@ public class ModuleCoreBlock extends BlockDirectional {
         if(!world.isRemote) {
             TileEntity tileEntity = world.getTileEntity(pos);
             state = state.withProperty(POWERED,flag);
-//            world.notifyBlockUpdate(pos,state,state,3);
             world.setBlockState(pos, state, 3);
             world.notifyNeighborsOfStateChange(pos,this,false);
 
@@ -178,7 +136,7 @@ public class ModuleCoreBlock extends BlockDirectional {
 
     @Override
     protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, POWERED);
+        return new BlockStateContainer(this, POWERED,FACING);
     }
 
     @Nullable

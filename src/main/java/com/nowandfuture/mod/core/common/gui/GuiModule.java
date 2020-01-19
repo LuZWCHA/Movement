@@ -55,7 +55,7 @@ public class GuiModule extends AbstractGuiContainer {
                         new MovementMessage.LongDataMessage(MovementMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
                 message.setPos(tileEntityShowModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
-                tileEntityShowModule.getLine().setTick(tick);
+//                tileEntityShowModule.getLine().setTick(tick);
             }
         });
         view.setProgressChanging(new Consumer<Float>() {

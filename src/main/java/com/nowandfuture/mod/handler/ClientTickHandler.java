@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.handler;
 
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -15,11 +16,17 @@ public class ClientTickHandler {
     }
 
     @SubscribeEvent
-    public void handlerTick(TickEvent.ClientTickEvent clientTickEvent){
+    public void handleTick(TickEvent.ClientTickEvent clientTickEvent){
         if(clientTickEvent.phase == TickEvent.Phase.START){
 
         }else {
 
         }
     }
+
+    @SubscribeEvent
+    public void handleClickBlock(PlayerInteractEvent.RightClickBlock rightClickBlock){
+
+    }
+
 }

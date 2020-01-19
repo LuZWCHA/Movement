@@ -1,5 +1,19 @@
 {
+	"defaults": {
+		"model": "movement:editor_block"
+	},
 	"variants": {
-		"normal": { "model": "movement:editor_block" }
+		"facing=up,powered=false": { "model": "movement:editor_block", "x": 270 },
+		"facing=down,powered=false": { "model": "movement:editor_block", "x": 90 },
+		"facing=north,powered=false": { "model": "movement:editor_block" },
+		"facing=south,powered=false": { "model": "movement:editor_block", "y": 180 },
+		"facing=west,powered=false": { "model": "movement:editor_block", "y": 270 },
+		"facing=east,powered=false": { "model": "movement:editor_block", "y": 90 },
+		"facing=up,powered=true": { "model": "movement:editor_block", "x": 270 },
+		"facing=down,powered=true": { "model": "movement:editor_block", "x": 90 },
+		"facing=north,powered=true": { "model": "movement:editor_block" },
+		"facing=south,powered=true": { "model": "movement:editor_block", "y": 180 },
+		"facing=west,powered=true": { "model": "movement:editor_block", "y": 270 },
+		"facing=east,powered=true": { "model": "movement:editor_block", "y": 90 }
 	}
 }

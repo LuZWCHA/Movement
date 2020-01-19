@@ -1,5 +1,11 @@
 {
 	"variants": {
-		"normal": { "model": "movement:constructor_block" }
+		"normal": { "model": "movement:constructor_block" },
+		"facing=up": { "model": "movement:constructor_block"},
+		"facing=down": { "model": "movement:constructor_block"},
+		"facing=north": { "model": "movement:constructor_block"},
+		"facing=south": { "model": "movement:constructor_block", "y": 180 },
+		"facing=west": { "model": "movement:constructor_block", "y": 270 },
+		"facing=east": { "model": "movement:constructor_block", "y": 90 }
 	}
 }

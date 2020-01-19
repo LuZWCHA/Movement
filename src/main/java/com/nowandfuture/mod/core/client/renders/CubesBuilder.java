@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.core.client.renders;
 
+import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.nowandfuture.asm.RenderHook;
 import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
@@ -22,7 +22,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -222,22 +221,27 @@ public class CubesBuilder {
     }
 
     //check is the renderchunks are render(which chunks are contain the cube)
+    // TODO: 2020/1/19 check the visible of cubes in renderChunks with optifine on
     public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos) throws NoSuchFieldException, IllegalAccessException {
 
         OBBox bounding = cube.getTransformedOBBounding();
+        Map<BlockPos,RenderChunk> map = Utils.getRenderChunkMap();
 
-        for (Vector3f vex :
-                bounding.asArray()) {
-            if (Utils.getRenderChunkMap().containsKey(
-                    converRenderChunkPos(vex.x + basePos.getX(), vex.y + basePos.getY(), vex.z + basePos.getZ()))) {
-                return true;
+        if(map != null) {
+            for (Vector3f vex :
+                    bounding.asArray()) {
+                if (map.containsKey(
+                        transferRenderChunkPos(vex.x + basePos.getX(), vex.y + basePos.getY(), vex.z + basePos.getZ()))) {
+                    return true;
+                }
             }
-        }
-        return false;
+        } else
+            return true;
+        return OptifineHelper.isActive();
     }
 
     //get the pos's(d3,d4,d5) render-chunk-pos in the world
-    private static BlockPos converRenderChunkPos(float d3,float d4,float d5){
+    private static BlockPos transferRenderChunkPos(float d3, float d4, float d5){
         return new BlockPos(MathHelper.floor(d3 / 16.0D) * 16, MathHelper.floor(d4 / 16.0D) * 16, MathHelper.floor(d5 / 16.0D) * 16);
     }
 

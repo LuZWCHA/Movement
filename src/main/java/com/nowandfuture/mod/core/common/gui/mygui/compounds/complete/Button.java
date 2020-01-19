@@ -4,6 +4,8 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundHandler;
 
 import javax.annotation.Nonnull;
 
@@ -71,6 +73,12 @@ public class Button extends View {
         if(actionListener != null)
             actionListener.onLongClicked(this);
         return true;
+    }
+
+    @Override
+    protected boolean onPressed(int mouseX, int mouseY, int state) {
+        button.playPressSound(Minecraft.getMinecraft().getSoundHandler());
+        return super.onPressed(mouseX, mouseY, state);
     }
 
     public void setActionListener(ActionListener actionListener) {

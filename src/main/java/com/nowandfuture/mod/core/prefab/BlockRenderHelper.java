@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.EnumBlockRenderType;
 import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.locks.Lock;
@@ -183,8 +184,9 @@ public class BlockRenderHelper {
         for(int i=0; i < size; ++i)
         {
             LocalWorld.LocalBlock wrapBlock = localWorld.getRenderBlocks().get(i);
-            Block b = wrapBlock.blockState.getBlock();
-            if(b==Blocks.AIR)continue;
+
+            if(wrapBlock.blockState.getRenderType() == EnumBlockRenderType.INVISIBLE)
+                continue;
 
             dispatcher.renderBlock(wrapBlock.blockState,wrapBlock.pos,localWorld,bufferBuilder);
         }

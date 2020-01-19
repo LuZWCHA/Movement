@@ -1,6 +1,18 @@
 {
+    "forge_marker":1,
+
 	"variants": {
-        "powered=true": {"model": "movement:module_block_powered"},
-        "powered=false": { "model": "movement:module_block" }
+        "facing=up,powered=false": { "model": "movement:module_block"},
+        "facing=down,powered=false": { "model": "movement:module_block"},
+        "facing=north,powered=false": { "model": "movement:module_block"},
+        "facing=south,powered=false": { "model": "movement:module_block"},
+        "facing=west,powered=false": { "model": "movement:module_block"},
+        "facing=east,powered=false": { "model": "movement:module_block"},
+        "facing=up,powered=true": { "model": "movement:module_block_powered"},
+        "facing=down,powered=true": { "model": "movement:module_block_powered"},
+        "facing=north,powered=true": { "model": "movement:module_block_powered"},
+        "facing=south,powered=true": { "model": "movement:module_block_powered"},
+        "facing=west,powered=true": { "model": "movement:module_block_powered"},
+        "facing=east,powered=true": { "model": "movement:module_block_powered"}
 	}
 }
