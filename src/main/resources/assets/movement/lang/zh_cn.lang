@@ -40,7 +40,6 @@ movement.tooltip.timeline.step=步长:
 movement.tooltip.timeline.duration=总时长:
 movement.tooltip.timeline.enable=启用:
 
-
 tile.ConstructorBlock.name=构建器
 tile.ModuleCoreBlock.name=核心模块
 tile.ModuleTimelineEditorBlock.name=动画编辑器

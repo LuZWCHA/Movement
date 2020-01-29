@@ -121,7 +121,7 @@ public class ModuleCoreBlock extends BlockDirectional {
             world.setBlockState(pos, state, 3);
             world.notifyNeighborsOfStateChange(pos,this,false);
 
-            if (tileEntity != null && tileEntity instanceof TileEntityModule) {
+            if (tileEntity instanceof TileEntityModule) {
                 if (flag && !((TileEntityModule) tileEntity).getLine().isEnable()) {
                     ((TileEntityModule) tileEntity).getLine().start();
                     NetworkHandler.syncToTrackingClients(world,tileEntity,((TileEntityModule) tileEntity).getTimelineUpdatePacket(((TileEntityModule) tileEntity).getLine().getTick(),((TileEntityModule) tileEntity).getLine().isEnable()));
