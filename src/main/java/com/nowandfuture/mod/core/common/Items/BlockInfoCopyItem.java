@@ -16,10 +16,7 @@ import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
@@ -32,7 +29,6 @@ import static com.nowandfuture.mod.Movement.MODID;
 
 public class BlockInfoCopyItem extends Item {
 
-    private LocalWorld.LocalBlock localBlock;
     private static String NBT_IS_EMPTY = "Empty";
     public static String NBT_BLOCK_ID = "BlockId";
 
@@ -56,7 +52,10 @@ public class BlockInfoCopyItem extends Item {
             if(nbt.hasKey(NBT_BLOCK_ID)) {
                 int id = nbt.getInteger(NBT_BLOCK_ID);
                 IBlockState blockState = Block.getStateById(id);
-                tooltip.add(blockState.getBlock().delegate.name()+" ("+ blockState.getBlock().getMetaFromState(blockState) +")");
+                tooltip.add(I18n.format(blockState.getBlock().getUnlocalizedName())+
+                        " (" +
+                        blockState.getBlock().getMetaFromState(blockState) +
+                        ")");
             }
         }
     }
@@ -65,20 +64,22 @@ public class BlockInfoCopyItem extends Item {
     public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
         IBlockState blockState = world.getBlockState(pos);
         if(blockState.getBlock() != Blocks.AIR &&
-                blockState.getBlock().getClass() != TransformedBlock.class){
-            localBlock = new LocalWorld.LocalBlock(pos,blockState);
+                blockState.getBlock().delegate.get().getClass() != TransformedBlock.class){
+            LocalWorld.LocalBlock localBlock = new LocalWorld.LocalBlock(pos, blockState);
+
+            if(hand == EnumHand.MAIN_HAND) {
+                NBTTagCompound compound = player.getHeldItem(hand).getTagCompound();
+                if(compound == null)
+                    compound = new NBTTagCompound();
+
+                int id = Block.getStateId(localBlock.blockState);
+
+                compound.setInteger(NBT_BLOCK_ID, id);
+
+                player.getHeldItem(hand).setTagCompound(compound);
+            }
         }
         return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
-    }
-
-    @Override
-    public ItemStack onItemUseFinish(ItemStack stack, World worldIn, EntityLivingBase entityLiving) {
-        if(localBlock != null){
-            NBTTagCompound compound = stack.getTagCompound();
-            int id = Block.getStateId(localBlock.blockState);
-            compound.setInteger(NBT_BLOCK_ID,id);
-        }
-        return super.onItemUseFinish(stack, worldIn, entityLiving);
     }
 
     public boolean isEmpty(NBTTagCompound nbt){

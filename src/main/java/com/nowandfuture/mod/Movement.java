@@ -23,7 +23,7 @@ public class Movement {
 
         public static final String MODID = "movement";
         public static final String NAME = "Movement Mod";
-        public static final String VERSION = "0.06";
+        public static final String VERSION = "0.07";
 
         @Mod.Instance
         public static Movement instance;
@@ -40,7 +40,6 @@ public class Movement {
             proxy.preInit(event);
             NetworkHandler.INSTANCE.init();
             MinecraftForge.EVENT_BUS.register(new CollisionHandler());
-
         }
 
         @Mod.EventHandler
@@ -53,11 +52,5 @@ public class Movement {
         @Mod.EventHandler
         public void stop(FMLServerStoppedEvent event){
             CollisionHandler.modules.clear();
-            try {
-//                RenderHandler.getRenderModules().clear();
-            }catch (Exception e){
-                //do nothing
-            }
-
         }
 }

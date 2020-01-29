@@ -1,35 +1,26 @@
 package com.nowandfuture.mod.network.message;
 
-import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.common.Items.TimelineItem;
-import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.entities.TileEntityModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
+import com.nowandfuture.mod.core.common.entities.*;
 import com.nowandfuture.mod.core.transformers.TimeInterpolation;
 import com.nowandfuture.mod.core.transformers.animation.TimeLine;
-import com.nowandfuture.mod.handler.RegisterHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import joptsimple.internal.Strings;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.ItemStackHelper;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraftforge.fml.common.network.NetworkCheckHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.items.ItemStackHandler;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static com.nowandfuture.mod.utils.MathHelper.*;
@@ -107,6 +98,7 @@ public abstract class MovementMessage implements IMessage {
         public static final int TAG = 6;
 
         public static final short GUI_APPLY_TIMELINE_FLAG = 0x0000;
+        public static final short TRANSFORMED_BLOCK_FLAG = 0x0001;
 
         private short flag;
         private NBTTagCompound nbt;
@@ -166,6 +158,15 @@ public abstract class MovementMessage implements IMessage {
                                         NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityModule) tileEntity).getTimelineModifyPacket());
                                     }
 
+                                }
+                                break;
+                            case TRANSFORMED_BLOCK_FLAG:
+                                if(tileEntity instanceof TileEntityTransformedBlock){
+                                    NBTTagCompound nbtTagCompound = message.nbt;
+                                    if(nbtTagCompound != null){
+                                        tileEntity.readFromNBT(nbtTagCompound);
+                                        NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                    }
                                 }
                                 break;
 

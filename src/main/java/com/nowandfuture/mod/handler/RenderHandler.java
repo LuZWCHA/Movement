@@ -2,17 +2,24 @@ package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.asm.IRender;
 import com.nowandfuture.asm.RenderHook;
+import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.selection.AABBSelectArea;
+import com.nowandfuture.mod.utils.DrawHelper;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.event.DrawBlockHighlightEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -26,16 +33,35 @@ public class RenderHandler {
     private static final Deque<IRender> renderModules = new LinkedList<>();
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void handleHighLightRender(DrawBlockHighlightEvent event){
+//        event.getTarget().entityHit.world.getTileEntity(event.getTarget().getBlockPos());
+//        if(event.getTarget()!=null) {
+//            EntityPlayer player = event.getPlayer();
+//            double partialTicks = event.getPartialTicks();
+//            double d3 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)partialTicks;
+//            double d4 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)partialTicks;
+//            double d5 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)partialTicks;
+//
+//            GlStateManager.enableBlend();
+//            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+//            GlStateManager.glLineWidth(2.0F);
+//            GlStateManager.disableTexture2D();
+//            GlStateManager.depthMask(false);
+//            DrawHelper.drawOutlinedBoundingBox(new AxisAlignedBB(0,0,0,1,1,1).offset(event.getTarget().getBlockPos()).offset(-d3,-d4,-d5),1,0,0,0.4f);
+//            GlStateManager.depthMask(true);
+//            GlStateManager.enableTexture2D();
+//            GlStateManager.disableBlend();
+//        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void handleWorldRender(RenderWorldLastEvent renderWorldLastEvent) {
-        Minecraft.getMinecraft().entityRenderer.enableLightmap();
 
         RenderHook.forceClear();
         while (!renderModules.isEmpty()){
             IRender iRender = renderModules.poll();
             RenderHook.offer(iRender);
         }
-
-        Minecraft.getMinecraft().entityRenderer.disableLightmap();
     }
 
     public static Deque<IRender> getRenderModules() {
@@ -44,6 +70,16 @@ public class RenderHandler {
 
     public static void addRenderer(IRender renderer){
         renderModules.addFirst(renderer);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void handleUnloadWorld(WorldEvent.Unload unload){
+        if(unload.getWorld().isRemote) {
+            TransformedBlockRenderMap.INSTANCE.clear();
+            renderModules.clear();
+            Utils.mapCache = null;
+            System.out.println("clear");
+        }
     }
 
 }

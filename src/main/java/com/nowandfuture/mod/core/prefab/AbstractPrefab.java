@@ -70,7 +70,7 @@ public abstract class AbstractPrefab implements ITickable {
 
     public void init(@Nonnull World world, BlockPos baseLocation, Vec3i size) {
         this.localWorld = new LocalWorld(size, baseLocation, world, this);
-        this.worldWrap = new LocalWorldWrap(world.getSaveHandler(), world.getWorldInfo(), world.provider, world.profiler, true);
+        this.worldWrap = new LocalWorldWrap(world.getSaveHandler(), world.getWorldInfo(), world.provider, world.profiler, world.isRemote);
         this.worldWrap.wrap(localWorld);
         this.size = size;
         if(world.isRemote){

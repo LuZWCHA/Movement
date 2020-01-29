@@ -1,5 +1,7 @@
 package com.nowandfuture.mod.utils.math;
 
+import net.minecraft.util.math.BlockPos;
+
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 import java.util.Vector;
@@ -11,18 +13,27 @@ public class Vector3f extends Vector implements Serializable {
     public float z;
 
     public Vector3f() {
+        super();
     }
 
     public Vector3f(Vector3f vector3f) {
+        this();
         this.x = vector3f.x;
         this.y = vector3f.y;
         this.z = vector3f.z;
     }
 
     public Vector3f(float x, float y, float z) {
+        this();
         this.set(x, y, z);
     }
 
+    public Vector3f(BlockPos vector3f) {
+        this();
+        this.x = vector3f.getX();
+        this.y = vector3f.getY();
+        this.z = vector3f.getZ();
+    }
 
     public void set(float x, float y) {
         this.x = x;

@@ -8,10 +8,8 @@ import com.nowandfuture.mod.core.common.MovementCreativeTab;
 import com.nowandfuture.mod.core.common.blocks.ConstructorBlock;
 import com.nowandfuture.mod.core.common.blocks.ModuleCoreBlock;
 import com.nowandfuture.mod.core.common.blocks.ModuleTimelineEditorBlock;
-import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.entities.TileEntityModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
+import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
+import com.nowandfuture.mod.core.common.entities.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -27,6 +25,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 
+import java.util.Objects;
+
 import static com.nowandfuture.mod.Movement.MODID;
 
 @Mod.EventBusSubscriber(modid = MODID)
@@ -35,6 +35,7 @@ public final class RegisterHandler {
     public static Block constructorBlock;
     public static Block anmEditorBlock;
     public static Block moduleBlock;
+    public static Block transformedBlock;
     public static Item prefabItem = new PrefabItem();
     public static Item timelineItem = new TimelineItem();
     public static Item copyItem = new BlockInfoCopyItem();
@@ -47,10 +48,12 @@ public final class RegisterHandler {
         GameRegistry.registerTileEntity(TileEntityConstructor.class,new ResourceLocation(MODID,"constructor_tile"));
         GameRegistry.registerTileEntity(TileEntityTimelineEditor.class,new ResourceLocation(MODID,"editor_tile"));
         GameRegistry.registerTileEntity(TileEntityShowModule.class,new ResourceLocation(MODID,"moduleshow_tile"));
+        GameRegistry.registerTileEntity(TileEntityTransformedBlock.class,new ResourceLocation(MODID,"transformedblock_tile"));
 
         constructorBlock = new ConstructorBlock();
         anmEditorBlock = new ModuleTimelineEditorBlock();
         moduleBlock = new ModuleCoreBlock();
+        transformedBlock = new TransformedBlock();
 
         blockRegister.getRegistry().register(
                 constructorBlock.setRegistryName(MODID,"constructor_block")
@@ -67,6 +70,11 @@ public final class RegisterHandler {
                         .setCreativeTab(creativeTab)
         );
 
+        blockRegister.getRegistry().register(
+                transformedBlock.setRegistryName(MODID,"transformed_block")
+                        .setCreativeTab(creativeTab)
+        );
+
     }
     @SubscribeEvent
     public static void registerItems(RegistryEvent.Register<Item> itemRegister){
@@ -75,20 +83,27 @@ public final class RegisterHandler {
 
         registry.register(
                 new ItemBlock(constructorBlock)
-                        .setRegistryName(constructorBlock.getRegistryName())
+                        .setRegistryName(Objects.requireNonNull(constructorBlock.getRegistryName()))
                         .setCreativeTab(creativeTab)
         );
 
         registry.register(
                 new ItemBlock(anmEditorBlock)
-                        .setRegistryName(anmEditorBlock.getRegistryName())
+                        .setRegistryName(Objects.requireNonNull(anmEditorBlock.getRegistryName()))
                         .setCreativeTab(creativeTab)
 
         );
 
         registry.register(
                 new ItemBlock(moduleBlock)
-                        .setRegistryName(moduleBlock.getRegistryName())
+                        .setRegistryName(Objects.requireNonNull(moduleBlock.getRegistryName()))
+                        .setCreativeTab(creativeTab)
+
+        );
+
+        registry.register(
+                new ItemBlock(transformedBlock)
+                        .setRegistryName(Objects.requireNonNull(transformedBlock.getRegistryName()))
                         .setCreativeTab(creativeTab)
 
         );
@@ -109,7 +124,7 @@ public final class RegisterHandler {
 
         registry.register(
                 copyItem.setRegistryName(new ResourceLocation(MODID,"item_blockcopier"))
-                        .setUnlocalizedName("block copier")
+                        .setUnlocalizedName("blockCopier")
                         .setCreativeTab(creativeTab)
 
         );
@@ -120,6 +135,7 @@ public final class RegisterHandler {
         registerModel(constructorBlock,0);//"inventory"
         registerModel(anmEditorBlock,0);
         registerModel(moduleBlock,0);
+        registerModel(transformedBlock,0);
 //        registerModel(moduleBlock,8);
         registerModel(prefabItem,0,"inventory");
         registerModel(timelineItem,0,"inventory");

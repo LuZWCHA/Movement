@@ -420,7 +420,8 @@ public class CubesRenderer implements IRender{
 //        }
 //    }
 
-    private int lastSize = 0;
+
+    private int lastSize = 0;//just for test
     private void render(BlockRenderLayer layer){
         if(!isBuilt()) return;
 
@@ -432,9 +433,9 @@ public class CubesRenderer implements IRender{
         }
 
         if(lastSize != visibleCubes.size()) {
-            System.out.println("visibleCubes = " + visibleCubes.size());
             lastSize = visibleCubes.size();
         }
+
         if(!cubesToRender.isEmpty()) {
             renderBlockLayer(layer);
         }

@@ -231,7 +231,7 @@ public class CubesBuilder {
             for (Vector3f vex :
                     bounding.asArray()) {
                 if (map.containsKey(
-                        transferRenderChunkPos(vex.x + basePos.getX(), vex.y + basePos.getY(), vex.z + basePos.getZ()))) {
+                        transferToRenderChunkPos(vex.x + basePos.getX(), vex.y + basePos.getY(), vex.z + basePos.getZ()))) {
                     return true;
                 }
             }
@@ -241,7 +241,7 @@ public class CubesBuilder {
     }
 
     //get the pos's(d3,d4,d5) render-chunk-pos in the world
-    private static BlockPos transferRenderChunkPos(float d3, float d4, float d5){
+    public static BlockPos transferToRenderChunkPos(float d3, float d4, float d5){
         return new BlockPos(MathHelper.floor(d3 / 16.0D) * 16, MathHelper.floor(d4 / 16.0D) * 16, MathHelper.floor(d5 / 16.0D) * 16);
     }
 

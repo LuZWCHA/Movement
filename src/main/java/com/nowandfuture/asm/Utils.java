@@ -13,6 +13,7 @@ import java.util.Map;
 
 public class Utils {
     private static Field renderChunks;
+    public static Map mapCache;
 
     public static List<Object> getRenderChunks(){
         if(renderChunks == null)
@@ -37,6 +38,7 @@ public class Utils {
                 RenderChunk chunk = ((IRenderChunk)cf).getRenderChunk();
                 map.put(chunk.getPosition(), chunk);
             }
+            mapCache = map;
             return map;
         }
 

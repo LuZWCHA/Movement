@@ -31,13 +31,21 @@ public class DrawHelper {
     }
 
     public static void render(AABBSelectArea selectArea, float r, float b, float g){
-            if(selectArea.isShow()) {
-                GlStateManager.enablePolygonOffset();
-                GlStateManager.doPolygonOffset(-1, -1);
-                DrawHelper.drawCube(selectArea.getBox(), r, b, g);
-                GlStateManager.disablePolygonOffset();
-            }
+        if(selectArea.isShow()) {
+            zFightPre(-1,-1);
+            DrawHelper.drawCube(selectArea.getBox(), r, b, g);
+            zFightPost();
         }
+    }
+
+    public static void zFightPre(int factor,int units){
+        GlStateManager.enablePolygonOffset();
+        GlStateManager.doPolygonOffset(factor, units);
+    }
+
+    public static void zFightPost(){
+        GlStateManager.disablePolygonOffset();
+    }
 
     public static void drawBuffer(BufferBuilder bufferBuilderIn){
         if (bufferBuilderIn.getVertexCount() > 0)
@@ -107,8 +115,7 @@ public class DrawHelper {
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
 //        GL11.glColor4d(r, b, g, 0.04F);
 //        drawBoundingBox(bb);
-        GL11.glColor4d(r, b, g, 1.0F);
-        drawOutlinedBoundingBox(bb);
+        drawOutlinedBoundingBox(bb, r,g,b,1f);
         GL11.glLineWidth(2.0F);
 
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
@@ -230,37 +237,37 @@ public class DrawHelper {
         tessellatorr.draw();
     }
 
-    public static void drawOutlinedBoundingBox(AxisAlignedBB par1AxisAlignedBB)
+    public static void drawOutlinedBoundingBox(AxisAlignedBB par1AxisAlignedBB,float r,float g,float b,float a)
     {
         BufferBuilder var2 = Tessellator.getInstance().getBuffer();
         Tessellator tessellator = Tessellator.getInstance();
 
-        var2.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION);
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).endVertex();
+        var2.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
 
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
         tessellator.draw();
 
-        var2.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION);
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).endVertex();
+        var2.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
 
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.minZ).color(r,g,b,a).endVertex();
 
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.maxX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
 
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).endVertex();
-        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.minY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
+        var2.pos(par1AxisAlignedBB.minX, par1AxisAlignedBB.maxY, par1AxisAlignedBB.maxZ).color(r,g,b,a).endVertex();
         tessellator.draw();
     }
 
@@ -270,14 +277,14 @@ public class DrawHelper {
         GlStateManager.glLineWidth(2.0F);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
-        GlStateManager.disableLighting();
+//        GlStateManager.disableAlpha();
     }
 
     public static void postDraw(){
+//        GlStateManager.enableAlpha();
         GlStateManager.depthMask(true);
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
-        GlStateManager.enableLighting();
     }
 
     public static void drawFace(OBBox.Facing facing){
@@ -448,7 +455,7 @@ public class DrawHelper {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         bufferBuilder.begin(GL11.GL_QUADS,DefaultVertexFormats.POSITION_TEX);
-        bufferBuilder.pos((double)x, (double)(y + maxV), (double)zLevel).tex(u*f, maxV*f1).endVertex();
+        bufferBuilder.pos(x, (double)(y + maxV), (double)zLevel).tex(u*f, maxV*f1).endVertex();
         bufferBuilder.pos((double)(x + maxU), (double)(y + maxV), (double)zLevel).tex(maxU*f, maxV*f1).endVertex();
         bufferBuilder.pos((double)(x + maxU), (double)y, (double)zLevel).tex(maxU*f, v*f1).endVertex();
         bufferBuilder.pos((double)x, (double)y, (double)zLevel).tex(u*f, v*f1).endVertex();
@@ -489,6 +496,40 @@ public class DrawHelper {
         tessellator.draw();
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
+    }
+
+    public void drawWorldBackground(int width,int height,double z)
+    {
+        this.drawGradientRect(z,0, 0,width, height, -1072689136, -804253680);
+    }
+
+    protected void drawGradientRect(double zLevel,int left, int top, int right, int bottom, int startColor, int endColor)
+    {
+        float f = (float)(startColor >> 24 & 255) / 255.0F;
+        float f1 = (float)(startColor >> 16 & 255) / 255.0F;
+        float f2 = (float)(startColor >> 8 & 255) / 255.0F;
+        float f3 = (float)(startColor & 255) / 255.0F;
+        float f4 = (float)(endColor >> 24 & 255) / 255.0F;
+        float f5 = (float)(endColor >> 16 & 255) / 255.0F;
+        float f6 = (float)(endColor >> 8 & 255) / 255.0F;
+        float f7 = (float)(endColor & 255) / 255.0F;
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.shadeModel(7425);
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuffer();
+        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        bufferbuilder.pos((double)right, (double)top, (double)zLevel).color(f1, f2, f3, f).endVertex();
+        bufferbuilder.pos((double)left, (double)top, (double)zLevel).color(f1, f2, f3, f).endVertex();
+        bufferbuilder.pos((double)left, (double)bottom, (double)zLevel).color(f5, f6, f7, f4).endVertex();
+        bufferbuilder.pos((double)right, (double)bottom, (double)zLevel).color(f5, f6, f7, f4).endVertex();
+        tessellator.draw();
+        GlStateManager.shadeModel(7424);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
     }
 
     public static int colorInt(int r,int g,int b,int a){

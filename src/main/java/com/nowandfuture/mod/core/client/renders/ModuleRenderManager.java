@@ -3,12 +3,15 @@ package com.nowandfuture.mod.core.client.renders;
 import com.google.common.collect.Queues;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RegionRenderCacheBuilder;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
 import net.minecraft.client.renderer.culling.ClippingHelper;
 import net.minecraft.client.renderer.culling.ClippingHelperImpl;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -22,17 +25,17 @@ public enum ModuleRenderManager {
     private final static long ALIVE_TIME = 0;
     private final ThreadPoolExecutor executor;
     private ChunkRenderDispatcher chunkRenderDispatcher;
-    private final BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
+    private BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
 
     private final Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
 
     ModuleRenderManager(){
-//        try {
-//            chunkRenderDispatcher = ObfuscationReflectionHelper.getPrivateValue(RenderGlobal.class,Minecraft.getMinecraft().renderGlobal,"renderDispatcher","field_174995_M");
-//        }catch (Exception e){
-//            e.printStackTrace();
-//            chunkRenderDispatcher = null;
-//        }
+        try {
+            chunkRenderDispatcher = ReflectionHelper.getPrivateValue(RenderGlobal.class, Minecraft.getMinecraft().renderGlobal,"renderDispatcher","field_174995_M");
+        }catch (Exception e){
+            e.printStackTrace();
+            chunkRenderDispatcher = null;
+        }
 
         int i = Math.max(1, (int)((double)Runtime.getRuntime().maxMemory() * 0.15D) / 10485760);
         int j = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors(), 1, i / 2));
@@ -47,8 +50,6 @@ public enum ModuleRenderManager {
             for (int l = 0; l < countRenderBuilders; ++l) {
                 this.queueFreeRenderBuilders.add(new RegionRenderCacheBuilder());
             }
-        }else{
-            queueFreeRenderBuilders = Queues.newArrayBlockingQueue(0);
         }
 
         cubesRendererMap = new HashMap<>();

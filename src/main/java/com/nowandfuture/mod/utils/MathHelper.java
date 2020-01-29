@@ -3,6 +3,7 @@ package com.nowandfuture.mod.utils;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
@@ -267,6 +268,33 @@ public class MathHelper {
         yaw *= factor;
 
         return new Vector3f(roll,pitch,yaw);
+    }
+
+    //.       .
+    //  . 2 .
+    // 3  x  1
+    //  . 0 .
+    //.       .
+    //|---------->x+
+    //|
+    //|
+    //↓
+    //z+
+    public static int getRelativePos2D(BlockPos fixedPos,BlockPos observerPos,Quaternion q){
+        BlockPos pos = observerPos.subtract(fixedPos);
+        Vector3f v = MathHelper.mult(new Vector3f(pos),q);
+        int x = (int) v.getX();
+        int z = (int) v.getZ();
+        int y = (int) v.getY();
+        if(z <= x && z > -x){
+            return y > 0 ? 1 : 3;
+        }else if(z >= x && z < -x){
+            return y <= 0 ? 1 : 3;
+        }else if(x >= -z && x < z){
+            return y > 0 ? 0 : 2;
+        }else {
+            return y <= 0 ? 0 : 2;
+        }
     }
 
     public static boolean approximate(double a,double b,double accuracy){

@@ -1,6 +1,7 @@
 package com.nowandfuture.asm;
 
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.math.BlockPos;
@@ -17,21 +18,6 @@ public class RenderHook {
     private final static Deque<IRender> renderModules = new LinkedList<>();
     //store chunks which are rendered by minecraft itself
     private final static Map<BlockPos,RenderChunk> renderChunks = new HashMap<>();
-
-    //unused because it cause no shadow with shaders on
-    @Deprecated
-    public static void render(int pass,float p) {
-//        synchronized (renderModules) {
-//            while (!renderModules.isEmpty()) {
-//                IRender render = renderModules.removeLast();
-//                if (render.isRenderValid()) {
-//                    render.prepare(p);
-//                    render.render(ForgeHooksClient.getWorldRenderPass(),p);//draw without shadow
-//                    render.buildTranslucentBlocks(ForgeHooksClient.getWorldRenderPass(),p);
-//                }
-//            }
-//        }
-    }
 
     public static void prepare(double p) {
         synchronized (renderModules) {
@@ -50,7 +36,7 @@ public class RenderHook {
                     renderModules) {
                 renderer.renderBlockLayer(pass,p,layer);
             }
-
+            TransformedBlockRenderMap.INSTANCE.renderBlockLayer(pass, p, layer);
         }
     }
 
