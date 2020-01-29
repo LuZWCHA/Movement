@@ -262,34 +262,32 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
             pos.add(0,player.getEyeHeight(),0);
 
             boolean changed = true;
+            Vector3f rot = getRotVec();
             if(KeyBindHandler.keyYRotN.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setY((rot.y + STEP)%360);
             }else if(KeyBindHandler.keyYRotP.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setY((rot.y - STEP)%360);
             }else if(KeyBindHandler.keyXRotN.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setX((rot.x + STEP)%360);
             }else if(KeyBindHandler.keyXRotP.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setX((rot.x - STEP)%360);
             }else if(KeyBindHandler.keyZRotP.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setZ((rot.z + STEP)%360);
             }else if(KeyBindHandler.keyZRotN.isKeyDown()){
-                Vector3f rot = getRotVec();
                 rot.setZ((rot.z - STEP)%360);
+            }else if(Minecraft.getMinecraft().gameSettings.keyBindJump.isKeyDown()){
+                rot.set(0,0,0);
             }else{
                 changed = false;
             }
-
+            
             if(changed) {
                 MovementMessage.NBTMessage nbtMessage =
                         new MovementMessage.NBTMessage(MovementMessage.NBTMessage.TRANSFORMED_BLOCK_FLAG, getUpdateTag());
                 nbtMessage.setPos(getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
             }
+
             KeyBinding.unPressAllKeys();
         }
     }

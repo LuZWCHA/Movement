@@ -25,7 +25,6 @@ public class KeyBindHandler {
     public static KeyBinding keyYRotN = new KeyBinding("key.rot.y.neg", Keyboard.KEY_RIGHT,"movement.key.justify");
     public static KeyBinding keyZRotP = new KeyBinding("key.rot.z.plus", Keyboard.KEY_HOME,"movement.key.justify");
     public static KeyBinding keyZRotN = new KeyBinding("key.rot.z.neg", Keyboard.KEY_END,"movement.key.justify");
-//    public static KeyBinding keyReset = new KeyBinding("key.rot.reset", Keyboard.KEY_ESCAPE,"movement.key.justify");
 //
     private List<IKeyListener> listeners;
     private static KeyBindHandler instance;
