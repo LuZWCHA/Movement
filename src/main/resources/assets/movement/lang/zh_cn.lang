@@ -55,3 +55,11 @@ itemGroup.Movement Mod=运动渲染
 
 movement.module.btn.preview.reset=重置视角
 movement.module.lab.preview.recover=恢复视图
+
+movement.key.rot.x.neg=x轴负方向旋转
+movement.key.rot.x.plus=x轴正方向旋转
+movement.key.rot.y.neg=y轴负方向旋转
+movement.key.rot.y.plus=y轴正方向旋转
+movement.key.rot.z.neg=z轴负方向旋转
+movement.key.rot.z.plus=z轴正方向旋转
+movement.key.adjust=方向调节（跳跃键为重置方向）

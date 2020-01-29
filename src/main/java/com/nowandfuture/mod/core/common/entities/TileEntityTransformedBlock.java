@@ -280,7 +280,7 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
             }else{
                 changed = false;
             }
-            
+
             if(changed) {
                 MovementMessage.NBTMessage nbtMessage =
                         new MovementMessage.NBTMessage(MovementMessage.NBTMessage.TRANSFORMED_BLOCK_FLAG, getUpdateTag());

@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -19,18 +20,32 @@ import java.util.function.Consumer;
 
 @SideOnly(Side.CLIENT)
 public class KeyBindHandler {
-    public static KeyBinding keyXRotP = new KeyBinding("key.rot.x.plus", Keyboard.KEY_UP,"movement.key.justify");
-    public static KeyBinding keyXRotN = new KeyBinding("key.rot.x.neg", Keyboard.KEY_DOWN,"movement.key.justify");
-    public static KeyBinding keyYRotP = new KeyBinding("key.rot.y.plus", Keyboard.KEY_LEFT,"movement.key.justify");
-    public static KeyBinding keyYRotN = new KeyBinding("key.rot.y.neg", Keyboard.KEY_RIGHT,"movement.key.justify");
-    public static KeyBinding keyZRotP = new KeyBinding("key.rot.z.plus", Keyboard.KEY_HOME,"movement.key.justify");
-    public static KeyBinding keyZRotN = new KeyBinding("key.rot.z.neg", Keyboard.KEY_END,"movement.key.justify");
-//
+    public static KeyBinding keyXRotP;
+    public static KeyBinding keyXRotN;
+    public static KeyBinding keyYRotP;
+    public static KeyBinding keyYRotN;
+    public static KeyBinding keyZRotP;
+    public static KeyBinding keyZRotN;
+
     private List<IKeyListener> listeners;
     private static KeyBindHandler instance;
 
     private KeyBindHandler(){
         listeners = new LinkedList<>();
+
+        keyXRotP = new KeyBinding("movement.key.rot.x.plus", Keyboard.KEY_UP,"movement.key.adjust");
+        keyXRotN = new KeyBinding("movement.key.rot.x.neg", Keyboard.KEY_DOWN,"movement.key.adjust");
+        keyYRotP = new KeyBinding("movement.key.rot.y.plus", Keyboard.KEY_LEFT,"movement.key.adjust");
+        keyYRotN = new KeyBinding("movement.key.rot.y.neg", Keyboard.KEY_RIGHT,"movement.key.adjust");
+        keyZRotP = new KeyBinding("movement.key.rot.z.plus", Keyboard.KEY_HOME,"movement.key.adjust");
+        keyZRotN = new KeyBinding("movement.key.rot.z.neg", Keyboard.KEY_END,"movement.key.adjust");
+
+        ClientRegistry.registerKeyBinding(keyXRotN);
+        ClientRegistry.registerKeyBinding(keyXRotP);
+        ClientRegistry.registerKeyBinding(keyYRotP);
+        ClientRegistry.registerKeyBinding(keyYRotN);
+        ClientRegistry.registerKeyBinding(keyZRotP);
+        ClientRegistry.registerKeyBinding(keyZRotN);
     }
 
     public static void register(IKeyListener listener){
