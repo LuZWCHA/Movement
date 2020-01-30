@@ -52,10 +52,10 @@ public class BlockInfoCopyItem extends Item {
             if(nbt.hasKey(NBT_BLOCK_ID)) {
                 int id = nbt.getInteger(NBT_BLOCK_ID);
                 IBlockState blockState = Block.getStateById(id);
-                tooltip.add(I18n.format(blockState.getBlock().getUnlocalizedName())+
+                tooltip.add(I18n.format(Block.REGISTRY.getNameForObject(blockState.getBlock())+
                         " (" +
                         blockState.getBlock().getMetaFromState(blockState) +
-                        ")");
+                        ")"));
             }
         }
     }
@@ -78,6 +78,14 @@ public class BlockInfoCopyItem extends Item {
 
                 player.getHeldItem(hand).setTagCompound(compound);
             }
+        }else{
+            NBTTagCompound compound = player.getHeldItem(hand).getTagCompound();
+            if(compound == null)
+                compound = new NBTTagCompound();
+
+            compound.removeTag(NBT_BLOCK_ID);
+
+            player.getHeldItem(hand).setTagCompound(compound);
         }
         return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
     }
@@ -88,4 +96,5 @@ public class BlockInfoCopyItem extends Item {
                 nbt.getBoolean(NBT_IS_EMPTY);
         return isEmpty;
     }
+
 }

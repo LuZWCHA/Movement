@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.client.renders.CopyBlockItemModel;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
@@ -17,6 +18,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -128,6 +130,13 @@ public final class RegisterHandler {
                         .setCreativeTab(creativeTab)
 
         );
+    }
+
+    @SubscribeEvent
+    public static void registerModelBake(ModelBakeEvent event){
+        ModelResourceLocation model = new ModelResourceLocation(copyItem.getRegistryName(), "inventory");
+        event.getModelRegistry().putObject(model,new CopyBlockItemModel());
+
     }
 
     @SubscribeEvent
