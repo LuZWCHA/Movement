@@ -152,46 +152,46 @@ public class CopyBlockItemModel implements IBakedModel{
 
             return list;
         }
-
-        private BakedQuad transform(BakedQuad quad, int slotNo, boolean isOpened) {
-            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.BLOCK);
-            final IVertexConsumer consumer = new VertexTransformer(builder) {
-                @Override
-                public void put(int element, float... data) {
-                    VertexFormatElement formatElement = DefaultVertexFormats.BLOCK.getElement(element);
-                    switch(formatElement.getUsage()) {
-                        case POSITION: {
-                            /*
-                             * 0 is x (positive to east)
-                             * 1 is y (positive to up)
-                             * 2 is z (positive to south)
-                             * 3 is idk
-                             */
-                            float[] newData = data;
-
-                            float moveToRight = (slotNo * 0.3f)/16f;
-                            float moveForward = isOpened ? 0.3f/16f : 0f;
-
-                            newData[0] = newData[0] + moveToRight;
-                            newData[2] = newData[2] + moveForward;
-
-                            System.out.println("newData = " + newData[2]);
-                            parent.put(element, newData);
-                            break;
-                        }
-                        case GENERIC:
-
-
-                        default: {
-                            parent.put(element, data);
-                            break;
-                        }
-                    }
-                }
-            };
-            quad.pipe(consumer);
-            return builder.build();
-        }
+//
+//        private BakedQuad transform(BakedQuad quad, int slotNo, boolean isOpened) {
+//            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.BLOCK);
+//            final IVertexConsumer consumer = new VertexTransformer(builder) {
+//                @Override
+//                public void put(int element, float... data) {
+//                    VertexFormatElement formatElement = DefaultVertexFormats.BLOCK.getElement(element);
+//                    switch(formatElement.getUsage()) {
+//                        case POSITION: {
+//                            /*
+//                             * 0 is x (positive to east)
+//                             * 1 is y (positive to up)
+//                             * 2 is z (positive to south)
+//                             * 3 is idk
+//                             */
+//                            float[] newData = data;
+//
+//                            float moveToRight = (slotNo * 0.3f)/16f;
+//                            float moveForward = isOpened ? 0.3f/16f : 0f;
+//
+//                            newData[0] = newData[0] + moveToRight;
+//                            newData[2] = newData[2] + moveForward;
+//
+//                            System.out.println("newData = " + newData[2]);
+//                            parent.put(element, newData);
+//                            break;
+//                        }
+//                        case GENERIC:
+//
+//
+//                        default: {
+//                            parent.put(element, data);
+//                            break;
+//                        }
+//                    }
+//                }
+//            };
+//            quad.pipe(consumer);
+//            return builder.build();
+//        }
 
 
         @Override
@@ -199,9 +199,7 @@ public class CopyBlockItemModel implements IBakedModel{
         {
             if (type == ItemCameraTransforms.TransformType.GUI)
             {
-                Matrix4f matrix4f = new Matrix4f();
-                matrix4f.setIdentity();
-                return PerspectiveMapWrapper.handlePerspective(this, ImmutableMap.<ItemCameraTransforms.TransformType, TRSRTransformation>builder().put(ItemCameraTransforms.TransformType.GUI,new TRSRTransformation(matrix4f)).build(), type);
+                selectors.get(0).second().handlePerspective(type);
             }
             return this.selectors.get(1).second().handlePerspective(type);
         }

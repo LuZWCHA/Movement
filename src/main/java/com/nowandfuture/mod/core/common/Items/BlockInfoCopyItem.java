@@ -77,15 +77,15 @@ public class BlockInfoCopyItem extends Item {
                 compound.setInteger(NBT_BLOCK_ID, id);
 
                 player.getHeldItem(hand).setTagCompound(compound);
+            }else{
+                NBTTagCompound compound = player.getHeldItem(hand).getTagCompound();
+                if(compound == null)
+                    compound = new NBTTagCompound();
+
+                compound.removeTag(NBT_BLOCK_ID);
+
+                player.getHeldItem(hand).setTagCompound(compound);
             }
-        }else{
-            NBTTagCompound compound = player.getHeldItem(hand).getTagCompound();
-            if(compound == null)
-                compound = new NBTTagCompound();
-
-            compound.removeTag(NBT_BLOCK_ID);
-
-            player.getHeldItem(hand).setTagCompound(compound);
         }
         return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
     }
