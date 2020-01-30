@@ -69,12 +69,9 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
                 GlStateManager.depthMask(true);
                 GlStateManager.glLineWidth(5);
 
-                GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
                 DrawHelper.drawOutlinedBoundingBox(getWorld().getBlockState(te.getPos())
                         .getBoundingBox(te.getWorld(),te.getPos()).offset(x,y,z),1,0,0,1);
-                GL11.glPopAttrib();
                 GlStateManager.glLineWidth(2);
-                GlStateManager.depthMask(false);
                 setLightmapDisabled(false);
 
                 GlStateManager.enableTexture2D();

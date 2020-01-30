@@ -36,7 +36,6 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
     private static String NBT_ROT_X = "RotX";
     private static String NBT_ROT_Y = "RotY";
     private static String NBT_ROT_Z = "RotZ";
-    private static String NBT_ROT_W = "RotW";
 
     private TransformedBlock.BlockWrapper localBlock;
     private TransformedBlockWorld transformedBlockWorld;
