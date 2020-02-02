@@ -2,6 +2,7 @@ package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
+import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.*;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,6 +26,8 @@ public class GuiHandler implements IGuiHandler {
                     return new ContainerAnmEditor(player.inventory, (TileEntityTimelineEditor) tile);
                 case GuiModule.GUI_ID:
                     return new ContainerModule(player.inventory, (TileEntityShowModule) tile);
+                case GuiMediaPlayer.GUI_ID:
+                    return new ContainerSimplePlayer();
             }
         }
         return null;
@@ -42,6 +45,8 @@ public class GuiHandler implements IGuiHandler {
                     return new GuiTimelineEditor(player.inventory, (TileEntityTimelineEditor) tile);
                 case GuiModule.GUI_ID:
                     return new GuiModule(player.inventory, (TileEntityShowModule) tile);
+                case GuiMediaPlayer.GUI_ID:
+                    return new GuiMediaPlayer((TileEntitySimplePlayer) tile);
             }
         }
         return null;

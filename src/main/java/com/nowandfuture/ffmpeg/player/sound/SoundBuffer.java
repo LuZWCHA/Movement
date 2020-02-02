@@ -20,7 +20,6 @@ public class SoundBuffer {
         this.bufferId = AL10.alGenBuffers();
         ByteBuffer byteBuffer = (ByteBuffer)buffer;
         this.audioFormat = audioFormat;
-        // 复制到缓冲区
         int format = Utils.getOpenALFormat(audioFormat);
         alBufferData(bufferId, format,byteBuffer, (int) audioFormat.getSampleRate());
         isStream = false;
@@ -28,7 +27,6 @@ public class SoundBuffer {
 
     public SoundBuffer(AudioFormat audioFormat) {
         this.bufferId = AL10.alGenBuffers();
-        // 复制到缓冲区
         this.audioFormat = audioFormat;
 
         int format = Utils.getOpenALFormat(audioFormat);

@@ -21,14 +21,24 @@ public class SimplePlayer implements IMediaPlayer{
     private AudioPlayThread audioPlayThread;
     private final IMediaPlayer.SyncInfo syncInfo;
 
+    private PlayHandler videoHandler;
+    private PlayHandler audioHandler;
+
+    private boolean isLoading;
+
     public SimplePlayer(){
         imageCache = new LinkedBlockingQueue<>(100);
         audioCache = new LinkedBlockingQueue<>(100);
         syncInfo = new IMediaPlayer.SyncInfo();
     }
 
+    public void setHandlers(PlayHandler videoHandler, PlayHandler audioHandler){
+        this.videoHandler = videoHandler;
+        this.audioHandler = audioHandler;
+    }
+
     @Override
-    public void prepare(PlayHandler videoHandler, PlayHandler audioHandler){
+    public void prepare(){
         if(syncInfo.isPause()){
             syncInfo.setPause(false);
         }
@@ -41,13 +51,13 @@ public class SimplePlayer implements IMediaPlayer{
         }
 
         if(displayThread != null && displayThread.isAlive()){
-            displayThread.setImageCache(null);
             displayThread.interrupt();
+            displayThread.setImageCache(null);
         }
 
         if(audioPlayThread != null && audioPlayThread.isAlive()){
-            audioPlayThread.setAudioCache(null);
             audioPlayThread.interrupt();
+            audioPlayThread.setAudioCache(null);
         }
 
         decodeThread = new DecodeThread(syncInfo);
@@ -65,34 +75,36 @@ public class SimplePlayer implements IMediaPlayer{
 
     public boolean touchSource(String url) {
         //check grabber
-        if(grabber == null) {
-            cleanup();
+        if(grabber != null) {
             try {
-                grabber = FFmpegFrameGrabber.createDefault(url);
-            } catch (FrameGrabber.Exception e) {
+                end();
+                prepare();
+            } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             }
-            grabber.setVideoOption("threads", "0");
-            grabber.setAudioOption("threads", "0");
-            grabber.setAudioChannels(2);
-            decodeThread.setGrabber(grabber);
-        }else{
-            try {
-                grabber.release();
-            } catch (FrameGrabber.Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            decodeThread.setGrabber(null);
             grabber = null;
             cleanup();
         }
 
         try {
-            grabber.start();
+            isLoading = true;
+            grabber = FFmpegFrameGrabber.createDefault(url);
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
+            isLoading = false;
+            return false;
+        }
+        grabber.setVideoOption("threads", "0");
+        grabber.setAudioOption("threads", "0");
+        grabber.setAudioChannels(2);
+        decodeThread.setGrabber(grabber);
+        try {
+            grabber.start();
+            isLoading = false;
+        } catch (FrameGrabber.Exception e) {
+            e.printStackTrace();
+            isLoading = false;
             return false;
         }
         info(grabber);
@@ -102,6 +114,7 @@ public class SimplePlayer implements IMediaPlayer{
 
     @Override
     public void play() throws FrameGrabber.Exception {
+
         decodeThread.setGrabber(grabber);
         decodeThread.start();
 
@@ -122,14 +135,18 @@ public class SimplePlayer implements IMediaPlayer{
             syncInfo.setPause(false);
         }
 
-        audioPlayThread.interrupt();
-        displayThread.interrupt();
-        decodeThread.interrupt();
-
-        if(grabber != null){
-            grabber.close();
-            grabber.release();
+        if(audioPlayThread != null) {
+            audioPlayThread.interrupt();
+            audioPlayThread.setHandler(null);
         }
+        if(displayThread != null) {
+            displayThread.interrupt();
+            displayThread.setHandler(null);
+        }
+        if(decodeThread != null) {
+            decodeThread.interrupt();
+        }
+
         cleanup();
     }
 
@@ -171,15 +188,15 @@ public class SimplePlayer implements IMediaPlayer{
         }
     }
 
-    public Frame getCurImageFrame(){
+    public Object getCurImageObj(){
         if(displayThread == null || !displayThread.isAlive())
             return null;
-        return displayThread.getCurFrame();
+        return displayThread.getPlayHandler().getFrameObj();
     }
 
     @Override
     public long getTotalTime(){
-        return grabber.getFormatContext() == null ? 0:grabber.getLengthInTime() / avutil.AV_TIME_BASE;
+        return (grabber == null || grabber.getFormatContext() == null) ? 0:grabber.getLengthInTime() / avutil.AV_TIME_BASE;
     }
 
     public BlockingQueue<Frame> getAudioCache() {
@@ -202,8 +219,31 @@ public class SimplePlayer implements IMediaPlayer{
     }
 
     @Override
-    public void getInfo(Map<String, String> metadata) {
+    public int getWidth(){
+        if(grabber != null){
+            grabber.getImageWidth();
+        }
+        return -1;
+    }
 
+    @Override
+    public int getHeight(){
+        if(grabber != null){
+            grabber.getImageHeight();
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean isLoading(){
+        return isLoading;
+    }
+
+    @Override
+    public void getInfo(Map<String, String> metadata) {
+        if(grabber != null){
+            grabber.getMetadata();
+        }
     }
 
     @Override
@@ -219,4 +259,5 @@ public class SimplePlayer implements IMediaPlayer{
     public SyncInfo getSyncInfo() {
         return syncInfo;
     }
+
 }

@@ -1,14 +1,8 @@
 package com.nowandfuture.mod.setup;
 
 
-import com.nowandfuture.mod.core.client.renders.tiles.SelectAreaRenderer;
-import com.nowandfuture.mod.core.client.renders.tiles.TileEntityModuleShowerRenderer;
-import com.nowandfuture.mod.core.client.renders.tiles.TileEntityTimeLineEditorRenderer;
-import com.nowandfuture.mod.core.client.renders.tiles.TileEntityTransformedBlockRenderer;
-import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
-import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
+import com.nowandfuture.mod.core.client.renders.tiles.*;
+import com.nowandfuture.mod.core.common.entities.*;
 import com.nowandfuture.mod.handler.ClientTickHandler;
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.KeyBindHandler;
@@ -32,7 +26,7 @@ public class ClientProxy extends DefaultClientProxy {
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTimelineEditor.class,new TileEntityTimeLineEditorRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityShowModule.class,new TileEntityModuleShowerRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTransformedBlock.class,new TileEntityTransformedBlockRenderer());
-
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySimplePlayer.class,new VideoRenderer());
     }
 
     @Override

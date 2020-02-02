@@ -5,7 +5,8 @@ import com.nowandfuture.ffmpeg.IMediaPlayer;
 import net.minecraft.client.renderer.GlStateManager;
 
 public class OpenGLDisplayHandler implements PlayHandler {
-    private int id;
+    protected int id;
+    private Frame frame;
 
     public OpenGLDisplayHandler() {
         id = GlStateManager.generateTexture();
@@ -18,7 +19,7 @@ public class OpenGLDisplayHandler implements PlayHandler {
 
     @Override
     public void handle(Frame frame) {
-
+        this.frame = frame;
     }
 
     @Override
@@ -29,5 +30,10 @@ public class OpenGLDisplayHandler implements PlayHandler {
     @Override
     public void destroy() {
         GlStateManager.deleteTexture(id);
+    }
+
+    @Override
+    public Object getFrameObj() {
+        return frame;
     }
 }

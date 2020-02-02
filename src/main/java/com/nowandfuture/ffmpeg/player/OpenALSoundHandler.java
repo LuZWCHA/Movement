@@ -64,14 +64,6 @@ public class OpenALSoundHandler implements PlayHandler {
         byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
         AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate);
 
-//        flush();
-//        soundSystem.feedRawAudioData("music", buffer);
-//        soundSystem.interruptCommandThread();
-//        soundSystem.flush("music");
-//        if (processed == 0) {
-//            soundManager.flush("audio");
-//        }
-
         if(soundManager.getSoundSource("audio").isPlaying()){
             soundManager.flushProcessed("audio");
         }
@@ -96,5 +88,10 @@ public class OpenALSoundHandler implements PlayHandler {
     public void destroy() {
 //        soundSystem.cleanup();
         soundManager.cleanup();
+    }
+
+    @Override
+    public Object getFrameObj() {
+        return null;
     }
 }

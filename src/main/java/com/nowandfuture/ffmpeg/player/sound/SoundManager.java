@@ -47,9 +47,6 @@ public class SoundManager {
     }
 
     public void init() throws LWJGLException, SoundSystemException {
-//        String deviceName = ALC10.alcGetString(null, ALC10.ALC_DEFAULT_DEVICE_SPECIFIER);
-//        AL.create();
-
         SoundSystemConfig.setLogger(new SoundSystemLogger());
         libraryLWJGLOpenAL = new LibraryLWJGLOpenAL();
         libraryLWJGLOpenAL.init();

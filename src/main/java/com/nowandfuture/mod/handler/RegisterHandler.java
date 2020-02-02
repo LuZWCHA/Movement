@@ -6,14 +6,12 @@ import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.MovementCreativeTab;
-import com.nowandfuture.mod.core.common.blocks.ConstructorBlock;
-import com.nowandfuture.mod.core.common.blocks.ModuleCoreBlock;
-import com.nowandfuture.mod.core.common.blocks.ModuleTimelineEditorBlock;
-import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
+import com.nowandfuture.mod.core.common.blocks.*;
 import com.nowandfuture.mod.core.common.entities.*;
 import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -38,6 +36,7 @@ public final class RegisterHandler {
     public static Block anmEditorBlock;
     public static Block moduleBlock;
     public static Block transformedBlock;
+    public static Block videoBlock;
     public static Item prefabItem = new PrefabItem();
     public static Item timelineItem = new TimelineItem();
     public static Item copyItem = new BlockInfoCopyItem();
@@ -51,11 +50,13 @@ public final class RegisterHandler {
         GameRegistry.registerTileEntity(TileEntityTimelineEditor.class,new ResourceLocation(MODID,"editor_tile"));
         GameRegistry.registerTileEntity(TileEntityShowModule.class,new ResourceLocation(MODID,"moduleshow_tile"));
         GameRegistry.registerTileEntity(TileEntityTransformedBlock.class,new ResourceLocation(MODID,"transformedblock_tile"));
+        GameRegistry.registerTileEntity(TileEntitySimplePlayer.class,new ResourceLocation(MODID,"video_tile"));
 
         constructorBlock = new ConstructorBlock();
         anmEditorBlock = new ModuleTimelineEditorBlock();
         moduleBlock = new ModuleCoreBlock();
         transformedBlock = new TransformedBlock();
+        videoBlock = new SimplePlayerBlock();
 
         blockRegister.getRegistry().register(
                 constructorBlock.setRegistryName(MODID,"constructor_block")
@@ -74,6 +75,11 @@ public final class RegisterHandler {
 
         blockRegister.getRegistry().register(
                 transformedBlock.setRegistryName(MODID,"transformed_block")
+                        .setCreativeTab(creativeTab)
+        );
+
+        blockRegister.getRegistry().register(
+                videoBlock.setRegistryName(MODID,"video_block")
                         .setCreativeTab(creativeTab)
         );
 
@@ -106,6 +112,13 @@ public final class RegisterHandler {
         registry.register(
                 new ItemBlock(transformedBlock)
                         .setRegistryName(Objects.requireNonNull(transformedBlock.getRegistryName()))
+                        .setCreativeTab(creativeTab)
+
+        );
+
+        registry.register(
+                new ItemBlock(videoBlock)
+                        .setRegistryName(Objects.requireNonNull(videoBlock.getRegistryName()))
                         .setCreativeTab(creativeTab)
 
         );
@@ -145,6 +158,7 @@ public final class RegisterHandler {
         registerModel(anmEditorBlock,0);
         registerModel(moduleBlock,0);
         registerModel(transformedBlock,0);
+        registerModel(videoBlock,0);
 //        registerModel(moduleBlock,8);
         registerModel(prefabItem,0,"inventory");
         registerModel(timelineItem,0,"inventory");

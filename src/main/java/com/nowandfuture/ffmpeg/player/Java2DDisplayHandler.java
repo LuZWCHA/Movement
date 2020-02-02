@@ -52,6 +52,11 @@ public class Java2DDisplayHandler implements PlayHandler {
         jFrame.dispose();
     }
 
+    @Override
+    public Object getFrameObj() {
+        return null;
+    }
+
     private static BufferedImage scaleWithAffineTransformOp(
             BufferedImage image, int w, int h,
             int renderingHints)

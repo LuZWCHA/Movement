@@ -8,4 +8,5 @@ public interface PlayHandler {
     void handle(Frame frame) throws InterruptedException;
     void flush();
     void destroy();
+    Object getFrameObj();
 }

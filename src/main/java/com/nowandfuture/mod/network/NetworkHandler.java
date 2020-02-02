@@ -52,6 +52,7 @@ public enum NetworkHandler {
         Minecraft.getMinecraft().player.sendMessage(new TextComponentString(message));
     }
 
+    @SideOnly(Side.CLIENT)
     public void sendClientChatMessage(String message){
         Minecraft.getMinecraft().player.sendChatMessage(message);
     }

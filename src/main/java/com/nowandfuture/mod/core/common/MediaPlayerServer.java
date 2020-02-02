@@ -10,14 +10,17 @@ public class MediaPlayerServer implements IMediaPlayer {
 
     SyncInfo syncInfo;
     private long totalTime;
+    private boolean enable;
 
     public MediaPlayerServer(){
         syncInfo = new SyncInfo();
     }
 
     @Override
-    public void prepare(PlayHandler videoHandler, PlayHandler audioHandler) {
-
+    public void prepare() {
+        if(syncInfo.isPause()){
+            syncInfo.setPause(false);
+        }
     }
 
     @Override
@@ -27,27 +30,48 @@ public class MediaPlayerServer implements IMediaPlayer {
 
     @Override
     public void play() throws FrameGrabber.Exception {
-
+        enable = true;
     }
 
     @Override
-    public void end() throws FrameGrabber.Exception {
-
+    public void end(){
+        seekTo(0);
+        enable = false;
     }
 
     @Override
     public void pause() {
-
+        if(!syncInfo.isPause()){
+            syncInfo.setPause(true);
+        }
     }
 
     @Override
     public void resume() {
-
+        if(syncInfo.isPause()){
+            syncInfo.setPause(false);
+        }
     }
 
     @Override
     public boolean seekTo(long time) {
+        syncInfo.setAudioClock(time);
         return true;
+    }
+
+    @Override
+    public int getWidth() {
+        return 0;
+    }
+
+    @Override
+    public int getHeight() {
+        return 0;
+    }
+
+    @Override
+    public boolean isLoading() {
+        return false;
     }
 
     @Override
@@ -57,6 +81,7 @@ public class MediaPlayerServer implements IMediaPlayer {
 
     @Override
     public void updateTotalTime(long time) {
+        seekTo(0);
         totalTime = time;
     }
 

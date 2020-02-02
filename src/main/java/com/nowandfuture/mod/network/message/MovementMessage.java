@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.common.network.NetworkCheckHandler;
@@ -187,6 +188,7 @@ public abstract class MovementMessage implements IMessage {
         public static final short GUI_START_FLAG = 0x0002;
         public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x0003;
         public static final short GUI_ENABLE_COLLISION_FLAG = 0x0004;
+//        public static final short GUI_PLAYER_FACING_ROTATE = 0x0005;
 
         private short flag;
 
@@ -298,6 +300,8 @@ public abstract class MovementMessage implements IMessage {
                                             ((TileEntityShowModule) tileEntity).getCollisionEnablePacket()
                                     );
                                 }
+                                break;
+
                         }
                     }
                 }
@@ -463,6 +467,7 @@ public abstract class MovementMessage implements IMessage {
         public static final int TAG = 3;
 
         public static final short RESIZE_FLAG = 0x0000;
+        public static final short GUI_PLAYER_FACING_ROTATE = 0x0001;
 
         private short flag;
         private int data;
@@ -544,6 +549,12 @@ public abstract class MovementMessage implements IMessage {
                                     }
 
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityConstructor) tileEntity).getResizeUpdatePacket());
+                                }
+                                break;
+                            case GUI_PLAYER_FACING_ROTATE:
+                                if(tileEntity instanceof TileEntitySimplePlayer){
+                                    ((TileEntitySimplePlayer) tileEntity).setFacing(EnumFacing.values()[data]);
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
                                 }
 
                         }

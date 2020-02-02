@@ -17,8 +17,6 @@ public class JavaSoundHandler implements PlayHandler {
     SimplePlayer simplePlayer;
     int sampleFormat;
     ChannelJavaSound channelJavaSound;
-    long lastTime = 0;
-    SoundSystem soundSystem;
 
     public JavaSoundHandler(IMediaPlayer player){
         simplePlayer = (SimplePlayer) player;
@@ -40,13 +38,8 @@ public class JavaSoundHandler implements PlayHandler {
 
     @Override
     public void handle(Frame frame) {
-//        System.out.println("start:"+ System.currentTimeMillis());
-
-        channelJavaSound.queueBuffer(Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat));
-//        channelJavaSound.processBuffer();
-//        System.out.println("end:"+ System.currentTimeMillis());
-
-//        lastTime = System.currentTimeMillis();
+        if(channelJavaSound != null && channelJavaSound.sourceDataLine != null)
+            channelJavaSound.queueBuffer(Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat));
     }
 
     @Override
@@ -56,6 +49,18 @@ public class JavaSoundHandler implements PlayHandler {
 
     @Override
     public void destroy() {
-        channelJavaSound.cleanup();
+        if(channelJavaSound != null) {
+            if(channelJavaSound.sourceDataLine != null) {
+                channelJavaSound.sourceDataLine.stop();
+                channelJavaSound.sourceDataLine.close();
+                channelJavaSound.cleanup();
+            }
+
+        }
+    }
+
+    @Override
+    public Object getFrameObj() {
+        return null;
     }
 }

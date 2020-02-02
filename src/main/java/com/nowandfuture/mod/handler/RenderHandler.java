@@ -3,12 +3,17 @@ package com.nowandfuture.mod.handler;
 import com.nowandfuture.asm.IRender;
 import com.nowandfuture.asm.RenderHook;
 import com.nowandfuture.asm.Utils;
+import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.CopyBlockItemModel;
+import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
+import com.nowandfuture.mod.core.common.entities.TileEntityModule;
+import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.utils.DrawHelper;
+import com.nowandfuture.mod.utils.SyncTasks;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -20,6 +25,7 @@ import net.minecraft.client.renderer.entity.RenderItemFrame;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -35,6 +41,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 
 @SideOnly(Side.CLIENT)
 public class RenderHandler {
@@ -87,6 +94,22 @@ public class RenderHandler {
             TransformedBlockRenderMap.INSTANCE.clear();
             renderModules.clear();
             Utils.mapCache = null;
+            ModuleRenderManager.INSTANCE.stopAll();
+
+            SyncTasks.INSTANCE.showdownNow();
+            SyncTasks.INSTANCE.init();
+            unload.getWorld().loadedTileEntityList.forEach(new Consumer<TileEntity>() {
+                @Override
+                public void accept(TileEntity tileEntity) {
+                    if(tileEntity instanceof TileEntitySimplePlayer){
+                        try {
+                            ((TileEntitySimplePlayer) tileEntity).getSimplePlayer().end();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
         }
     }
 

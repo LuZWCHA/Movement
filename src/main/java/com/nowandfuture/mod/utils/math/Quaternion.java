@@ -1,5 +1,7 @@
 package com.nowandfuture.mod.utils.math;
 
+import net.minecraft.util.math.MathHelper;
+
 import java.nio.FloatBuffer;
 import java.util.Vector;
 
@@ -65,7 +67,7 @@ public class Quaternion extends Vector {
     }
 
     public float length(){
-        return (float) Math.sqrt(lengthSquared());
+        return MathHelper.sqrt(lengthSquared());
     }
 
     public static Quaternion normalise(Quaternion src, Quaternion dest) {
@@ -198,12 +200,12 @@ public class Quaternion extends Vector {
         this.x = a1.x;
         this.y = a1.y;
         this.z = a1.z;
-        float n = (float)Math.sqrt((double)(this.x * this.x + this.y * this.y + this.z * this.z));
-        float s = (float)(Math.sin(0.5D * (double)a1.w) / (double)n);
+        float n = MathHelper.sqrt((double)(this.x * this.x + this.y * this.y + this.z * this.z));
+        float s = MathHelper.sin(0.5f * a1.w) / n;
         this.x *= s;
         this.y *= s;
         this.z *= s;
-        this.w = (float)Math.cos(0.5D * (double)a1.w);
+        this.w = MathHelper.cos(0.5f * a1.w);
     }
 
     public final Quaternion setFromMatrix(Matrix4f m) {
@@ -226,7 +228,7 @@ public class Quaternion extends Vector {
         float tr = m00 + m11 + m22;
         float s;
         if ((double)tr >= 0.0D) {
-            s = (float)Math.sqrt((double)tr + 1.0D);
+            s = MathHelper.sqrt((double)tr + 1.0D);
             this.w = s * 0.5F;
             s = 0.5F / s;
             this.x = (m21 - m12) * s;
@@ -235,21 +237,21 @@ public class Quaternion extends Vector {
         } else {
             float max = Math.max(Math.max(m00, m11), m22);
             if (max == m00) {
-                s = (float)Math.sqrt((double)(m00 - (m11 + m22)) + 1.0D);
+                s = MathHelper.sqrt((double)(m00 - (m11 + m22)) + 1.0D);
                 this.x = s * 0.5F;
                 s = 0.5F / s;
                 this.y = (m01 + m10) * s;
                 this.z = (m20 + m02) * s;
                 this.w = (m21 - m12) * s;
             } else if (max == m11) {
-                s = (float)Math.sqrt((double)(m11 - (m22 + m00)) + 1.0D);
+                s = MathHelper.sqrt((double)(m11 - (m22 + m00)) + 1.0D);
                 this.y = s * 0.5F;
                 s = 0.5F / s;
                 this.z = (m12 + m21) * s;
                 this.x = (m01 + m10) * s;
                 this.w = (m02 - m20) * s;
             } else {
-                s = (float)Math.sqrt((double)(m22 - (m00 + m11)) + 1.0D);
+                s = MathHelper.sqrt((double)(m22 - (m00 + m11)) + 1.0D);
                 this.z = s * 0.5F;
                 s = 0.5F / s;
                 this.x = (m20 + m02) * s;

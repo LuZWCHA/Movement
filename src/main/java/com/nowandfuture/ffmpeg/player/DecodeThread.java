@@ -56,7 +56,7 @@ public class DecodeThread extends Thread {
                     }
                 }
 
-                frame = grabber.grabFrame(true, true, true, false);
+                frame = grabber.grab();
 
                 if(grabber.getFormatContext() == null || grabber.getFormatContext().isNull())
                     break;
@@ -80,27 +80,17 @@ public class DecodeThread extends Thread {
                     }
                     imageCache.put(frame.clone());
                 }else if(grabber.hasAudio()&& frame.samples != null) {
-                    System.out.println("sample frame" + frame.timestamp);
+//                    System.out.println("sample frame" + frame.timestamp);
                     audioCache.put(frame.clone());
                     curFrameTimestamp = frame.timestamp;
                 }
-
-
-//                System.out.println("--------------------------------");
-//                System.out.println(audioCache.size());
-//                System.out.println(imageCache.size());
-//                if(audioCache.remainingCapacity() <= 0 || imageCache.remainingCapacity() <= 0){
-//                    sleep(delay++);
-//                }else{
-//                    delay --;
-//                    if(delay < 0) delay = 0;
-//                }
             }
         } catch (FrameGrabber.Exception | InterruptedException e) {
             e.printStackTrace();
         } finally {
             try {
-                grabber.stop();
+                if(grabber != null)
+                    grabber.close();
             } catch (FrameGrabber.Exception e) {
                 e.printStackTrace();
             }

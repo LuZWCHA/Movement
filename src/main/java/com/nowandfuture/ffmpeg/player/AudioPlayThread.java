@@ -2,6 +2,7 @@ package com.nowandfuture.ffmpeg.player;
 
 import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
+import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import org.bytedeco.ffmpeg.global.avutil;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.BlockingQueue;
 public class AudioPlayThread extends Thread {
 
     private BlockingQueue<Frame> audioCache;
-    private FFmpegFrameGrabber fg;
+    private FFmpegFrameGrabber grabber;
 
     private PlayHandler playHandler;
     private long baseDelay;
@@ -88,7 +89,7 @@ public class AudioPlayThread extends Thread {
                 setting(timestamp);
                 play(frame);
 
-                System.out.println("audio delay:"+ (factor + baseDelay));
+//                System.out.println("audio delay:"+ (factor + baseDelay));
 
                 sleep(baseDelay + factor);
 
@@ -102,8 +103,8 @@ public class AudioPlayThread extends Thread {
 
     protected void init() {
 
-        baseDelay = fg.hasAudio() ? (avutil.AV_TIME_BASE/fg.getSampleRate()) :
-                (long) (avutil.AV_TIME_BASE / fg.getFrameRate());
+        baseDelay = grabber.hasAudio() ? (avutil.AV_TIME_BASE/ grabber.getSampleRate()) :
+                (long) (avutil.AV_TIME_BASE / grabber.getFrameRate());
         if(playHandler!= null){
             playHandler.init(syncInfo);
         }
@@ -113,6 +114,8 @@ public class AudioPlayThread extends Thread {
         if(playHandler!= null){
             playHandler.destroy();
         }
+        if(grabber != null)
+            grabber = null;
     }
 
     public void setAudioCache(BlockingQueue<Frame> audioCache) {
@@ -126,6 +129,7 @@ public class AudioPlayThread extends Thread {
     }
 
     public void setHandler(PlayHandler audioHandler) {
+        if(audioHandler == null && this.playHandler != null) this.playHandler.destroy();
         this.playHandler = audioHandler;
     }
 
@@ -143,7 +147,7 @@ public class AudioPlayThread extends Thread {
     }
 
     public void setGrabber(FFmpegFrameGrabber fg) {
-        this.fg = fg;
+        this.grabber = fg;
     }
 
 }

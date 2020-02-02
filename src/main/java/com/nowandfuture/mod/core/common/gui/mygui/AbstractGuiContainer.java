@@ -207,12 +207,16 @@ public abstract class AbstractGuiContainer extends GuiContainer {
     }
 
     protected final <T extends MyGui> T addGuiCompoundRelative(T gui) {
-        offset(gui);
+        if(!(gui instanceof ViewGroup))
+            offset(gui);
         return addGuiCompound(gui);
     }
 
     protected final <T extends MyGui> T addGuiCompound(T gui) {
-        guiList.add(gui);
+        if(gui instanceof ViewGroup)
+            addView((ViewGroup) gui);
+        else
+            guiList.add(gui);
         return gui;
     }
 

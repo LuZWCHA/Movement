@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.client.renders;
 
 import com.google.common.collect.Queues;
+import com.google.common.util.concurrent.FutureCallback;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.Minecraft;
@@ -15,27 +16,38 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Predicate;
 
 public enum ModuleRenderManager {
     INSTANCE;
-    private final ClippingHelperExt clippingHelper;
-    private final PriorityBlockingQueue<Runnable> priorityBlockingQueue;
+    private ClippingHelperExt clippingHelper;
+    private PriorityBlockingQueue<Runnable> priorityBlockingQueue;
     private final static long ALIVE_TIME = 0;
-    private final ThreadPoolExecutor executor;
+    private ThreadPoolExecutor executor;
     private ChunkRenderDispatcher chunkRenderDispatcher;
     private BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
 
-    private final Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
+    private Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
+    private boolean isInit = false;
 
     ModuleRenderManager(){
-        try {
-            chunkRenderDispatcher = ReflectionHelper.getPrivateValue(RenderGlobal.class, Minecraft.getMinecraft().renderGlobal,"renderDispatcher","field_174995_M");
-        }catch (Exception e){
-            e.printStackTrace();
-            chunkRenderDispatcher = null;
-        }
+        init();
+    }
+
+    public boolean isInit() {
+        return isInit;
+    }
+
+    public void init(){
+//        try {
+//            chunkRenderDispatcher = ReflectionHelper.getPrivateValue(RenderGlobal.class, Minecraft.getMinecraft().renderGlobal,"renderDispatcher","field_174995_M");
+//        }catch (Exception e){
+//            e.printStackTrace();
+//            chunkRenderDispatcher = null;
+//        }
 
         int i = Math.max(1, (int)((double)Runtime.getRuntime().maxMemory() * 0.15D) / 10485760);
         int j = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors(), 1, i / 2));
@@ -53,7 +65,7 @@ public enum ModuleRenderManager {
         }
 
         cubesRendererMap = new HashMap<>();
-
+        isInit = true;
     }
 
     public void addCubesRenderer(@Nonnull AbstractPrefab abstractPrefab){
@@ -73,8 +85,20 @@ public enum ModuleRenderManager {
         return cubesRendererMap.get(prefab);
     }
 
-    public void stopThreadPool(){
+    public void stopAll(){
         executor.shutdownNow();
+        priorityBlockingQueue.clear();
+
+        for (CubesRenderer c :
+                cubesRendererMap.values()) {
+            c.invalid();
+        }
+        cubesRendererMap.clear();
+        init();
+    }
+
+    public ThreadPoolExecutor getExecutor(){
+        return executor;
     }
 
     public RegionRenderCacheBuilder allocateRenderBuilder() throws InterruptedException {

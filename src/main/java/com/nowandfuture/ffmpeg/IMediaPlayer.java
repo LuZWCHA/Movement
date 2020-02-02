@@ -5,7 +5,7 @@ import com.nowandfuture.ffmpeg.player.PlayHandler;
 import java.util.Map;
 
 public interface IMediaPlayer {
-    void prepare(PlayHandler videoHandler, PlayHandler audioHandler);
+    void prepare();
 
     boolean touchSource(String url) throws FrameGrabber.Exception;
 
@@ -20,6 +20,12 @@ public interface IMediaPlayer {
     long getTotalTime();
 
     boolean seekTo(long time);
+
+    int getWidth();
+
+    int getHeight();
+
+    boolean isLoading();
 
     void getInfo(Map<String,String> metadata);
 

@@ -1,5 +1,7 @@
 package com.nowandfuture.mod.utils.math;
 
+import net.minecraft.util.math.MathHelper;
+
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
@@ -361,8 +363,8 @@ public class Matrix4f implements Serializable {
             dest = new Matrix4f();
         }
 
-        float c = (float)Math.cos((double)angle);
-        float s = (float)Math.sin((double)angle);
+        float c = (float) MathHelper.cos(angle);
+        float s = (float)MathHelper.sin(angle);
         float oneminusc = 1.0F - c;
         float xy = axis.x * axis.y;
         float yz = axis.y * axis.z;

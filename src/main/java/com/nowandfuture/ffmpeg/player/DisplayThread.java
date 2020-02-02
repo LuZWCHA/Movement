@@ -1,6 +1,7 @@
 package com.nowandfuture.ffmpeg.player;
 
 import com.nowandfuture.ffmpeg.Frame;
+import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 
 import java.util.concurrent.BlockingQueue;
@@ -69,7 +70,6 @@ public class DisplayThread extends Thread{
 
     private void checkDiff(Frame frame,long time) {
         long diff = time - (lastTime == -1? time : lastTime);
-        System.out.println("delay:" + diff);
 
         long timestamp = frame.timestamp;
 
@@ -115,7 +115,7 @@ public class DisplayThread extends Thread{
             curFrame = frame;
             checkDiff(frame,time);
             time = System.currentTimeMillis();
-            System.out.println("av diff:" + frame.timestamp + "," + syncInfo.getRealAudioClock(time) + "," + (syncInfo.getAudioClock()));
+//            System.out.println("av diff:" + frame.timestamp + "," + syncInfo.getRealAudioClock(time) + "," + (syncInfo.getAudioClock()));
 
             draw(frame);
             Thread.sleep(baseDelay + factor);
@@ -133,13 +133,14 @@ public class DisplayThread extends Thread{
     }
 
     public void setHandler(PlayHandler playHandler){
+        if(playHandler == null && this.playHandler != null) this.playHandler.destroy();
         this.playHandler = playHandler;
     }
 
     public void setRun(boolean run) {
     }
 
-    public Frame getCurFrame() {
-        return curFrame;
+    public PlayHandler getPlayHandler(){
+        return this.playHandler;
     }
 }
