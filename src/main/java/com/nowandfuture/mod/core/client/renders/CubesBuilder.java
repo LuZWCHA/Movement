@@ -221,7 +221,6 @@ public class CubesBuilder {
     }
 
     //check is the renderchunks are render(which chunks are contain the cube)
-    // TODO: 2020/1/19 check the visible of cubes in renderChunks with optifine on
     public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos) throws NoSuchFieldException, IllegalAccessException {
 
         OBBox bounding = cube.getTransformedOBBounding();

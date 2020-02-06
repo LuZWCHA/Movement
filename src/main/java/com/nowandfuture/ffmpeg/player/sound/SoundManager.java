@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL11.AL_STATIC;
+import static org.lwjgl.openal.AL11.AL_STREAMING;
 
 public class SoundManager {
 
@@ -50,11 +52,10 @@ public class SoundManager {
         SoundSystemConfig.setLogger(new SoundSystemLogger());
         libraryLWJGLOpenAL = new LibraryLWJGLOpenAL();
         libraryLWJGLOpenAL.init();
-
     }
 
     public void add(String name, Buffer buffer, Vector3f position, AudioFormat af){
-        SoundSource soundSource = new SoundSource(false,false);
+        SoundSource soundSource = new SoundSource(false,false,AL_STATIC);
         soundSource.setPosition(position);
         SoundBuffer soundBuffer = new SoundBuffer(buffer,af);
 
@@ -63,13 +64,9 @@ public class SoundManager {
         soundSourceMap.put(name,soundSource);
     }
 
-    public void addStream(String name, Vector3f position, AudioFormat af){
-        SoundSource soundSource = new SoundSource(false,false);
+    public void addStream(String name, Vector3f position){
+        SoundSource soundSource = new SoundSource(false,false,AL_STREAMING);
         soundSource.setPosition(position);
-//        SoundBuffer soundBuffer = new SoundBuffer(af);
-//
-//        soundBufferList.add(soundBuffer);
-//        soundSource.setBuffer(soundBuffer.getBufferId());
         soundSourceMap.put(name,soundSource);
     }
 
@@ -118,8 +115,10 @@ public class SoundManager {
 
     public int feedRawData(String name, byte[] bytes, AudioFormat af) throws InterruptedException {
         SoundSource soundSource = getSoundSource(name);
+        if(soundSource == null) return -1;
         int sourceId = soundSource.getSourceId();
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
+//        bytes[bytes.length - 1] = 0;
         byteBuffer.put(bytes);
         byteBuffer.flip();
         int processed = AL10.alGetSourcei(sourceId, AL10.AL_BUFFERS_PROCESSED);
@@ -128,13 +127,15 @@ public class SoundManager {
 
             intBuffer = BufferUtils.createIntBuffer(processed);
             AL10.alGenBuffers(intBuffer);
+
             if (this.checkALError()) {
                 return -1;
             }
 
             AL10.alSourceUnqueueBuffers(sourceId,intBuffer);
+//            AL10.alDeleteBuffers(intBuffer);
+
             if (this.checkALError()) {
-                System.out.println("queue222:"+intBuffer.get(0));
                 return - 1;
             }
 
@@ -143,7 +144,8 @@ public class SoundManager {
             }
 
             this.checkALError();
-        } else {
+        }else {
+
             intBuffer = BufferUtils.createIntBuffer(1);
             AL10.alGenBuffers(intBuffer);
             if (this.checkALError()) {
@@ -151,8 +153,9 @@ public class SoundManager {
             }
         }
 
-        AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(af), byteBuffer, (int) af.getSampleRate());
-        byteBuffer.clear();
+        AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(af), byteBuffer,
+                (int) af.getSampleRate());
+
         if (this.checkALError()) {
             return -1;
         } else {
@@ -160,11 +163,24 @@ public class SoundManager {
             if (this.checkALError()) {
                 return -1;
             } else {
-                    if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL_PLAYING) {
-                        AL10.alSourcePlay(sourceId);
-                        this.checkALError();
-                    }
-                return processed;
+                if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL_PLAYING) {
+                    AL10.alSourcePlay(sourceId);
+                    this.checkALError();
+                }
+
+            }
+        }
+
+        return processed;
+    }
+
+    public void play(String name){
+        SoundSource soundSource = getSoundSource(name);
+        if(soundSource != null){
+            int sourceId = soundSource.getSourceId();
+            if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL_PLAYING) {
+                AL10.alSourcePlay(sourceId);
+                this.checkALError();
             }
         }
     }
@@ -182,15 +198,12 @@ public class SoundManager {
             for(; queued > 0; --queued) {
                 if(processed-- <= 0) return;
                 AL10.alSourceUnqueueBuffers(sourceId);
+//                AL10.alDeleteBuffers(sourceId);
                 if (this.checkALError()) {
-//                    System.out.println("queue:"+queued);
-//                    System.out.println("processed:"+processed);
+
                     return;
                 }
-//                System.out.println("queue success:"+queued);
-//                System.out.println("processed:"+processed);
             }
-
             this.millisPreviouslyPlayed = 0.0F;
         }
     }
@@ -209,9 +222,6 @@ public class SoundManager {
 
         soundSourceMap.clear();
         soundBufferList.clear();
-//        channelLWJGLOpenAL.cleanup();
-
-        AL.destroy();
     }
 
     public SoundListener getListener() {

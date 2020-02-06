@@ -1,6 +1,7 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
 import com.nowandfuture.ffmpeg.player.Utils;
+import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.sound.sampled.AudioFormat;
@@ -13,16 +14,24 @@ public class SoundSource {
 
     private static final int MAX_BUFFERS = 100;
     private final int sourceId;
+    private int gain;
+    private int sourceVolume;
 
-    public SoundSource(boolean loop, boolean relative) {
+    public SoundSource(boolean loop, boolean relative,int type) {
         this.sourceId = alGenSources();
+        alDistanceModel(AL_INVERSE_DISTANCE);
         if (loop) {
             alSourcei(sourceId, AL_LOOPING, AL_TRUE);
         }
         if (relative) {
             alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
         }
-        alSourcef(sourceId, AL_SOURCE_TYPE, AL_STREAMING);
+
+        alSourcef(sourceId, AL_GAIN,1);
+        alSourcef( sourceId, AL_ROLLOFF_FACTOR, 1 );
+        alSourcef(sourceId,AL_INVERSE_DISTANCE_CLAMPED ,6);
+
+        alSourcef(sourceId, AL_SOURCE_TYPE, type);
     }
 
     public void setBuffer(int bufferId) {
@@ -70,7 +79,6 @@ public class SoundSource {
     public void addBuffer(ByteBuffer byteBuffer, AudioFormat af) {
         int bufferId = alGenBuffers();
         int processed = alGetSourcei(sourceId, AL_BUFFERS_QUEUED);
-        System.out.println("size = " + processed);
 
         if (processed > 0) {
             //将缓存添加到声源上（添加便会进行播放，不添加不播放）

@@ -72,25 +72,30 @@ public class DecodeThread extends Thread {
                         syncInfo.setPause(true);
                         continue;
                     }
+                }else{
+                    frame = frame.clone();
                 }
 
                 if(grabber.hasVideo() && frame.image != null) {
                     if(!syncInfo.isVideoFrameGet){
                         syncInfo.isVideoFrameGet = true;
                     }
-                    imageCache.put(frame.clone());
+                    imageCache.put(frame);
+                    if(!grabber.hasAudio()){
+                        curFrameTimestamp = frame.timestamp;
+                    }
                 }else if(grabber.hasAudio()&& frame.samples != null) {
-//                    System.out.println("sample frame" + frame.timestamp);
-                    audioCache.put(frame.clone());
+                    audioCache.put(frame);
                     curFrameTimestamp = frame.timestamp;
                 }
             }
-        } catch (FrameGrabber.Exception | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                if(grabber != null)
-                    grabber.close();
+                if(grabber != null) {
+                    grabber.release();
+                }
             } catch (FrameGrabber.Exception e) {
                 e.printStackTrace();
             }

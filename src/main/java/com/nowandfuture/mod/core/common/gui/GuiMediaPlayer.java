@@ -104,6 +104,10 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                                 @Override
                                 public void run() {
                                     player.setUrl(url);
+                                    MovementMessage.StringDataSyncMessage message =
+                                            new MovementMessage.StringDataSyncMessage(MovementMessage.StringDataSyncMessage.GUI_PLAYER_URL,
+                                                    url);
+                                    NetworkHandler.INSTANCE.sendMessageToServer(message);
                                     try {
                                         player.play();
                                     } catch (Exception e) {
@@ -137,7 +141,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                 player.setFacing(player.getFacing().rotateY());
                 MovementMessage.IntDataSyncMessage message =
                         new MovementMessage.IntDataSyncMessage(MovementMessage.IntDataSyncMessage.GUI_PLAYER_FACING_ROTATE,
-                                player.getFacing().getIndex());
+                                player.getFacing().ordinal());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
             }
         });

@@ -4,6 +4,7 @@ import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.player.sound.SoundManager;
+import com.nowandfuture.ffmpeg.player.sound.SoundSource;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.*;
@@ -12,30 +13,34 @@ import paulscode.sound.libraries.ChannelJavaSound;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
+import java.nio.ByteBuffer;
 
 public class OpenALSoundHandler implements PlayHandler {
-    SoundManager soundManager;
-    SimplePlayer simplePlayer;
-    int sampleFormat;
-    int sampleRate;
-    int audioChannel;
+    protected SoundManager soundManager;
+    protected SimplePlayer simplePlayer;
+    protected int sampleFormat;
+    protected float sampleRate;
+    protected int audioChannel;
     long lastTime = 0;
-    private SoundSystem soundSystem = null;
     private IMediaPlayer.SyncInfo syncInfo;
-    private int hasT;
-    long factor = 0;
-    boolean isFirstFrame;
-    private ChannelJavaSound channelJavaSound;
-    private SourceDataLine dataLine;
-    private Mixer mixer;
+    protected String name;
+    protected Vector3f pos;
+    private byte[] cache;
+
+    public OpenALSoundHandler(){
+        soundManager = new SoundManager();
+        name = "audio";
+        pos = new Vector3f();
+        initSoundManager();
+    }
 
     public OpenALSoundHandler(SimplePlayer player){
+        this();
         simplePlayer = player;
-        isFirstFrame = true;
-        soundManager = new SoundManager();
+    }
+
+    protected void initSoundManager(){
         try {
-//            soundSystem = new SoundSystem();
-//            soundSystem.switchLibrary(LibraryLWJGLOpenAL.class);
             soundManager.init();
         } catch (SoundSystemException | LWJGLException e) {
             e.printStackTrace();
@@ -50,48 +55,50 @@ public class OpenALSoundHandler implements PlayHandler {
         sampleFormat = grabber.getSampleFormat();
         sampleRate = grabber.getSampleRate();
         audioChannel = grabber.getAudioChannels();
-//        soundSystem.rawDataStream(Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel, sampleRate),true,"music",0,0,0,1,SoundSystemConfig.getDefaultRolloff());;
 
-        soundManager.addStream("audio",new Vector3f(),Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate));
+        soundManager.addStream(name,pos);
     }
 
     @Override
     public void handle(Frame frame) throws InterruptedException {
-
         sampleRate = frame.sampleRate;
         audioChannel = frame.audioChannels;
 
         byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
         AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate);
 
-        if(soundManager.getSoundSource("audio").isPlaying()){
-            soundManager.flushProcessed("audio");
+        SoundSource soundSource = soundManager.getSoundSource(name);
+        if(soundSource != null && soundSource.isPlaying()){
+            soundManager.flushProcessed(name);
         }
-        soundManager.feedRawData("audio",buffer,format);
+        if(buffer.length > 0)
+            soundManager.feedRawData(name,buffer,format);
 
 
-        System.out.println("audio true delay:"+(System.currentTimeMillis() - lastTime));
         lastTime = System.currentTimeMillis();
     }
 
     @Override
     public void flush() {
-
-        soundManager.flushProcessed("audio");
-
-//        soundSystem.interruptCommandThread();
-//        soundSystem.flush("music");
+        soundManager.flushProcessed(name);
     }
 
 
     @Override
     public void destroy() {
-//        soundSystem.cleanup();
         soundManager.cleanup();
     }
 
     @Override
     public Object getFrameObj() {
         return null;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPos(Vector3f pos) {
+        this.pos = pos;
     }
 }

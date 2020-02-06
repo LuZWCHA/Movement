@@ -49,14 +49,20 @@ public class JavaSoundHandler implements PlayHandler {
 
     @Override
     public void destroy() {
-        if(channelJavaSound != null) {
-            if(channelJavaSound.sourceDataLine != null) {
-                channelJavaSound.sourceDataLine.stop();
-                channelJavaSound.sourceDataLine.close();
+        try {
+            if(channelJavaSound != null) {
+                if(channelJavaSound.sourceDataLine != null){
+                    channelJavaSound.sourceDataLine.flush();
+
+                    if(channelJavaSound.sourceDataLine.isOpen())
+                        channelJavaSound.sourceDataLine.close();
+                }
                 channelJavaSound.cleanup();
             }
-
+        }catch (Exception e){
+            e.printStackTrace();
         }
+
     }
 
     @Override

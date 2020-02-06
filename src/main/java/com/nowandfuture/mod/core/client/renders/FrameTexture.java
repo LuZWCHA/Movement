@@ -17,6 +17,7 @@ import static org.lwjgl.opengl.GL12.GL_BGR;
 public class FrameTexture extends DynamicTexture {
     private static final int BYTES_PER_PIXEL = 4;
     private int width,height;
+    private int aw,ah;//sub image size;
     private long id;
 
     public FrameTexture(BufferedImage p_i1270_1_) {
@@ -59,7 +60,7 @@ public class FrameTexture extends DynamicTexture {
         }
     }
 
-    public void subBufferedImage(BufferedImage image,long id){
+    public void subBufferedImage(BufferedImage image,int offsetX,int offsetY,long id){
         if(id == this.id) return;
         this.id = id;
 //Setup wrap mode
@@ -77,7 +78,7 @@ public class FrameTexture extends DynamicTexture {
 
         GlStateManager.bindTexture(glTextureId);
         //Send texel data to OpenGL
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX,offsetY, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
 
         ((DirectBuffer)byteBuffer).cleaner().clean();
 
@@ -97,5 +98,21 @@ public class FrameTexture extends DynamicTexture {
 
     public long getId() {
         return id;
+    }
+
+    public int getRealHeight() {
+        return ah;
+    }
+
+    public int getRealWidth() {
+        return aw;
+    }
+
+    public void setRealHeight(int ah) {
+        this.ah = ah;
+    }
+
+    public void setRealWidth(int aw) {
+        this.aw = aw;
     }
 }

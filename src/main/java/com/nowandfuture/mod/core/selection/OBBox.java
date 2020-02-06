@@ -9,7 +9,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-
+// TODO: 2020/2/2 Optimize
 public class OBBox {
     private Vector3f xyz000;
     private Vector3f xyz001;
@@ -125,7 +125,7 @@ public class OBBox {
         }
     }
 
-    //unused
+    @Deprecated
     public enum ROOM{
         INSIDE(0x3f),
 
@@ -420,9 +420,7 @@ public class OBBox {
 
     public static class Collision{
 
-        //not finished OBB VS OBB SweepTest (extention of SAT test) and compute the nearest future impact time;
-        //this test has guarantee the impact must happen in a future time(less than "1"),so always consider the
-        //time and direction is opptive
+        //SAT collision test
         public static float sweepTest(OBBox moveOBB,OBBox staticOBB,Vector3f v,Vector3f ar){
             float maxTime = Float.MIN_VALUE;
             Vector3f axis = null;
@@ -430,7 +428,6 @@ public class OBBox {
             {
                 Vector3f axis0 = getFaceDirection(moveOBB,i).normalise();
                 float length = Math.abs(Vector3f.dot(axis0,v));
-//                System.out.println("length = " + length);
 
                 if(length > 0) {
                     float[] res1 = getInterval(moveOBB, axis0);
@@ -452,7 +449,6 @@ public class OBBox {
 
                 Vector3f axis1 = getFaceDirection(staticOBB,i).normalise();
                 length = Math.abs(Vector3f.dot(axis1,v));
-//                System.out.println("length = " + length);
 
                 if(length > 0) {
                     float[] res3 = getInterval(moveOBB, axis1);
@@ -582,8 +578,5 @@ public class OBBox {
             }
         }
     }
-
-
-
 
 }

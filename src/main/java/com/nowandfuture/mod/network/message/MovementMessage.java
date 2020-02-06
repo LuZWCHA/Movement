@@ -468,6 +468,8 @@ public abstract class MovementMessage implements IMessage {
 
         public static final short RESIZE_FLAG = 0x0000;
         public static final short GUI_PLAYER_FACING_ROTATE = 0x0001;
+        public static final short GUI_PLAYER_SIZE_X = 0x0002;
+        public static final short GUI_PLAYER_SIZE_Y = 0x0003;
 
         private short flag;
         private int data;
@@ -573,6 +575,7 @@ public abstract class MovementMessage implements IMessage {
         public static final int TAG = 3;
 
         public static final short CONSTRUCT_LOCK_FLAG = 0x0000;
+        public static final short GUI_PLAYER_URL = 0x0001;
 
         private short flag;
         private String data;
@@ -656,7 +659,12 @@ public abstract class MovementMessage implements IMessage {
                                         }
                                     }
                                 }
-
+                            case GUI_PLAYER_URL:
+                                if (tileEntity instanceof TileEntitySimplePlayer) {
+                                    String url = message.data;
+                                    ((TileEntitySimplePlayer) tileEntity).setUrl(url);
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+                                }
 
                         }
 

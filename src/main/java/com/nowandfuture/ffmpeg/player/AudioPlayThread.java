@@ -69,6 +69,7 @@ public class AudioPlayThread extends Thread {
                 if(syncInfo.sysStartTime == -1) {
                     syncInfo.sysStartTime = System.currentTimeMillis() - timestamp * 1000 / avutil.AV_TIME_BASE;
                 }
+
                 long time  = (System.currentTimeMillis() - syncInfo.sysStartTime) * avutil.AV_TIME_BASE / 1000;
 
                 if(timestamp > time){
@@ -95,6 +96,9 @@ public class AudioPlayThread extends Thread {
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }catch (Exception e){
+                e.printStackTrace();
+                interrupt();
             }
         }
 
@@ -102,7 +106,6 @@ public class AudioPlayThread extends Thread {
     }
 
     protected void init() {
-
         baseDelay = grabber.hasAudio() ? (avutil.AV_TIME_BASE/ grabber.getSampleRate()) :
                 (long) (avutil.AV_TIME_BASE / grabber.getFrameRate());
         if(playHandler!= null){

@@ -22,6 +22,13 @@
     <scope name="Unnamed" pattern="lib:*..*" />
     <option name="SKIP_IMPORT_STATEMENTS" value="false" />
   </component>
+  <component name="EntryPointsManager">
+    <list size="3">
+      <item index="0" class="java.lang.String" itemvalue="net.minecraftforge.fml.common.Mod" />
+      <item index="1" class="java.lang.String" itemvalue="net.minecraftforge.fml.common.Mod.EventHandler" />
+      <item index="2" class="java.lang.String" itemvalue="net.minecraftforge.fml.common.eventhandler.SubscribeEvent" />
+    </list>
+  </component>
   <component name="GradleUISettings">
     <setting name="root" />
   </component>

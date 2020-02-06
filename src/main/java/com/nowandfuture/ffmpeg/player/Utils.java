@@ -37,7 +37,7 @@ public class Utils {
     }
 
 
-    public static AudioFormat getAudioFormat(int sampleFormat,int sampleRate,int audioChannels,float frameRate){
+    public static AudioFormat getAudioFormat(int sampleFormat,float sampleRate,int audioChannels,float frameRate){
         AudioFormat af = null;
         switch(sampleFormat){
             case avutil.AV_SAMPLE_FMT_U8://无符号short 8bit
@@ -151,7 +151,7 @@ public class Utils {
                 TRData = floatToByteValue(rightData,vol);
                 tl = TLData.array();
                 tr = TRData.array();
-                combine = new byte[tl.length+tr.length];
+                combine = new byte[tl.length + tr.length];
                 k = 0;
                 for(int i=0;i<tl.length;i=i+2) {//混合两个声道。
                     for (int j = 0; j < 2; j++) {
@@ -201,7 +201,7 @@ public class Utils {
 //                buffer3.flip();
                 return combine;
             default:
-                return null;
+                return new byte[]{};
         }
     }
 

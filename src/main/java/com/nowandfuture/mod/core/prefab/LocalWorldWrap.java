@@ -472,7 +472,6 @@ public class LocalWorldWrap extends World {
         //Minecraft.getMinecraft().world.getBlockState()
     }
 
-    // TODO: 2019/6/9
     @Override
     public boolean isFlammableWithin(AxisAlignedBB bb) {
         return getParentWorld().isFlammableWithin(bb);

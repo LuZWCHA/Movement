@@ -12,7 +12,6 @@ import javax.annotation.Nonnull;
 // TODO: 2020/1/14 finish bezier curves
 public class BezierTransformNode extends AbstractTransformNode<BezierTransformNode.BezierKeyFrame> {
 
-
     @Override
     protected boolean isAcceptKeyFarm(KeyFrame keyFrame) {
         return keyFrame instanceof BezierKeyFrame;

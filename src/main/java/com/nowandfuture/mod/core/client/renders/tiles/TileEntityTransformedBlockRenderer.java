@@ -63,18 +63,17 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
             tileEntityWrapper = wrapper.tileEntity;
 
             if(Minecraft.getMinecraft().player.getHeldItemMainhand().getItem() instanceof BlockInfoCopyItem){
+                DrawHelper.preDraw();
 
                 setLightmapDisabled(true);
-                GlStateManager.disableTexture2D();
-                GlStateManager.depthMask(true);
-                GlStateManager.glLineWidth(5);
-
+                GlStateManager.enableDepth();
+                GlStateManager.depthMask(false);
+                RenderHelper.disableStandardItemLighting();
                 DrawHelper.drawOutlinedBoundingBox(getWorld().getBlockState(te.getPos())
-                        .getBoundingBox(te.getWorld(),te.getPos()).offset(x,y,z),1,0,0,1);
-                GlStateManager.glLineWidth(2);
+                        .getBoundingBox(te.getWorld(),te.getPos()).offset(x,y,z).grow(0.002),1,0,0,1);
+                RenderHelper.enableStandardItemLighting();
                 setLightmapDisabled(false);
-
-                GlStateManager.enableTexture2D();
+                DrawHelper.postDraw();
             }
 
             this.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -91,25 +90,13 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
 
 
                 bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-//                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
-//                    SVertexBuilder.pushEntity(wrapper.blockState,te.getPos(),te.getWorld(),bufferBuilder);                bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-
                 renderBlock(te, wrapper, bufferBuilder);
 
-//                if(OptifineHelper.isActive() && OptifineHelper.isShaders())
-//                    SVertexBuilder.popEntity(bufferBuilder);
 
                 float ex = (float)this.rendererDispatcher.entityX;
                 float ey = (float)this.rendererDispatcher.entityY +
                         rendererDispatcher.entity.getEyeHeight();
                 float ez = (float)this.rendererDispatcher.entityZ;
-
-//                if (blockRenderLayer == BlockRenderLayer.TRANSLUCENT) {
-//                    bufferBuilder.sortVertexData(ex,ey,ez);
-//                }
-//                if(OptifineHelper.isActive() && OptifineHelper.isShaders()) {
-//                    SVertexBuilder.calcNormalChunkLayer(bufferBuilder);
-//                }
 
                 bufferBuilder.finishDrawing();
 
@@ -212,5 +199,7 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
             setLightmapDisabled(false);
         }
     }
+
+
 
 }

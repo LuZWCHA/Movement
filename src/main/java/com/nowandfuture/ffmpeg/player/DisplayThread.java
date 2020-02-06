@@ -34,24 +34,24 @@ public class DisplayThread extends Thread{
     @Override
     public void run() {
         init();
-        while (!isInterrupted()){
-            synchronized (syncInfo) {
+        try {
+            while (!isInterrupted()){
+                synchronized (syncInfo) {
 
-                if (syncInfo.isPause()) {
-                    try {
-                        syncInfo.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if (syncInfo.isPause()) {
+                        try {
+                            syncInfo.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            try {
-//                if(syncInfo.isAudioFrameGet)
+//          if(syncInfo.isAudioFrameGet)
                 render();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         finished();
     }
@@ -66,9 +66,10 @@ public class DisplayThread extends Thread{
         if(playHandler != null){
             playHandler.destroy();
         }
+        System.out.println("finished");
     }
 
-    private void checkDiff(Frame frame,long time) {
+    private void checkDiff(Frame frame,long time) throws InterruptedException {
         long diff = time - (lastTime == -1? time : lastTime);
 
         long timestamp = frame.timestamp;
@@ -78,11 +79,7 @@ public class DisplayThread extends Thread{
 
         if(diff2 > 0) {
             if (delay2 > IMediaPlayer.SyncInfo.MAX_VIDEO_DIFF) delay2 = IMediaPlayer.SyncInfo.MAX_VIDEO_DIFF;
-            try {
-                sleep(delay2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            sleep(delay2);
             factor = -delay2;
         }else{
             factor = delay2;
