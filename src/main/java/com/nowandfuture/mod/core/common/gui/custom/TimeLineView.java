@@ -9,7 +9,7 @@ import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.gui.Gui;
 
 import javax.annotation.Nonnull;

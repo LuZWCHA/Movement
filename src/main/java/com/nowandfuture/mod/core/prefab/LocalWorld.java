@@ -1,8 +1,7 @@
 package com.nowandfuture.mod.core.prefab;
 
-import com.nowandfuture.mod.core.client.renders.CubesBuilder;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;

@@ -19,7 +19,6 @@ public class SoundSource {
 
     public SoundSource(boolean loop, boolean relative,int type) {
         this.sourceId = alGenSources();
-        alDistanceModel(AL_INVERSE_DISTANCE);
         if (loop) {
             alSourcei(sourceId, AL_LOOPING, AL_TRUE);
         }
@@ -27,10 +26,9 @@ public class SoundSource {
             alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
         }
 
-        alSourcef(sourceId, AL_GAIN,1);
+        alSourcef(sourceId, AL_GAIN,2);
         alSourcef( sourceId, AL_ROLLOFF_FACTOR, 1 );
         alSourcef(sourceId,AL_INVERSE_DISTANCE_CLAMPED ,6);
-
         alSourcef(sourceId, AL_SOURCE_TYPE, type);
     }
 
@@ -72,29 +70,7 @@ public class SoundSource {
     }
 
     public void cleanup() {
-        stop();
         alDeleteSources(sourceId);
-    }
-
-    public void addBuffer(ByteBuffer byteBuffer, AudioFormat af) {
-        int bufferId = alGenBuffers();
-        int processed = alGetSourcei(sourceId, AL_BUFFERS_QUEUED);
-
-        if (processed > 0) {
-            //将缓存添加到声源上（添加便会进行播放，不添加不播放）
-
-            alSourceQueueBuffers(sourceId,bufferId);
-            int error = alGetError();
-            if (error != AL_NO_ERROR) {
-                System.out.println(alGetString(error));
-            }
-            alBufferData(bufferId, Utils.getOpenALFormat(af),byteBuffer, (int) af.getSampleRate());
-            alSourceUnqueueBuffers(sourceId);
-        }
-
-        if(!isPlaying()){
-            play();
-        }
     }
 
     public int getSourceId() {

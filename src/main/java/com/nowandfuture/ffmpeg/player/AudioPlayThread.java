@@ -5,6 +5,7 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -30,7 +31,7 @@ public class AudioPlayThread extends Thread {
     public void run() {
 
         init();
-
+        Frame frame = null;
         while (!isInterrupted()){
 
             try {
@@ -41,7 +42,7 @@ public class AudioPlayThread extends Thread {
                     }
                 }
 
-//                if(!fg.hasAudio()){
+//                if(!grabber.hasAudio()){
 //                    long timestamp = System.currentTimeMillis() * avutil.AV_TIME_BASE / 1000;
 //
 //                    if(syncInfo.sysStartTime == -1) {
@@ -53,7 +54,7 @@ public class AudioPlayThread extends Thread {
 //                    continue;
 //                }
 
-                Frame frame = audioCache.poll();
+                frame = audioCache.poll();
                 if(frame == null) {
 
                     if(!syncInfo.isDecodeFinished()) {
@@ -89,9 +90,6 @@ public class AudioPlayThread extends Thread {
 
                 setting(timestamp);
                 play(frame);
-
-//                System.out.println("audio delay:"+ (factor + baseDelay));
-
                 sleep(baseDelay + factor);
 
             } catch (InterruptedException e) {
@@ -99,6 +97,9 @@ public class AudioPlayThread extends Thread {
             }catch (Exception e){
                 e.printStackTrace();
                 interrupt();
+            }finally {
+                if(frame != null)
+                    Utils.cloneFrameDeallocate(frame);
             }
         }
 

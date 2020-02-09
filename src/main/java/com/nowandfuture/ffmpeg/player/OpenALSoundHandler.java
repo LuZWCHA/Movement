@@ -5,7 +5,13 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.player.sound.SoundManager;
 import com.nowandfuture.ffmpeg.player.sound.SoundSource;
+import com.nowandfuture.mod.Movement;
+import net.minecraft.client.Minecraft;
+import net.minecraftforge.common.MinecraftForge;
+import org.bytedeco.javacpp.Pointer;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.openal.AL;
+import org.lwjgl.openal.ALCcontext;
 import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.*;
 import paulscode.sound.libraries.ChannelJavaSound;
@@ -49,14 +55,21 @@ public class OpenALSoundHandler implements PlayHandler {
 
     @Override
     public void init(IMediaPlayer.SyncInfo info) {
+
         this.syncInfo = info;
 
-        FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
-        sampleFormat = grabber.getSampleFormat();
-        sampleRate = grabber.getSampleRate();
-        audioChannel = grabber.getAudioChannels();
+        Movement.proxy.addScheduledTaskClient(new Runnable() {
+            @Override
+            public void run() {
+                FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
+                sampleFormat = grabber.getSampleFormat();
+                sampleRate = grabber.getSampleRate();
+                audioChannel = grabber.getAudioChannels();
 
-        soundManager.addStream(name,pos);
+                soundManager.addStream(name,pos);
+            }
+        });
+
     }
 
     @Override
@@ -67,26 +80,32 @@ public class OpenALSoundHandler implements PlayHandler {
         byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
         AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate);
 
+//        System.out.println(format.toString());
         SoundSource soundSource = soundManager.getSoundSource(name);
-        if(soundSource != null && soundSource.isPlaying()){
-            soundManager.flushProcessed(name);
-        }
-        if(buffer.length > 0)
-            soundManager.feedRawData(name,buffer,format);
+        soundManager.feedRawData(name,buffer,format);
 
 
         lastTime = System.currentTimeMillis();
+
+
     }
 
     @Override
     public void flush() {
-        soundManager.flushProcessed(name);
+        soundManager.flush(name);
     }
 
 
     @Override
     public void destroy() {
-        soundManager.cleanup();
+        Movement.proxy.addScheduledTaskClient(new Runnable() {
+            @Override
+            public void run() {
+                flush();
+                soundManager.cleanup();
+            }
+        });
+
     }
 
     @Override

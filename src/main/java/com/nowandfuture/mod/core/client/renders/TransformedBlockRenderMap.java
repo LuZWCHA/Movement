@@ -3,9 +3,6 @@ package com.nowandfuture.mod.core.client.renders;
 import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.nowandfuture.asm.IRender;
 import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
-import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.MathHelper;
-import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -32,9 +29,6 @@ import org.lwjgl.opengl.GL11;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-import static com.nowandfuture.mod.utils.MathHelper.quaternionToEulerAngles;
 
 @SideOnly(Side.CLIENT)
 public enum  TransformedBlockRenderMap implements IWorldEventListener, IRender {

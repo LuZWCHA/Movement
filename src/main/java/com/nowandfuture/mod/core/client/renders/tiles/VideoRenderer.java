@@ -1,17 +1,14 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
-import com.google.common.collect.Lists;
-import com.nowandfuture.ffmpeg.Frame;
-import com.nowandfuture.ffmpeg.Java2DFrameConverter;
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.FrameTexture;
 import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
 import com.nowandfuture.mod.core.client.renders.PixelBuffer;
+import com.nowandfuture.mod.core.client.renders.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.handler.RenderHandler;
-import com.nowandfuture.mod.utils.MathHelper;
-import com.nowandfuture.mod.utils.math.Vector3f;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -20,18 +17,13 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResource;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBBufferObject;
-import org.lwjgl.opengl.GL12;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -41,12 +33,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static net.minecraft.tileentity.TileEntity.INFINITE_EXTENT_AABB;
 import static org.lwjgl.opengl.ARBBufferObject.GL_STREAM_DRAW_ARB;
-import static org.lwjgl.opengl.ARBPixelBufferObject.GL_PIXEL_PACK_BUFFER_ARB;
 import static org.lwjgl.opengl.ARBPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_ARB;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGR;
@@ -58,20 +47,21 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     //improve performance ,value 0~100 is valid
     public static int DrawFrameNum = 0;
     public static double LookDistance = 12;
-    private Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
+    private static Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
+    private Random r = new Random();
     //unused
     private Map<BlockPos,PixelBuffer> frameCache2 = new HashMap<>();
-    private Random r = new Random();
 
-    private FrameTexture loadingTexture;
+    private static FrameTexture loadingTexture;
     //unused
     private static final ResourceLocation LOADING_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/loading.png");
 
+    private static int GC_COUNTER;
 
     public VideoRenderer(){
     }
 
-    public void clear(){
+    public static void clear(){
         frameCache.forEach(new BiConsumer<BlockPos, FrameTexture>() {
             @Override
             public void accept(BlockPos pos, FrameTexture texture) {
@@ -111,7 +101,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         MinecraftOpenGLDisplayHandler.ImageFrame frame = (MinecraftOpenGLDisplayHandler.ImageFrame) simplePlayer.getCurImageObj();
 
-        BufferedImage image = (frame == null ? null : frame.image);
+        BufferedImage image = (frame == null ? null : frame.getCloneImage());
 
         if(image == null){
             try {
@@ -123,6 +113,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
                         loadingTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
                         loadingTexture.updateBufferedImage(bufferedimage,0);
+                        bufferedimage.getGraphics().dispose();
                     }
                     drawFrame(loadingTexture,te,x,y,z);
                 }
@@ -134,15 +125,17 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         }else {
             Integer frameLimit = RenderHandler.getScores().get(te.getPos());
-            if(frameLimit == null) frameLimit = 128;
+            if(frameLimit == null) frameLimit = 0;
+
             if(r.nextInt(100) <= 100 - DrawFrameNum &&
-                    r.nextInt(128) <= frameLimit) {
-                uploadTexture(te,frame);
+                    r.nextInt(VideoRendererUtil.MAX_SCORE) <= frameLimit) {
+                uploadTexture(te,frame,image);
             }
             //if pbo supported,I will try again
 //            PixelBuffer pixelBuffer = frameCache2.get(te.getPos());
 //            drawFrame(pixelBuffer,te,x,y,z);
 
+            image.getGraphics().dispose();
             FrameTexture texture = frameCache.get(te.getPos());
             if(texture != null)
                 drawFrame(texture,te,x,y,z);
@@ -153,7 +146,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     //unused
     private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame){
 
-        BufferedImage image = frame.image;
+        BufferedImage image = frame.getCloneImage();
 
         final float videoWidth = image.getWidth();
         final float videoHeight = image.getHeight();
@@ -197,9 +190,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         pixelBuffer.unbindPBO(GL_PIXEL_UNPACK_BUFFER_ARB);
     }
 
-    private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame){
-
-        BufferedImage image = frame.image;
+    private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
 
         final float videoWidth = image.getWidth();
         final float videoHeight = image.getHeight();
@@ -232,6 +223,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             BufferedImage bufferedimage;
             bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
             FrameTexture imageTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
+            bufferedimage.getGraphics().dispose();
             imageTexture.updateBufferedImage(bufferedimage,frame.timestamp);
             imageTexture.setRealHeight(image.getHeight());
             imageTexture.setRealWidth(image.getWidth());

@@ -1,8 +1,5 @@
-package com.nowandfuture.mod.utils;
+package com.nowandfuture.mod.utils.math;
 
-import com.nowandfuture.mod.utils.math.Matrix4f;
-import com.nowandfuture.mod.utils.math.Quaternion;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -12,9 +9,7 @@ import net.minecraft.util.math.Vec3i;
 
 import javax.vecmath.Quat4f;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class MathHelper {
 
@@ -308,6 +303,10 @@ public class MathHelper {
         return null;
     }
 
+    public static double invSqrt(float x)
+    {
+        return net.minecraft.util.math.MathHelper.fastInvSqrt(x);
+    }
 
     public static double fastSigmoid(double x){
         return 1/(1+ fastExp(-x));

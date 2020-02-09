@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;

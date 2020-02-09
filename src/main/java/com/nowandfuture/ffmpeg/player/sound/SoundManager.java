@@ -118,7 +118,6 @@ public class SoundManager {
         if(soundSource == null) return -1;
         int sourceId = soundSource.getSourceId();
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(bytes.length);
-//        bytes[bytes.length - 1] = 0;
         byteBuffer.put(bytes);
         byteBuffer.flip();
         int processed = AL10.alGetSourcei(sourceId, AL10.AL_BUFFERS_PROCESSED);
@@ -133,7 +132,6 @@ public class SoundManager {
             }
 
             AL10.alSourceUnqueueBuffers(sourceId,intBuffer);
-//            AL10.alDeleteBuffers(intBuffer);
 
             if (this.checkALError()) {
                 return - 1;
@@ -141,16 +139,16 @@ public class SoundManager {
 
             if (AL10.alIsBuffer(intBuffer.get(0))) {
                 this.millisPreviouslyPlayed += this.millisInBuffer(intBuffer.get(0),af);
+                AL10.alDeleteBuffers(intBuffer);
             }
 
             this.checkALError();
-        }else {
+        }
 
-            intBuffer = BufferUtils.createIntBuffer(1);
-            AL10.alGenBuffers(intBuffer);
-            if (this.checkALError()) {
-                return -1;
-            }
+        intBuffer = BufferUtils.createIntBuffer(1);
+        AL10.alGenBuffers(intBuffer);
+        if (this.checkALError()) {
+            return -1;
         }
 
         AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(af), byteBuffer,
@@ -186,21 +184,31 @@ public class SoundManager {
     }
 
     public void flushProcessed(String name){
-        flush(name,true);
+        flushIn(name,true);
     }
 
-    public void flush(String name,boolean checkProcessed){
+    public void flush(String name){
+        flushIn(name,false);
+    }
+
+    public void flushIn(String name,boolean checkProcessed){
         SoundSource soundSource = getSoundSource(name);
         int sourceId = soundSource.getSourceId();
         int queued = AL10.alGetSourcei(sourceId, AL_BUFFERS_QUEUED);
         int processed = AL10.alGetSourcei(sourceId,AL_BUFFERS_PROCESSED);
         if (!this.checkALError()) {
             for(; queued > 0; --queued) {
-                if(processed-- <= 0) return;
+                if(checkProcessed) {
+                    if (processed-- <= 0) return;
+                }
                 AL10.alSourceUnqueueBuffers(sourceId);
-//                AL10.alDeleteBuffers(sourceId);
-                if (this.checkALError()) {
 
+                if (this.checkALError()) {
+                    return;
+                }
+
+                AL10.alDeleteBuffers(sourceId);
+                if (this.checkALError()) {
                     return;
                 }
             }

@@ -3,6 +3,7 @@ package com.nowandfuture.ffmpeg.player;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
+import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -34,6 +35,7 @@ public class DisplayThread extends Thread{
     @Override
     public void run() {
         init();
+        Frame frame = null;
         try {
             while (!isInterrupted()){
                 synchronized (syncInfo) {
@@ -47,11 +49,19 @@ public class DisplayThread extends Thread{
                     }
                 }
 
+
+                frame = imageCache.poll();
 //          if(syncInfo.isAudioFrameGet)
-                render();
+                render(frame);
+
+                if(frame != null)
+                    Utils.cloneFrameDeallocate(frame);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }finally {
+            if(frame != null)
+                Utils.cloneFrameDeallocate(frame);
         }
         finished();
     }
@@ -66,7 +76,6 @@ public class DisplayThread extends Thread{
         if(playHandler != null){
             playHandler.destroy();
         }
-        System.out.println("finished");
     }
 
     private void checkDiff(Frame frame,long time) throws InterruptedException {
@@ -95,11 +104,8 @@ public class DisplayThread extends Thread{
 //        if(factor > baseDelay) factor = baseDelay;
     }
 
-    protected void render() throws InterruptedException {
-        if(imageCache != null) {
-            Frame frame;
+    protected void render(Frame frame) throws InterruptedException {
 
-            frame = imageCache.poll();
             long time = System.currentTimeMillis();
             if(frame == null){
                 if(!syncInfo.isDecodeFinished())
@@ -120,7 +126,7 @@ public class DisplayThread extends Thread{
 
 //            System.out.println("video delay:" + (factor + baseDelay));
 
-        }
+
     }
 
     protected void draw(Frame frame) throws InterruptedException {

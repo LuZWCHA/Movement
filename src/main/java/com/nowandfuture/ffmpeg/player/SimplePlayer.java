@@ -5,7 +5,9 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.javacpp.Pointer;
 
+import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -160,8 +162,21 @@ public class SimplePlayer implements IMediaPlayer{
     }
 
     private void cleanup(){
+        for (Frame frame:
+                imageCache){
+            Utils.cloneFrameDeallocate(frame);
+        }
+
+        for (Frame frame:
+                audioCache){
+            Utils.cloneFrameDeallocate(frame);
+        }
+
         imageCache.clear();
         audioCache.clear();
+
+        System.runFinalization();
+        System.gc();
     }
 
     public void seekToTimestamp(long ts) throws FrameGrabber.Exception {

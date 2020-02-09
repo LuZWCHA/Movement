@@ -4,6 +4,7 @@ import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
+import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.*;
 
@@ -17,8 +18,6 @@ public class DecodeThread extends Thread {
 
     private boolean seek;
     private long nextTimestamp;
-
-    private long delay = 1;
 
     private final IMediaPlayer.SyncInfo syncInfo;
 
@@ -36,11 +35,12 @@ public class DecodeThread extends Thread {
 
     @Override
     public void run() {
+        Frame frame = null;
         try {
             double fps = grabber.getFrameRate();
 
             long delay = (long) (1000 / fps);
-            Frame frame;
+
             while (!isInterrupted()){
 
                 if(seek){
@@ -93,7 +93,11 @@ public class DecodeThread extends Thread {
             e.printStackTrace();
         } finally {
             try {
+                if(frame != null)
+                    Utils.cloneFrameDeallocate(frame);
+
                 if(grabber != null) {
+                    grabber.stop();
                     grabber.release();
                 }
             } catch (FrameGrabber.Exception e) {

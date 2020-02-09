@@ -2,7 +2,7 @@ package com.nowandfuture.mod.core.client.renders;
 
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
 import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.state.IBlockState;

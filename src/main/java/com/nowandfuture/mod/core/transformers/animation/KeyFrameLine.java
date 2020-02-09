@@ -1,7 +1,6 @@
 package com.nowandfuture.mod.core.transformers.animation;
 
-import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 

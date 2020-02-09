@@ -34,6 +34,7 @@ public class FrameTexture extends DynamicTexture {
 
     public void updateBufferedImage(BufferedImage image,long id){
         this.id = id;
+        GlStateManager.bindTexture(glTextureId);
         //Setup wrap mode
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
@@ -47,10 +48,9 @@ public class FrameTexture extends DynamicTexture {
                 .put(buffer.getData().clone());
         byteBuffer.flip();
 
-        GlStateManager.bindTexture(glTextureId);
+
         //Send texel data to OpenGL
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
-//        glTexSubImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer.asReadOnlyBuffer());
         ((DirectBuffer)byteBuffer).cleaner().clean();
 
 
@@ -63,20 +63,13 @@ public class FrameTexture extends DynamicTexture {
     public void subBufferedImage(BufferedImage image,int offsetX,int offsetY,long id){
         if(id == this.id) return;
         this.id = id;
-//Setup wrap mode
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-
-        //Setup texture scaling filtering
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        GlStateManager.bindTexture(glTextureId);
 
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
         ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * BYTES_PER_PIXEL)
                 .put(buffer.getData().clone());
         byteBuffer.flip();
 
-        GlStateManager.bindTexture(glTextureId);
         //Send texel data to OpenGL
         glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX,offsetY, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
 

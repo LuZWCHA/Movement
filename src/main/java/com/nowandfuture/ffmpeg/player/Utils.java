@@ -1,13 +1,50 @@
 package com.nowandfuture.ffmpeg.player;
 
+import com.nowandfuture.ffmpeg.Frame;
 import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.javacpp.Pointer;
 import org.lwjgl.openal.AL10;
+import sun.misc.Cleaner;
+import sun.nio.ch.DirectBuffer;
 
+import javax.annotation.Nonnull;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.nio.*;
 
 public class Utils {
+
+    public static void cloneFrameDeallocate(@Nonnull Frame frame){
+        if(frame.image != null){
+            for (Buffer b :
+                    frame.image) {
+                if(b.isDirect()){
+                    b.clear();
+                    Cleaner c = ((DirectBuffer)b).cleaner();
+                    if(c != null) c.clean();
+                }
+            }
+        }
+
+        if(frame.samples != null){
+            for (Buffer b :
+                    frame.samples) {
+                if(b.isDirect()){
+                    b.clear();
+                    Cleaner c = ((DirectBuffer)b).cleaner();
+                    if(c != null) c.clean();
+                }
+            }
+        }
+
+        if(frame.opaque != null) {
+            Pointer[] pointers = (Pointer[]) frame.opaque;
+            if(pointers[0] != null)
+                pointers[0].deallocate();
+            if(pointers[1] != null)
+                pointers[1].deallocate();
+        }
+    }
 
     public static ByteBuffer shortToByteValue(ShortBuffer arr, float vol) {
         int len  = arr.capacity();
@@ -46,7 +83,7 @@ public class Utils {
             case avutil.AV_SAMPLE_FMT_FLT:
             case avutil.AV_SAMPLE_FMT_S16P://有符号short 16bit,平面型
             case avutil.AV_SAMPLE_FMT_FLTP://float 平面型 需转为16bit short
-                af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,sampleRate,16,audioChannels,audioChannels*2, frameRate,false);
+                af = new AudioFormat(sampleRate,16,audioChannels,true,false);
                 break;
             case avutil.AV_SAMPLE_FMT_S32:
             case avutil.AV_SAMPLE_FMT_DBL:

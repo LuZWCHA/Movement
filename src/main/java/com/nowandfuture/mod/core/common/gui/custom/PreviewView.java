@@ -8,7 +8,7 @@ import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.BlockRenderHelper;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.MathHelper;
+import com.nowandfuture.mod.utils.math.MathHelper;
 import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.gui.ScaledResolution;

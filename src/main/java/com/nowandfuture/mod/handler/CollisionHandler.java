@@ -57,7 +57,7 @@ public class CollisionHandler {
                             AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
 
                             if(obBox.intersect(orgAABB)){
-                                return;
+                                continue;
                             }
 
                             v = new Vector3f(
@@ -71,7 +71,20 @@ public class CollisionHandler {
                             float time = obBox.collisionDetermination(orgAABB, v,axis);
                             if(time >= 0) {
                                 module.setImpactAxis(axis);
-                                list.add(new AxisAlignedBBWrap(entity,obBox,impactTime,axis,v));
+                                AxisAlignedBBWrap wrap = null;
+                                for (AxisAlignedBB aabb :
+                                        list) {
+                                    if (aabb instanceof AxisAlignedBBWrap)
+                                        wrap = (AxisAlignedBBWrap) aabb;
+                                }
+
+                                if(wrap == null) {
+                                    wrap = new AxisAlignedBBWrap(entity, impactTime, v);
+                                    list.add(wrap);
+                                }
+                                wrap.pushAxis(axis);
+                                wrap.setImpactTime(impactTime);
+
                             }else{
                                 module.setImpactAxis(null);
                             }

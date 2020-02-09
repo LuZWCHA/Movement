@@ -1,5 +1,6 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.nio.FloatBuffer;
@@ -33,7 +34,8 @@ public class SoundListener {
         data[3] = up.x;
         data[4] = up.y;
         data[5] = up.z;
-        FloatBuffer buffer = FloatBuffer.wrap(data);
+        FloatBuffer buffer = BufferUtils.createFloatBuffer(data.length).put(data);
+        buffer.flip();
         alListener(AL_ORIENTATION, buffer);
     }
 }

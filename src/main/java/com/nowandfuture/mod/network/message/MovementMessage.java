@@ -16,7 +16,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraftforge.fml.common.network.NetworkCheckHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -24,7 +23,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-import static com.nowandfuture.mod.utils.MathHelper.*;
+import static com.nowandfuture.mod.utils.math.MathHelper.*;
 
 public abstract class MovementMessage implements IMessage {
     private int x,y,z;

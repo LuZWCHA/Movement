@@ -1,10 +1,8 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
-import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.core.client.renders.CubesBuilder;
 import com.nowandfuture.mod.core.client.renders.LightWorld;
-import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
@@ -30,13 +28,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.WorldType;
 import net.minecraftforge.client.model.animation.FastTESR;
-import net.optifine.shaders.SVertexBuilder;
-import net.optifine.shaders.Shaders;
-import net.optifine.shaders.ShadersRender;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Quaternion;
-
-import static com.nowandfuture.mod.utils.MathHelper.quaternionToEulerAngles;
 
 public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTransformedBlock> {
 
