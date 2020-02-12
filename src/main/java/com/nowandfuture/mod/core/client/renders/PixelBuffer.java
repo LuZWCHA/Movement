@@ -2,24 +2,21 @@ package com.nowandfuture.mod.core.client.renders;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
-import org.lwjgl.opengl.ARBPixelBufferObject;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL21;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import org.lwjgl.opengl.*;
 
 import java.nio.ByteBuffer;
 
 //target:GL_PIXEL_PACK_BUFFER or GL_PIXEL_UNPACK_BUFFER
 public class PixelBuffer {
     private int pboId;
-    private int bindTextureId;
     private long tag;
 
     public PixelBuffer(){
         pboId = GL15.glGenBuffers();
         checkError();
         System.out.println(pboId);
-        bindTextureId = GL11.glGenTextures();
     }
 
     public void unbindPBO(int target){
@@ -67,16 +64,8 @@ public class PixelBuffer {
         return t;
     }
 
-    public void bindTexture(){
-        if(bindTextureId == -1){
-            bindTextureId = GL11.glGenTextures();
-        }
-        GlStateManager.bindTexture(bindTextureId);
-        checkError();
-    }
-
     public void unbindTexture(){
-        GlStateManager.bindTexture(0);
+//        GL11.glBindTexture(GL11.GL_TEXTURE_2D,0);
         checkError();
     }
 
@@ -87,22 +76,14 @@ public class PixelBuffer {
 
     public void delete(){
         if(pboId != -1)
-            ARBPixelBufferObject.glDeleteBuffersARB(pboId);
+            GL15.glDeleteBuffers(pboId);
         pboId = -1;
 
-        if(bindTextureId != -1)
-            GL11.glDeleteTextures(bindTextureId);
-
         checkError();
-        bindTextureId = -1;
     }
 
     public int getPBOId() {
         return pboId;
-    }
-
-    public int getBindTextureId() {
-        return bindTextureId;
     }
 
     private void checkError(){

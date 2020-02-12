@@ -119,7 +119,6 @@ public class ModuleCoreBlock extends BlockDirectional {
             TileEntity tileEntity = world.getTileEntity(pos);
             state = state.withProperty(POWERED,flag);
             world.setBlockState(pos, state, 3);
-            world.notifyNeighborsOfStateChange(pos,this,false);
 
             if (tileEntity instanceof TileEntityModule) {
                 if (flag && !((TileEntityModule) tileEntity).getLine().isEnable()) {

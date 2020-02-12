@@ -102,7 +102,7 @@ public class SimplePlayer implements IMediaPlayer{
         grabber.setVideoOption("threads", "0");
         grabber.setAudioOption("threads", "0");
         grabber.setOption("hwaccel", "videotoolbox");
-        grabber.setAudioChannels(2);
+        grabber.setAudioChannels(1);
         grabber.setSampleFormat(AV_SAMPLE_FMT_S16);
 
         try {

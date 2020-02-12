@@ -194,6 +194,8 @@ public class Utils {
             case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
                 ILData = (ShortBuffer)buf[0];
                 TLData = shortToByteValue(ILData,vol);
+                ByteBuffer stereo = ByteBuffer.allocate(TLData.capacity() / 2);
+
                 return TLData.array();
             case avutil.AV_SAMPLE_FMT_FLT://float非平面型
                 leftData = (FloatBuffer)buf[0];

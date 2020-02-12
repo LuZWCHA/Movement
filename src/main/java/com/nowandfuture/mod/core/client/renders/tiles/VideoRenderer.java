@@ -2,10 +2,7 @@ package com.nowandfuture.mod.core.client.renders.tiles;
 
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.FrameTexture;
-import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
-import com.nowandfuture.mod.core.client.renders.PixelBuffer;
-import com.nowandfuture.mod.core.client.renders.VideoRendererUtil;
+import com.nowandfuture.mod.core.client.renders.*;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.handler.RenderHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
@@ -41,7 +38,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGR;
 
 // TODO: 2020/2/1  visual focus algorithm and cull of unseeing panel
-//PBO is slower...
+//PBO is as slow as subteximage2d...
 public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePlayer> {
 
     //improve performance ,value 0~100 is valid
@@ -50,7 +47,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     private static Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
     private Random r = new Random();
     //unused
-    private static Map<BlockPos,PixelBuffer> frameCache2 = new HashMap<>();
+    private static Map<BlockPos,PBOFrameTexture> frameCache2 = new HashMap<>();
 
     private static FrameTexture loadingTexture;
     //unused
@@ -68,10 +65,10 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                 texture.deleteGlTexture();
             }
         });
-        frameCache2.forEach(new BiConsumer<BlockPos, PixelBuffer>() {
+        frameCache2.forEach(new BiConsumer<BlockPos, PBOFrameTexture>() {
             @Override
-            public void accept(BlockPos pos, PixelBuffer texture) {
-                texture.delete();
+            public void accept(BlockPos pos, PBOFrameTexture texture) {
+                texture.deleteGlTexture();
             }
         });
         frameCache.clear();
@@ -93,11 +90,11 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             }
         });
 
-        frameCache2.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, PixelBuffer>>() {
+        frameCache2.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, PBOFrameTexture>>() {
             @Override
-            public boolean test(Map.Entry<BlockPos, PixelBuffer> blockPosFrameTextureEntry) {
+            public boolean test(Map.Entry<BlockPos, PBOFrameTexture> blockPosFrameTextureEntry) {
                 if(blockPosFrameTextureEntry.getKey().equals(player.getPos())){
-                    blockPosFrameTextureEntry.getValue().delete();
+                    blockPosFrameTextureEntry.getValue().deleteGlTexture();
                     return true;
                 }
                 return false;
@@ -113,7 +110,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         Vec3d v = pos.subtract(te.getPos().getX(),te.getPos().getY(),te.getPos().getZ());
         v.add(te.getScreenAABB().getCenter());
         Vec3i d = te.getFacing().getDirectionVec();
-        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
 
         if(v.lengthSquared() > (1<<8) || v.dotProduct(new Vec3d(d.getX(),d.getY(),d.getZ())) < 0){
             return;
@@ -154,16 +150,11 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                 uploadTextureUsePBO(te,frame,image);
             }
 
-            PixelBuffer pixelBuffer = frameCache2.get(te.getPos());
+            PBOFrameTexture pixelBuffer = frameCache2.get(te.getPos());
             if(pixelBuffer != null)
                 drawFrame(pixelBuffer,te,x,y,z);
             image.getGraphics().dispose();
-
-//            FrameTexture texture = frameCache.get(te.getPos());
-//            if(texture != null)
-//                drawFrame(texture,te,x,y,z);
         }
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
     }
 
     private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
@@ -186,47 +177,28 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         int offsetY = (int) ((h - newH) * scale / 2);
         int offsetX = (int) ((w - newW) * scale / 2);
 
-        PixelBuffer pixelBuffer;
-        if(!frameCache2.containsKey(te.getPos())){
-            pixelBuffer = new PixelBuffer();
-            frameCache2.put(te.getPos(),pixelBuffer);
-            BufferedImage bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
-            DataBufferByte buffer = (DataBufferByte) bufferedimage.getRaster().getDataBuffer();
-            ByteBuffer byteBuffer = BufferUtils.createByteBuffer(bufferedimage.getWidth() * bufferedimage.getHeight() * 4).put(buffer.getData());
-            byteBuffer.flip();
-            pixelBuffer.bindTexture();
-            pixelBuffer.setTag(frame.timestamp);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, bufferedimage.getWidth(), bufferedimage.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
-            pixelBuffer.unbindTexture();
-            TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-            textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            ((DirectBuffer)byteBuffer).cleaner().clean();
-            bufferedimage.getGraphics().dispose();
-        }
-
-        pixelBuffer = frameCache2.get(te.getPos());
-
-        //skip same texture
-        if(pixelBuffer.getTag() != frame.timestamp) {
-            pixelBuffer.setTag(frame.timestamp);
-
-            pixelBuffer.bindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
-            DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-            pixelBuffer.pboByteData(GL21.GL_PIXEL_UNPACK_BUFFER, image.getWidth() * image.getHeight() * 4, GL15.GL_STREAM_DRAW);
-            ByteBuffer b = pixelBuffer.mapPBO(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, null);
-            if (b != null && b.hasRemaining()) {
-                b.put(buffer.getData());
-                pixelBuffer.unmapPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
+        FrameTexture texture = frameCache2.get(te.getPos());
+        if(texture!=null){
+            //need update texture size
+            if(texture.getRealHeight() != videoHeight || texture.getRealWidth() != videoWidth){
+                texture.deleteGlTexture();
+                frameCache2.remove(te.getPos());
             }
-
-            //Send texel data to OpenGL
-            pixelBuffer.bindTexture();
-            glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE, 0);
-            pixelBuffer.unbindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
-            pixelBuffer.unbindTexture();
         }
-        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+
+        if(!frameCache2.containsKey(te.getPos())) {
+            BufferedImage bufferedimage;
+            bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
+            PBOFrameTexture imageTexture = new PBOFrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
+            bufferedimage.getGraphics().dispose();
+            imageTexture.updateBufferedImage(bufferedimage,frame.timestamp);
+            imageTexture.setRealHeight(image.getHeight());
+            imageTexture.setRealWidth(image.getWidth());
+            frameCache2.put(te.getPos(),imageTexture);
+        }else {
+            frameCache2.get(te.getPos()).subBufferedImage(image, offsetX, offsetY, frame.timestamp);
+        }
+
     }
 
     private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
@@ -314,50 +286,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         GlStateManager.enableAlpha();
         this.setLightmapDisabled(true);
-    }
-
-
-    private void drawFrame(PixelBuffer texture,TileEntitySimplePlayer te,double x,double y,double z){
-
-        Vec3d[] panel = new Vec3d[4];
-        panel[0] = new Vec3d(0,0,0);
-        panel[1] = new Vec3d(0,te.getHeight(),0);
-        panel[2] = new Vec3d(te.getWidth(),te.getHeight(),0);
-        panel[3] = new Vec3d(te.getWidth(),0,0);
-
-        transformPanel(panel,te.getFacing());
-
-        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-        texture.bindTexture();
-
-        this.setLightmapDisabled(false);
-        RenderHelper.disableStandardItemLighting();
-
-        BufferBuilder var2 = Tessellator.getInstance().getBuffer();
-        Tessellator tessellator = Tessellator.getInstance();
-        GlStateManager.resetColor();
-
-        GlStateManager.disableAlpha();
-
-        glPushMatrix();
-        //-w/2,-h * scale/2
-        GlStateManager.translate(x,y + 1,z);
-        var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
-
-        var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
-        var2.pos(panel[1].x,panel[1].y,panel[1].z).tex(1,0).endVertex();
-        var2.pos(panel[2].x,panel[2].y,panel[2].z).tex(0,0).endVertex();
-        var2.pos(panel[3].x,panel[3].y,panel[3].z).tex(0,1).endVertex();
-        var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
-
-        tessellator.draw();
-        glPopMatrix();
-        RenderHelper.enableStandardItemLighting();
-
-        GlStateManager.enableAlpha();
-
-        setLightmapDisabled(true);
     }
 
     private void transformPanel(Vec3d[] panel, EnumFacing facing){

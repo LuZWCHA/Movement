@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.client.renders;
 
+import com.nowandfuture.mod.Movement;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import org.lwjgl.BufferUtils;
@@ -18,7 +19,7 @@ public class FrameTexture extends DynamicTexture {
     private static final int BYTES_PER_PIXEL = 4;
     private int width,height;
     private int aw,ah;//sub image size;
-    private long id;
+    protected long id;
 
     public FrameTexture(BufferedImage p_i1270_1_) {
         super(p_i1270_1_);
@@ -75,7 +76,7 @@ public class FrameTexture extends DynamicTexture {
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){
-            System.out.println("error:" + error);
+            Movement.logger.warn("OpenGL error:" + error);
         }
     }
 
