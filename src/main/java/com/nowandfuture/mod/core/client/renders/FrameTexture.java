@@ -48,11 +48,9 @@ public class FrameTexture extends DynamicTexture {
                 .put(buffer.getData().clone());
         byteBuffer.flip();
 
-
         //Send texel data to OpenGL
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
         ((DirectBuffer)byteBuffer).cleaner().clean();
-
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){

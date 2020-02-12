@@ -55,7 +55,7 @@ public class SoundManager {
     }
 
     public void add(String name, Buffer buffer, Vector3f position, AudioFormat af){
-        SoundSource soundSource = new SoundSource(false,false,AL_STATIC);
+        SoundSource soundSource = new SoundSource(false,false);
         soundSource.setPosition(position);
         SoundBuffer soundBuffer = new SoundBuffer(buffer,af);
 
@@ -65,7 +65,7 @@ public class SoundManager {
     }
 
     public void addStream(String name, Vector3f position){
-        SoundSource soundSource = new SoundSource(false,false,AL_STREAMING);
+        SoundSource soundSource = new SoundSource(false,false);
         soundSource.setPosition(position);
         soundSourceMap.put(name,soundSource);
     }
@@ -113,6 +113,42 @@ public class SoundManager {
         return millisPreviouslyPlayed;
     }
 
+    public int checkProcessed(String name){
+        SoundSource soundSource = getSoundSource(name);
+        if(soundSource == null) return -1;
+        int sourceId = soundSource.getSourceId();
+        int processed = AL10.alGetSourcei(sourceId, AL10.AL_BUFFERS_PROCESSED);
+        if(!checkALError()){
+            return processed;
+        }
+        return -1;
+    }
+
+    public int checkQueued(String name){
+        SoundSource soundSource = getSoundSource(name);
+        if(soundSource == null) return -1;
+        int sourceId = soundSource.getSourceId();
+        int queued = AL10.alGetSourcei(sourceId, AL_BUFFERS_QUEUED);
+        if(!checkALError()){
+            return queued;
+        }
+        return -1;
+    }
+
+    public boolean unqueueBuffers(String name,IntBuffer buffer){
+        SoundSource soundSource = getSoundSource(name);
+        if(soundSource == null)
+            return false;
+        int sourceId = soundSource.getSourceId();
+
+//        alGenBuffers(buffer);
+        if (!checkALError()) {
+            alSourceUnqueueBuffers(sourceId,buffer);
+            return !checkALError();
+        }
+        return false;
+    }
+
     public int feedRawData(String name, byte[] bytes, AudioFormat af) throws InterruptedException {
         SoundSource soundSource = getSoundSource(name);
         if(soundSource == null) return -1;
@@ -123,8 +159,7 @@ public class SoundManager {
         int processed = AL10.alGetSourcei(sourceId, AL10.AL_BUFFERS_PROCESSED);
         IntBuffer intBuffer;
         if (processed > 0) {
-
-            intBuffer = BufferUtils.createIntBuffer(processed);
+            intBuffer = BufferUtils.createIntBuffer(1);
             AL10.alGenBuffers(intBuffer);
 
             if (this.checkALError()) {
@@ -139,16 +174,16 @@ public class SoundManager {
 
             if (AL10.alIsBuffer(intBuffer.get(0))) {
                 this.millisPreviouslyPlayed += this.millisInBuffer(intBuffer.get(0),af);
-                AL10.alDeleteBuffers(intBuffer);
             }
 
             this.checkALError();
-        }
+        }else {
 
-        intBuffer = BufferUtils.createIntBuffer(1);
-        AL10.alGenBuffers(intBuffer);
-        if (this.checkALError()) {
-            return -1;
+            intBuffer = BufferUtils.createIntBuffer(1);
+            AL10.alGenBuffers(intBuffer);
+            if (this.checkALError()) {
+                return -1;
+            }
         }
 
         AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(af), byteBuffer,
@@ -172,12 +207,56 @@ public class SoundManager {
         return processed;
     }
 
+    public boolean queueBuffer(String name, byte[] buffer,IntBuffer intBuffer,AudioFormat format)
+    {
+       SoundSource soundSource = getSoundSource(name);
+       if(soundSource == null) return false;
+
+        ByteBuffer byteBuffer = (ByteBuffer) BufferUtils.createByteBuffer(
+                buffer.length ).put( buffer ).flip();
+
+        if(intBuffer == null || intBuffer.capacity() < 1 || !AL10.alIsBuffer(intBuffer.get(0))) {
+            int i = AL10.alGenBuffers();
+            AL10.alBufferData(1, Utils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
+            if( checkALError() )
+                return false;
+
+            AL10.alSourceQueueBuffers( soundSource.getSourceId(), i);
+            if( checkALError() )
+                return false;
+        }else {
+            AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
+            if( checkALError() )
+                return false;
+
+            AL10.alSourceQueueBuffers( soundSource.getSourceId(), intBuffer);
+            if( checkALError() )
+                return false;
+        }
+
+        return true;
+    }
+
     public void play(String name){
         SoundSource soundSource = getSoundSource(name);
         if(soundSource != null){
             int sourceId = soundSource.getSourceId();
-            if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL_PLAYING) {
-                AL10.alSourcePlay(sourceId);
+            if (this.checkALError()) {
+            } else {
+                if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) != AL_PLAYING) {
+                    AL10.alSourcePlay(sourceId);
+                    this.checkALError();
+                }
+            }
+        }
+    }
+
+    public void stop(String name){
+        SoundSource soundSource = getSoundSource(name);
+        if(soundSource != null){
+            int sourceId = soundSource.getSourceId();
+            if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) == AL_PLAYING) {
+                AL10.alSourceStop(sourceId);
                 this.checkALError();
             }
         }
@@ -193,6 +272,7 @@ public class SoundManager {
 
     public void flushIn(String name,boolean checkProcessed){
         SoundSource soundSource = getSoundSource(name);
+        if(soundSource == null) return;
         int sourceId = soundSource.getSourceId();
         int queued = AL10.alGetSourcei(sourceId, AL_BUFFERS_QUEUED);
         int processed = AL10.alGetSourcei(sourceId,AL_BUFFERS_PROCESSED);
@@ -201,15 +281,15 @@ public class SoundManager {
                 if(checkProcessed) {
                     if (processed-- <= 0) return;
                 }
-                AL10.alSourceUnqueueBuffers(sourceId);
+                int id = AL10.alSourceUnqueueBuffers(sourceId);
 
                 if (this.checkALError()) {
-                    return;
+                    break;
                 }
 
-                AL10.alDeleteBuffers(sourceId);
+                AL10.alDeleteBuffers(id);
                 if (this.checkALError()) {
-                    return;
+                    break;
                 }
             }
             this.millisPreviouslyPlayed = 0.0F;

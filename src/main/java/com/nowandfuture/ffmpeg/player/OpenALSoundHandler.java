@@ -4,37 +4,31 @@ import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.player.sound.SoundManager;
-import com.nowandfuture.ffmpeg.player.sound.SoundSource;
-import com.nowandfuture.mod.Movement;
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
-import org.bytedeco.javacpp.Pointer;
 import org.lwjgl.LWJGLException;
-import org.lwjgl.openal.AL;
-import org.lwjgl.openal.ALCcontext;
 import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.*;
-import paulscode.sound.libraries.ChannelJavaSound;
 
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
-import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
 
+//openal has shufftering when playing audio
 public class OpenALSoundHandler implements PlayHandler {
     protected SoundManager soundManager;
     protected SimplePlayer simplePlayer;
     protected int sampleFormat;
     protected float sampleRate;
-    protected int audioChannel;
+    protected int audioChannels;
     long lastTime = 0;
     private IMediaPlayer.SyncInfo syncInfo;
     protected String name;
     protected Vector3f pos;
-    private byte[] cache;
+    private Queue<byte[]> cache;
+    private int processed = 0;
 
     public OpenALSoundHandler(){
         soundManager = new SoundManager();
+        cache = new LinkedList<>();
         name = "audio";
         pos = new Vector3f();
         initSoundManager();
@@ -57,37 +51,35 @@ public class OpenALSoundHandler implements PlayHandler {
     public void init(IMediaPlayer.SyncInfo info) {
 
         this.syncInfo = info;
+        FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
+        sampleFormat = grabber.getSampleFormat();
+        sampleRate = grabber.getSampleRate();
+        audioChannels = grabber.getAudioChannels();
 
-        Movement.proxy.addScheduledTaskClient(new Runnable() {
-            @Override
-            public void run() {
-                FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
-                sampleFormat = grabber.getSampleFormat();
-                sampleRate = grabber.getSampleRate();
-                audioChannel = grabber.getAudioChannels();
-
-                soundManager.addStream(name,pos);
-            }
-        });
-
+        soundManager.addStream(name,pos);
     }
 
     @Override
     public void handle(Frame frame) throws InterruptedException {
         sampleRate = frame.sampleRate;
-        audioChannel = frame.audioChannels;
+        audioChannels = frame.audioChannels;
 
         byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
-        AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate);
+        byte[] mono = Utils.getMonoAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
+        AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate, audioChannels,sampleRate);
 
-//        System.out.println(format.toString());
-        SoundSource soundSource = soundManager.getSoundSource(name);
-        soundManager.feedRawData(name,buffer,format);
+        processed += soundManager.checkProcessed(name);
+        int queue = soundManager.checkQueued(name) + 1;
+
+        simplePlayer.getSyncInfo().offset = - (long) (queue * mono.length / sampleRate) * 1000;
+        soundManager.flushProcessed(name);
+
+        //discard this frame
+        if(queue > 20) {return;}
+        soundManager.feedRawData(name,mono,format);
 
 
         lastTime = System.currentTimeMillis();
-
-
     }
 
     @Override
@@ -98,14 +90,9 @@ public class OpenALSoundHandler implements PlayHandler {
 
     @Override
     public void destroy() {
-        Movement.proxy.addScheduledTaskClient(new Runnable() {
-            @Override
-            public void run() {
-                flush();
-                soundManager.cleanup();
-            }
-        });
-
+        soundManager.stop(name);
+        flush();
+        soundManager.cleanup();
     }
 
     @Override

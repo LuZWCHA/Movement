@@ -19,19 +19,21 @@ import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.PointerPointer;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.SoundSystem;
+import paulscode.sound.SoundSystemConfig;
+import paulscode.sound.libraries.ChannelLWJGLOpenAL;
 
 import javax.sound.sampled.AudioFormat;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
+@Deprecated
 public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
 
-
-    private SoundSystem soundSystem;
-
     private Entity entity;
-    private int cached = 0;
 
     public MinecraftOpenALSoundHandler(SimplePlayer player, String name, BlockPos pos) {
         super(player);
@@ -52,41 +54,12 @@ public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
     @Override
     public void init(IMediaPlayer.SyncInfo info) {
         super.init(info);
-//        FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
-//        sampleFormat = grabber.getSampleFormat();
-//        sampleRate = grabber.getSampleRate();
-//        audioChannel = grabber.getAudioChannels();
-//        soundSystem.rawDataStream(Utils.getAudioFormat(sampleFormat,sampleRate ,audioChannel,sampleRate),
-//                true,name,pos.x,pos.y,pos.z,1,1);
-//        soundSystem.setVolume(name,1);
-
     }
 
     @Override
     public void handle(Frame frame) throws InterruptedException {
         updateListener();
-//        soundSystem.moveListener((float) entity.posX,(float)entity.posY,(float)entity.posZ);
-
         super.handle(frame);
-//        byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
-//        AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate,audioChannel,sampleRate);
-//
-////        System.out.println(format.toString());
-//        soundSystem.feedRawAudioData(name,buffer);
-//        soundSystem.activate(name);
-//        soundSystem.unloadSound(name);
-//        soundSystem.loadSound(buffer,format,name);
-//        soundSystem.play(name);
-//        soundSystem.play(name);
-//        SoundSource soundSource = soundManager.getSoundSource(name);
-//        if(soundSource != null && soundSource.isPlaying()){
-//            soundManager.flushProcessed(name);
-//        }
-//        soundManager.feedRawData(name,buffer,format);
-
-//        soundSystem.flush(name);
-//        soundSystem.feedRawAudioData(name,buffer);
-//        Minecraft.getMinecraft().getSoundHandler().playSound(new StreamSound(name,1,));
     }
 
     public void updateListener(){
@@ -94,15 +67,10 @@ public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
         Vector3f motion = new Vector3f(((float) entity.motionX), ((float) entity.motionY), ((float) entity.motionZ));
         soundManager.getListener().setPosition(pos);
         soundManager.getListener().setSpeed(motion);
-//        soundManager.getListener().setOrientation(
-//                new Vector3f(entity.rotationPitch,entity.rotationYaw,0),
-//                new Vector3f(0,1,0));
     }
 
     @Override
     public void destroy() {
-//        soundSystem.flush(name);
-        soundSystem.removeSource(name);
         super.destroy();
     }
 }

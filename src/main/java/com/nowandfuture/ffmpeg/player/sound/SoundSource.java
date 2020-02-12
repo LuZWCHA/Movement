@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.openal.AL11.AL_STREAMING;
+import static org.lwjgl.openal.AL11.alSpeedOfSound;
 
 public class SoundSource {
 
@@ -17,7 +18,7 @@ public class SoundSource {
     private int gain;
     private int sourceVolume;
 
-    public SoundSource(boolean loop, boolean relative,int type) {
+    public SoundSource(boolean loop, boolean relative) {
         this.sourceId = alGenSources();
         if (loop) {
             alSourcei(sourceId, AL_LOOPING, AL_TRUE);
@@ -26,10 +27,9 @@ public class SoundSource {
             alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
         }
 
-        alSourcef(sourceId, AL_GAIN,2);
-        alSourcef( sourceId, AL_ROLLOFF_FACTOR, 1 );
-        alSourcef(sourceId,AL_INVERSE_DISTANCE_CLAMPED ,6);
-        alSourcef(sourceId, AL_SOURCE_TYPE, type);
+//        alSourcef(sourceId, AL_GAIN,1);
+//        alSourcef(sourceId, AL_ROLLOFF_FACTOR, 1 );
+//        alSourcef(sourceId,AL_INVERSE_DISTANCE_CLAMPED ,6);
     }
 
     public void setBuffer(int bufferId) {

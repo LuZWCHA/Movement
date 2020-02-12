@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16;
+import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16P;
+
 public class SimplePlayer implements IMediaPlayer{
     private FFmpegFrameGrabber grabber;
 
@@ -98,7 +101,9 @@ public class SimplePlayer implements IMediaPlayer{
         }
         grabber.setVideoOption("threads", "0");
         grabber.setAudioOption("threads", "0");
-        grabber.setAudioChannels(1);
+        grabber.setOption("hwaccel", "videotoolbox");
+        grabber.setAudioChannels(2);
+        grabber.setSampleFormat(AV_SAMPLE_FMT_S16);
 
         try {
             grabber.start();

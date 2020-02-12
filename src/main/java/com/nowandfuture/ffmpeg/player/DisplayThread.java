@@ -124,9 +124,6 @@ public class DisplayThread extends Thread{
             Thread.sleep(baseDelay + factor);
             lastTime = time;
 
-//            System.out.println("video delay:" + (factor + baseDelay));
-
-
     }
 
     protected void draw(Frame frame) throws InterruptedException {

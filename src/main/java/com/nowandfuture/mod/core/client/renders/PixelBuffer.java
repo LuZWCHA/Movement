@@ -1,66 +1,68 @@
 package com.nowandfuture.mod.core.client.renders;
 
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import org.lwjgl.opengl.ARBPixelBufferObject;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL21;
 
 import java.nio.ByteBuffer;
 
-//target:GL_PIXEL_PACK_BUFFER_ARB or GL_PIXEL_UNPACK_BUFFER_ARB
+//target:GL_PIXEL_PACK_BUFFER or GL_PIXEL_UNPACK_BUFFER
 public class PixelBuffer {
     private int pboId;
     private int bindTextureId;
+    private long tag;
 
     public PixelBuffer(){
-        pboId = ARBPixelBufferObject.glGenBuffersARB();
+        pboId = GL15.glGenBuffers();
         checkError();
-        System.out.println("new!!!!!!!!!!!!!!!!!!!!");
-        bindTextureId = -1;
+        System.out.println(pboId);
+        bindTextureId = GL11.glGenTextures();
     }
 
     public void unbindPBO(int target){
-        if(pboId != -1) {
-            ARBPixelBufferObject.glBindBufferARB(target, 0);
-            System.out.println("unbind");
-            checkError();
-        }
+        GL15.glBindBuffer(target,0);
+        checkError();
     }
 
     public void bindPBO(int target){
         if(pboId != -1) {
-            ARBPixelBufferObject.glBindBufferARB(target, pboId);
-            System.out.println("bind");
+            GL15.glBindBuffer(target, pboId);
             checkError();
         }
     }
 
-    //usage:GL_STREAM_DRAW_ARB,GL_STREAM_READ_ARB
+    //usage:GL_STREAM_DRAW,GL_STREAM_READ
     public void pboByteData(int target, ByteBuffer byteBuffer,int usage){
-        ARBPixelBufferObject.glBufferDataARB(target,byteBuffer,usage);
+        GL15.glBufferData(target,byteBuffer,usage);
+        checkError();
     }
 
-    //usage:GL_STREAM_DRAW_ARB,GL_STREAM_READ_ARB
+    //usage:GL_STREAM_DRAW,GL_STREAM_READ
     public void pboByteData(int target, int size,int usage){
-        ARBPixelBufferObject.glBufferDataARB(target,size,usage);
-        System.out.println("data");
+        GL15.glBufferData(target,size,usage);
         checkError();
     }
 
     //access:read data from the PBO (GL_READ_ONLY_ARB), write data to the PBO (GL_WRITE_ONLY_ARB), or both (GL_READ_WRITE_ARB)
     public ByteBuffer mapPBO(int target,int access,ByteBuffer oldBuffer){
-        ByteBuffer byteBuffer =  ARBPixelBufferObject.glMapBufferARB(target,access,oldBuffer);
-        System.out.println("map");
+        ByteBuffer byteBuffer =
+                GL15.glMapBuffer(target, access, oldBuffer);
         checkError();
         return byteBuffer;
     }
 
     public ByteBuffer mapPBO(int target,int access,long length,ByteBuffer oldBuffer){
-        return ARBPixelBufferObject.glMapBufferARB(target,access,length,oldBuffer);
+        ByteBuffer byteBuffer =
+                GL15.glMapBuffer(target,access,length,oldBuffer);
+        checkError();
+        return byteBuffer;
     }
 
     public boolean unmapPBO(int target){
-        boolean t = ARBPixelBufferObject.glUnmapBufferARB(target);
-        System.out.println("map");
+        boolean t = GL15.glUnmapBuffer(target);
         checkError();
         return t;
     }
@@ -69,8 +71,12 @@ public class PixelBuffer {
         if(bindTextureId == -1){
             bindTextureId = GL11.glGenTextures();
         }
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, bindTextureId);
-        System.out.println("bindt");
+        GlStateManager.bindTexture(bindTextureId);
+        checkError();
+    }
+
+    public void unbindTexture(){
+        GlStateManager.bindTexture(0);
         checkError();
     }
 
@@ -95,10 +101,22 @@ public class PixelBuffer {
         return pboId;
     }
 
+    public int getBindTextureId() {
+        return bindTextureId;
+    }
+
     private void checkError(){
         int error = GL11.glGetError();
         if(error != GL11.GL_NO_ERROR){
             System.out.println("error:" + error);
         }
+    }
+
+    public long getTag() {
+        return tag;
+    }
+
+    public void setTag(long tag) {
+        this.tag = tag;
     }
 }

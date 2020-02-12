@@ -23,7 +23,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBBufferObject;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL21;
+import sun.nio.ch.DirectBuffer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -35,22 +37,20 @@ import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import static org.lwjgl.opengl.ARBBufferObject.GL_STREAM_DRAW_ARB;
-import static org.lwjgl.opengl.ARBPixelBufferObject.GL_PIXEL_UNPACK_BUFFER_ARB;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGR;
 
 // TODO: 2020/2/1  visual focus algorithm and cull of unseeing panel
-//PBO is not support... so ,no improve...
+//PBO is slower...
 public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePlayer> {
 
     //improve performance ,value 0~100 is valid
-    public static int DrawFrameNum = 0;
-    public static double LookDistance = 12;
+    public static int DRAW_FRAME_NUMBER = 0;
+    public static double MAX_DISTANCE = 12;
     private static Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
     private Random r = new Random();
     //unused
-    private Map<BlockPos,PixelBuffer> frameCache2 = new HashMap<>();
+    private static Map<BlockPos,PixelBuffer> frameCache2 = new HashMap<>();
 
     private static FrameTexture loadingTexture;
     //unused
@@ -68,7 +68,14 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                 texture.deleteGlTexture();
             }
         });
+        frameCache2.forEach(new BiConsumer<BlockPos, PixelBuffer>() {
+            @Override
+            public void accept(BlockPos pos, PixelBuffer texture) {
+                texture.delete();
+            }
+        });
         frameCache.clear();
+        frameCache2.clear();
         if(loadingTexture != null){
             loadingTexture.deleteGlTexture();
         }
@@ -78,20 +85,36 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         frameCache.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, FrameTexture>>() {
             @Override
             public boolean test(Map.Entry<BlockPos, FrameTexture> blockPosFrameTextureEntry) {
-                return blockPosFrameTextureEntry.getKey().equals(player.getPos());
+                if(blockPosFrameTextureEntry.getKey().equals(player.getPos())){
+                    blockPosFrameTextureEntry.getValue().deleteGlTexture();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        frameCache2.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, PixelBuffer>>() {
+            @Override
+            public boolean test(Map.Entry<BlockPos, PixelBuffer> blockPosFrameTextureEntry) {
+                if(blockPosFrameTextureEntry.getKey().equals(player.getPos())){
+                    blockPosFrameTextureEntry.getValue().delete();
+                    return true;
+                }
+                return false;
             }
         });
     }
 
     @Override
     public void render(TileEntitySimplePlayer te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-
         Vec3d pos = new Vec3d(rendererDispatcher.entityX,
                 rendererDispatcher.entityY + rendererDispatcher.entity.getEyeHeight(),
                 rendererDispatcher.entityZ);
         Vec3d v = pos.subtract(te.getPos().getX(),te.getPos().getY(),te.getPos().getZ());
         v.add(te.getScreenAABB().getCenter());
         Vec3i d = te.getFacing().getDirectionVec();
+        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+
         if(v.lengthSquared() > (1<<8) || v.dotProduct(new Vec3d(d.getX(),d.getY(),d.getZ())) < 0){
             return;
         }
@@ -118,7 +141,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                     drawFrame(loadingTexture,te,x,y,z);
                 }
 
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -127,26 +149,24 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             Integer frameLimit = RenderHandler.getScores().get(te.getPos());
             if(frameLimit == null) frameLimit = 0;
 
-            if(r.nextInt(100) <= 100 - DrawFrameNum &&
+            if(r.nextInt(100) <= 100 - DRAW_FRAME_NUMBER &&
                     r.nextInt(VideoRendererUtil.MAX_SCORE) <= frameLimit) {
-                uploadTexture(te,frame,image);
+                uploadTextureUsePBO(te,frame,image);
             }
-            //if pbo supported,I will try again
-//            PixelBuffer pixelBuffer = frameCache2.get(te.getPos());
-//            drawFrame(pixelBuffer,te,x,y,z);
 
+            PixelBuffer pixelBuffer = frameCache2.get(te.getPos());
+            if(pixelBuffer != null)
+                drawFrame(pixelBuffer,te,x,y,z);
             image.getGraphics().dispose();
-            FrameTexture texture = frameCache.get(te.getPos());
-            if(texture != null)
-                drawFrame(texture,te,x,y,z);
-        }
 
+//            FrameTexture texture = frameCache.get(te.getPos());
+//            if(texture != null)
+//                drawFrame(texture,te,x,y,z);
+        }
+        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
     }
 
-    //unused
-    private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame){
-
-        BufferedImage image = frame.getCloneImage();
+    private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
 
         final float videoWidth = image.getWidth();
         final float videoHeight = image.getHeight();
@@ -170,24 +190,43 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         if(!frameCache2.containsKey(te.getPos())){
             pixelBuffer = new PixelBuffer();
             frameCache2.put(te.getPos(),pixelBuffer);
+            BufferedImage bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
+            DataBufferByte buffer = (DataBufferByte) bufferedimage.getRaster().getDataBuffer();
+            ByteBuffer byteBuffer = BufferUtils.createByteBuffer(bufferedimage.getWidth() * bufferedimage.getHeight() * 4).put(buffer.getData());
+            byteBuffer.flip();
+            pixelBuffer.bindTexture();
+            pixelBuffer.setTag(frame.timestamp);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, bufferedimage.getWidth(), bufferedimage.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
+            pixelBuffer.unbindTexture();
+            TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+            textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            ((DirectBuffer)byteBuffer).cleaner().clean();
+            bufferedimage.getGraphics().dispose();
         }
+
         pixelBuffer = frameCache2.get(te.getPos());
 
-        pixelBuffer.bindPBO(GL_PIXEL_UNPACK_BUFFER_ARB);
-        DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-        ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4);
-        byteBuffer.flip();
-        pixelBuffer.pboByteData(GL_PIXEL_UNPACK_BUFFER_ARB,0,GL_STREAM_DRAW_ARB);
-        ByteBuffer b = pixelBuffer.mapPBO(GL_PIXEL_UNPACK_BUFFER_ARB, ARBBufferObject.GL_READ_WRITE_ARB,byteBuffer);
-        if(b != null){
-            b.put(buffer.getData());
-            pixelBuffer.unmapPBO(GL_PIXEL_UNPACK_BUFFER_ARB);
-        }
+        //skip same texture
+        if(pixelBuffer.getTag() != frame.timestamp) {
+            pixelBuffer.setTag(frame.timestamp);
 
-        //Send texel data to OpenGL
-        pixelBuffer.bindTexture();
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE,0);
-        pixelBuffer.unbindPBO(GL_PIXEL_UNPACK_BUFFER_ARB);
+            pixelBuffer.bindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
+            DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
+            pixelBuffer.pboByteData(GL21.GL_PIXEL_UNPACK_BUFFER, image.getWidth() * image.getHeight() * 4, GL15.GL_STREAM_DRAW);
+            ByteBuffer b = pixelBuffer.mapPBO(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, null);
+            if (b != null && b.hasRemaining()) {
+                b.put(buffer.getData());
+                pixelBuffer.unmapPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
+            }
+
+            //Send texel data to OpenGL
+            pixelBuffer.bindTexture();
+            glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE, 0);
+            pixelBuffer.unbindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
+            pixelBuffer.unbindTexture();
+        }
+        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
     }
 
     private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
@@ -261,7 +300,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         //-w/2,-h * scale/2
         GlStateManager.translate(x,y + 1,z);
         var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-//            GlStateManager.color(1,1,1,1);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
 
         var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
@@ -276,7 +314,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         GlStateManager.enableAlpha();
         this.setLightmapDisabled(true);
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
     }
 
 
@@ -306,7 +343,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         //-w/2,-h * scale/2
         GlStateManager.translate(x,y + 1,z);
         var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-//            GlStateManager.color(1,1,1,1);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
 
         var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
@@ -320,8 +356,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         RenderHelper.enableStandardItemLighting();
 
         GlStateManager.enableAlpha();
-        this.setLightmapDisabled(true);
-        textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+
+        setLightmapDisabled(true);
     }
 
     private void transformPanel(Vec3d[] panel, EnumFacing facing){

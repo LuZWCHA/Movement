@@ -2,7 +2,6 @@ package com.nowandfuture.mod.core.client.renders;
 
 import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
-import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
@@ -23,7 +22,7 @@ public class VideoRendererUtil {
     public static void getScoreOfScreen(Minecraft mc, @Nonnull Map<BlockPos,Integer> scores, float p){
 
         Entity entity = mc.player;
-        final double distance = VideoRenderer.LookDistance;
+        final double distance = VideoRenderer.MAX_DISTANCE;
         final Vec3d start = entity.getPositionEyes(p);
         final Vec3d look = entity.getLook(p);
         final Vec3d end = start.addVector(look.x * distance,

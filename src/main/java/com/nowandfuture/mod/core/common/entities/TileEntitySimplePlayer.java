@@ -3,8 +3,10 @@ package com.nowandfuture.mod.core.common.entities;
 import com.google.common.collect.Lists;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
+import com.nowandfuture.ffmpeg.player.JavaSoundHandler;
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.client.renders.MinecraftJavaSoundHandler;
 import com.nowandfuture.mod.core.client.renders.MinecraftOpenALSoundHandler;
 import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
 import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
@@ -197,7 +199,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
                 @Override
                 public void run() {
                     ((SimplePlayer)simplePlayer).setHandlers(new MinecraftOpenGLDisplayHandler(),
-                            new MinecraftOpenALSoundHandler((SimplePlayer) simplePlayer,getPos().toString(),getPos()));//
+                            new MinecraftOpenALSoundHandler((SimplePlayer) simplePlayer,getPos().toString(),getPos()));//new MinecraftJavaSoundHandler(simplePlayer,Movement.proxy.getClientPlayer(),getPos())new MinecraftOpenALSoundHandler((SimplePlayer) simplePlayer,getPos().toString(),getPos())
                     prepare();
                 }
             });
@@ -304,11 +306,6 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
                 }
                 break;
         }
-    }
-
-    @Override
-    public boolean shouldRenderInPass(int pass) {
-        return super.shouldRenderInPass(pass);
     }
 
     public short getWidth() {

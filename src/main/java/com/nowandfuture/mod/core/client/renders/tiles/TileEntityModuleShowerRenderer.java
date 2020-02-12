@@ -14,9 +14,6 @@ import org.lwjgl.opengl.GL11;
 @SideOnly(Side.CLIENT)
 public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<TileEntityShowModule>{
 
-    private BufferBuilder bufferBuilder = new BufferBuilder(2097152);
-    private WorldVertexBufferUploader worldVertexBufferUploader = new WorldVertexBufferUploader();
-
     @Override
     public void render(TileEntityShowModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         super.render(te, x, y, z, partialTicks, destroyStage, alpha);
@@ -33,6 +30,9 @@ public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<Til
         GlStateManager.translate(x-te.getPos().getX(),y-te.getPos().getY(),z-te.getPos().getZ());
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferBuilder = tessellator.getBuffer();
+
         bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
         int i = this.getWorld().getCombinedLight(te.getPos(), 0);
         int j = i % 65536;
@@ -46,8 +46,7 @@ public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<Til
         dispatcher.getBlockModelRenderer().renderModel(getWorld(),model,blockState,
                 te.getPos(),bufferBuilder,false);
 
-        bufferBuilder.finishDrawing();
-        worldVertexBufferUploader.draw(bufferBuilder);
+        tessellator.draw();
 
         RenderHelper.enableStandardItemLighting();
         GlStateManager.popMatrix();

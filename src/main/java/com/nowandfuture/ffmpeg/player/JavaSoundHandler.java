@@ -3,11 +3,14 @@ package com.nowandfuture.ffmpeg.player;
 import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
+import com.sun.media.sound.SoftMixingDataLine;
 import paulscode.sound.SoundSystem;
 import paulscode.sound.SoundSystemConfig;
 import paulscode.sound.SoundSystemLogger;
 import paulscode.sound.libraries.ChannelJavaSound;
 
+import javax.sound.sampled.Control;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 
@@ -39,12 +42,23 @@ public class JavaSoundHandler implements PlayHandler {
     @Override
     public void handle(Frame frame) {
         if(channelJavaSound != null && channelJavaSound.sourceDataLine != null)
-            channelJavaSound.queueBuffer(Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat));
+            channelJavaSound.queueBuffer(Utils.getAudio(frame.samples,updateVolume(),sampleFormat));
+    }
+
+    protected float updateVolume(){
+        float v = simplePlayer.getVolume();
+        return v;
+    }
+
+    protected void setGain(float gain){
+        if(channelJavaSound != null && channelJavaSound.sourceDataLine.isOpen())
+            channelJavaSound.setGain(gain);
     }
 
     @Override
     public void flush() {
-
+        if(channelJavaSound != null && channelJavaSound.sourceDataLine != null)
+            channelJavaSound.flush();
     }
 
     @Override

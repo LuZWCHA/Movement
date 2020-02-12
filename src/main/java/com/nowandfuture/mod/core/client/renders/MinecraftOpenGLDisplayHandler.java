@@ -21,6 +21,10 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     private long last = -1;
     private Java2DFrameConverter java2DFrameConverter = new Java2DFrameConverter();
 
+    public MinecraftOpenGLDisplayHandler(){
+        super();
+    }
+
     @Override
     public void init(IMediaPlayer.SyncInfo info) {
         super.init(info);

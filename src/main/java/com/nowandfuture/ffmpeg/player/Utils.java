@@ -3,6 +3,7 @@ package com.nowandfuture.ffmpeg.player;
 import com.nowandfuture.ffmpeg.Frame;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacpp.Pointer;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
 import sun.misc.Cleaner;
 import sun.nio.ch.DirectBuffer;
@@ -53,7 +54,7 @@ public class Utils {
         for(int i = 0;i<len;i++){
             bb.putShort(i*2,(short)((float)arr.get(i)*vol));
         }
-        return bb; // 默认转为大端序
+        return bb;
     }
     public static ByteBuffer floatToByteValue(FloatBuffer arr, float vol){
         int len = arr.capacity();
@@ -139,14 +140,14 @@ public class Utils {
             case avutil.AV_SAMPLE_FMT_FLT:
             case avutil.AV_SAMPLE_FMT_S16P://有符号short 16bit,平面型
             case avutil.AV_SAMPLE_FMT_FLTP://float 平面型 需转为16bit short
-                af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,sampleRate,16,audioChannels,audioChannels*2, frameRate,false);
+                af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,sampleRate,16,audioChannels,audioChannels * 2, frameRate,false);
                 break;
             case avutil.AV_SAMPLE_FMT_S32:
             case avutil.AV_SAMPLE_FMT_DBL:
             case avutil.AV_SAMPLE_FMT_U8P:
                 break;
             case avutil.AV_SAMPLE_FMT_S32P://有符号short 32bit，平面型，但是32bit的话可能电脑声卡不支持，这种音乐也少见
-                af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,sampleRate,32,audioChannels,audioChannels*2, frameRate,false);
+                af = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,sampleRate,32,audioChannels,audioChannels * 4, frameRate,false);
                 break;
             case avutil.AV_SAMPLE_FMT_DBLP:
             case avutil.AV_SAMPLE_FMT_S64://有符号short 64bit 非平面型
@@ -166,6 +167,49 @@ public class Utils {
             return AudioSystem.getLine(dataLineInfo);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public static byte[] getMonoAudio(final Buffer[] samples,float vol,int sampleFormat){
+
+        Buffer[] buf;
+        FloatBuffer leftData,rightData;
+        ShortBuffer ILData,IRData;
+        ByteBuffer TLData,TRData;
+        byte[] tl = null;
+        byte[] tr = null;
+        int k;
+        buf = samples;
+        switch(sampleFormat){
+            case avutil.AV_SAMPLE_FMT_FLTP://平面型左右声道分开。
+                leftData = (FloatBuffer)buf[0];
+                TLData = floatToByteValue(leftData,vol);
+                rightData = (FloatBuffer)buf[1];
+                TRData = floatToByteValue(rightData,vol);
+                tl = TLData.array();
+                tr = TRData.array();
+                break;
+            case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
+                ILData = (ShortBuffer)buf[0];
+                TLData = shortToByteValue(ILData,vol);
+                return TLData.array();
+            case avutil.AV_SAMPLE_FMT_FLT://float非平面型
+                leftData = (FloatBuffer)buf[0];
+                TLData = floatToByteValue(leftData,vol);
+                tl = TLData.array();
+                tr = tl.clone();
+                break;
+            case avutil.AV_SAMPLE_FMT_S16P://平面型左右声道分开
+                ILData = (ShortBuffer)buf[0];
+                IRData = (ShortBuffer)buf[1];
+                TLData = shortToByteValue(ILData,vol);
+                TRData = shortToByteValue(IRData,vol);
+                tl = TLData.array();
+                tr = TRData.array();
+            default:
+
         }
         return null;
     }
@@ -197,25 +241,16 @@ public class Utils {
                     }
                     k++;
                 }
-//                ByteBuffer buffer = ByteBuffer.allocateDirect(combine.length);
-//                buffer.put(combine);
-//                buffer.flip();
                 return combine;
             case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
                 ILData = (ShortBuffer)buf[0];
                 TLData = shortToByteValue(ILData,vol);
                 tl = TLData.array();
-//                ByteBuffer buffer1 = ByteBuffer.allocateDirect(tl.length);
-//                buffer1.put(tl);
-//                buffer1.flip();
                 return tl;
             case avutil.AV_SAMPLE_FMT_FLT://float非平面型
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
                 tl = TLData.array();
-//                ByteBuffer buffer2 = ByteBuffer.allocateDirect(tl.length);
-//                buffer2.put(tl);
-//                buffer2.flip();
                 return tl;
             case avutil.AV_SAMPLE_FMT_S16P://平面型左右声道分开
                 ILData = (ShortBuffer)buf[0];
@@ -233,9 +268,6 @@ public class Utils {
                     }
                     k++;
                 }
-//                ByteBuffer buffer3 = ByteBuffer.allocateDirect(combine.length);
-//                buffer3.put(combine);
-//                buffer3.flip();
                 return combine;
             default:
                 return new byte[]{};
