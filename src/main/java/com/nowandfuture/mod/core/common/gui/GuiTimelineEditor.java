@@ -355,6 +355,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 xSliderView.setProgress(0);
                 ySliderView.setProgress(0);
                 zSliderView.setProgress(0);
+                xOffset.setCurValue(0);
+                yOffset.setCurValue(0);
+                zOffset.setCurValue(0);
             }
         });
 

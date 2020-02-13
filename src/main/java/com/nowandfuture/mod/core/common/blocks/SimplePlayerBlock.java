@@ -65,7 +65,7 @@ public class SimplePlayerBlock extends BlockDirectional {
             playerIn.openGui(Movement.instance, GuiMediaPlayer.GUI_ID,worldIn,pos.getX(),pos.getY(),pos.getZ());
         }
 
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        return true;
     }
 
     @Override

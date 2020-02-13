@@ -37,6 +37,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     private static String NBT_FACE = "Face";
     private static String NBT_PANEL_SIZE_X = "PanelSizeX";
     private static String NBT_PANEL_SIZE_Y = "PanelSizeY";
+    private static String NBT_VOLUME = "Volume";
     private static String NBT_SYNC = "needSync";
     private static String NBT_TIME = "time";
     private static String NBT_STATE = "state";
@@ -282,6 +283,15 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         }
     }
 
+    @SideOnly(Side.CLIENT)
+    public void setVolume(float volume){
+        ((SimplePlayer)simplePlayer).setVolume(volume);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public float getVolume(){
+        return ((SimplePlayer)simplePlayer).getVolume();
+    }
 
     @SideOnly(Side.CLIENT)
     private void transformPanel(Vec3d[] panel, EnumFacing facing){

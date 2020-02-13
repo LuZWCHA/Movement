@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui;
 
+import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
@@ -8,6 +9,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.MovementMessage;
@@ -16,6 +18,7 @@ import joptsimple.internal.Strings;
 import org.lwjgl.util.Color;
 
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 //client only
 public class GuiMediaPlayer extends AbstractGuiContainer {
@@ -25,6 +28,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     private MyTextField myTextField;
 
     private Button playBtn, stopBtn, rotateBtn;
+    private SliderView volumeView;
     private FrameLayout btnLayout;
 
     public GuiMediaPlayer(TileEntitySimplePlayer player) {
@@ -35,7 +39,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         playBtn = new Button(getRootView(),btnLayout);
         stopBtn = new Button(getRootView(),btnLayout);
         rotateBtn = new Button(getRootView(),btnLayout);
-        btnLayout.addChildren(stopBtn, playBtn, rotateBtn);
+        volumeView = new SliderView(getRootView(),btnLayout);
+        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView);
 
         xSize = 200;
         ySize = 100;
@@ -48,7 +53,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         btnLayout.setX(20);
         btnLayout.setY(40);
         btnLayout.setWidth(120);
-        btnLayout.setHeight(30);
+        btnLayout.setHeight(40);
         playBtn.setX(0);
         playBtn.setY(0);
         stopBtn.setX(40);
@@ -61,6 +66,11 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         stopBtn.setHeight(14);
         rotateBtn.setWidth(30);
         rotateBtn.setHeight(14);
+        volumeView.setX(0);
+        volumeView.setY(20);
+        volumeView.setWidth(50);
+        volumeView.setHeight(10);
+        volumeView.setRange(1,0,0);
 
         playBtn.setText("play!");
         stopBtn.setText("stop!");
@@ -86,6 +96,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                                                     url);
                                     NetworkHandler.INSTANCE.sendMessageToServer(message);
                                     try {
+                                        player.setVolume(volumeView.getProgress());
                                         player.play();
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -122,6 +133,15 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
             }
         });
 
+        volumeView.setProgressChanged(new Consumer<Float>() {
+            @Override
+            public void accept(Float aFloat) {
+                if(player != null){
+                    player.setVolume(aFloat);
+                }
+            }
+        });
+
         addView(btnLayout);
 
         addGuiCompoundsRelative(myTextField);
@@ -131,6 +151,12 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         if(player.getSimplePlayer().isLoading()){
             playBtn.setEnable(false);
         }
+        volumeView.setProgress(player.getVolume());
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
     }
 
     @Override

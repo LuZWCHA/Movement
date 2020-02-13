@@ -28,12 +28,14 @@ public class SimplePlayer implements IMediaPlayer{
     private PlayHandler audioHandler;
 
     private boolean isLoading;
+    private float volume;
 
     public SimplePlayer(){
         imageCache = new LinkedBlockingQueue<>(100);
         audioCache = new LinkedBlockingQueue<>(100);
         syncInfo = new IMediaPlayer.SyncInfo();
         channels = 2;
+        volume = 1;
     }
 
     public void setHandlers(PlayHandler videoHandler, PlayHandler audioHandler){
@@ -72,6 +74,8 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setAudioCache(audioCache);
         decodeThread.setImageCache(imageCache);
         decodeThread.setAudioCache(audioCache);
+
+        audioPlayThread.setVol(volume);
 
         displayThread.setHandler(videoHandler);
         audioPlayThread.setHandler(audioHandler);
@@ -195,11 +199,13 @@ public class SimplePlayer implements IMediaPlayer{
     }
 
     public void setVolume(float volume){
-        audioPlayThread.setVol(volume);
+        this.volume = volume;
+        if(audioPlayThread != null)
+            audioPlayThread.setVol(volume);
     }
 
     public float getVolume(){
-        return audioPlayThread.getVol();
+        return volume;
     }
 
     @Override
