@@ -64,11 +64,6 @@ public class PixelBuffer {
         return t;
     }
 
-    public void unbindTexture(){
-//        GL11.glBindTexture(GL11.GL_TEXTURE_2D,0);
-        checkError();
-    }
-
     public void readPixels(int x,int y,int width,int height,int format,int type,long pixels){
         GL11.glReadPixels(x, y, width, height, format, type, pixels);
         checkError();

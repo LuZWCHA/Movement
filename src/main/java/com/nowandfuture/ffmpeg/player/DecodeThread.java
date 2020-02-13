@@ -4,7 +4,6 @@ import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
-import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.*;
 
@@ -94,7 +93,7 @@ public class DecodeThread extends Thread {
         } finally {
             try {
                 if(frame != null)
-                    Utils.cloneFrameDeallocate(frame);
+                    SoundUtils.cloneFrameDeallocate(frame);
 
                 if(grabber != null) {
                     grabber.stop();

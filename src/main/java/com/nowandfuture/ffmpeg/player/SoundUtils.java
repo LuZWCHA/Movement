@@ -13,7 +13,7 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 import java.nio.*;
 
-public class Utils {
+public class SoundUtils {
 
     public static void cloneFrameDeallocate(@Nonnull Frame frame){
         if(frame.image != null){
@@ -193,10 +193,16 @@ public class Utils {
                 break;
             case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
                 ILData = (ShortBuffer)buf[0];
-                TLData = shortToByteValue(ILData,vol);
-                ByteBuffer stereo = ByteBuffer.allocate(TLData.capacity() / 2);
-
-                return TLData.array();
+                short[] mono = new short[ILData.capacity()/2];
+                for(int i = 0; i < mono.length;i++){
+//                    if(i >= mono.length - 2)
+//                        mono[i] = 0;
+//                    else
+                        mono[i] = (short) (((int)ILData.get(2 * i) + ILData.get(2 * i + 1))/2);
+                }
+                ByteBuffer mono2 = shortToByteValue(ShortBuffer.wrap(mono),vol);
+//                mono2.order();
+                return mono2.array();
             case avutil.AV_SAMPLE_FMT_FLT://float非平面型
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
@@ -339,7 +345,6 @@ public class Utils {
                 break;
             default:
                 JOptionPane.showMessageDialog(null,"no support audio format","no support audio format",JOptionPane.ERROR_MESSAGE);
-//                System.exit(0);
                 break;
         }
 

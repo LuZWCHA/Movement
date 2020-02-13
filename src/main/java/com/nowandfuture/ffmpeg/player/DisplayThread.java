@@ -1,9 +1,7 @@
 package com.nowandfuture.ffmpeg.player;
 
 import com.nowandfuture.ffmpeg.Frame;
-import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
-import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -55,13 +53,13 @@ public class DisplayThread extends Thread{
                 render(frame);
 
                 if(frame != null)
-                    Utils.cloneFrameDeallocate(frame);
+                    SoundUtils.cloneFrameDeallocate(frame);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }finally {
             if(frame != null)
-                Utils.cloneFrameDeallocate(frame);
+                SoundUtils.cloneFrameDeallocate(frame);
         }
         finished();
     }

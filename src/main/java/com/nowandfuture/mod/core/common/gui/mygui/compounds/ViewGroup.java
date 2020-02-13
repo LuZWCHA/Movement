@@ -152,6 +152,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
         onDraw(mouseX, mouseY, partialTicks);
+
         int tempX, tempY;
         for (ViewGroup view :
                 children) {
@@ -164,6 +165,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
                 GlStateManager.popMatrix();
             }
         }
+
     }
 
     /**
@@ -175,6 +177,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
         onDrawAtRootView(mouseX, mouseY, partialTicks);
+
         for (ViewGroup view :
                 children) {
             if(view.isVisible()) {
@@ -423,7 +426,15 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }
     }
 
-    //--------------------------------------tool-------------------------------------------------------------
+    protected void drawDebugInfo(int x,int y){
+        if(getRoot().isShowDebugInfo()){
+            Gui.drawRect(x,y,x + 1,y - 1,DrawHelper.colorInt(255,255,255,255));
+            drawString(getRoot().getFontRenderer(),"(" + x + "," + y + ")",x,y - getRoot().getFontRenderer().FONT_HEIGHT,
+                    DrawHelper.colorInt(255,255,255,255));
+        }
+    }
+
+    //--------------------------------------tools----------------------------------------------------
 
     public void drawString3D(String s, float x, float y, float z, int r, int g, int b, int a, com.nowandfuture.mod.utils.math.Vector3f vector3f){
         drawString3D(s, x, y, z, r, g, b, a,new Vector3f(0,0,1));

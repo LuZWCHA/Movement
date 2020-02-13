@@ -1,9 +1,8 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
-import com.nowandfuture.ffmpeg.player.Utils;
+import com.nowandfuture.ffmpeg.player.SoundUtils;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
-import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
@@ -23,8 +22,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static org.lwjgl.openal.AL10.*;
-import static org.lwjgl.openal.AL11.AL_STATIC;
-import static org.lwjgl.openal.AL11.AL_STREAMING;
 
 public class SoundManager {
 
@@ -186,7 +183,7 @@ public class SoundManager {
             }
         }
 
-        AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(af), byteBuffer,
+        AL10.alBufferData(intBuffer.get(0), SoundUtils.getOpenALFormat(af), byteBuffer,
                 (int) af.getSampleRate());
 
         if (this.checkALError()) {
@@ -217,7 +214,7 @@ public class SoundManager {
 
         if(intBuffer == null || intBuffer.capacity() < 1 || !AL10.alIsBuffer(intBuffer.get(0))) {
             int i = AL10.alGenBuffers();
-            AL10.alBufferData(1, Utils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
+            AL10.alBufferData(1, SoundUtils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
             if( checkALError() )
                 return false;
 
@@ -225,7 +222,7 @@ public class SoundManager {
             if( checkALError() )
                 return false;
         }else {
-            AL10.alBufferData(intBuffer.get(0), Utils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
+            AL10.alBufferData(intBuffer.get(0), SoundUtils.getOpenALFormat(format), byteBuffer, (int) format.getSampleRate());
             if( checkALError() )
                 return false;
 

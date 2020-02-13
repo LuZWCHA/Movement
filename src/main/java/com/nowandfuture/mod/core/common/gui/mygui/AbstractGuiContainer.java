@@ -288,6 +288,7 @@ public abstract class AbstractGuiContainer extends GuiContainer {
                 guis) {
             if (gui instanceof MyButton) ((MyButton) gui).visible = value;
             else if(gui instanceof MyTextField) ((MyTextField) gui).setVisible(value);
+            else if(gui instanceof MyLabel) ((MyLabel) gui).visible = value;
             else if(gui instanceof ViewGroup) {
                 ((ViewGroup) gui).setVisible(value);
             }

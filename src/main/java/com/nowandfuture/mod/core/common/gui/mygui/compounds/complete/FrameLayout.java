@@ -4,6 +4,9 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.LayoutParameter;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
+import com.nowandfuture.mod.utils.DrawHelper;
+import net.minecraft.client.gui.Gui;
+import org.lwjgl.util.Color;
 
 import javax.annotation.Nonnull;
 
@@ -13,6 +16,10 @@ public class FrameLayout extends AbstractLayout<FrameLayout.FrameLayoutParameter
         super(rootView);
     }
 
+    @Override
+    public void onLayout(int parentWidth, int parentHeight) {
+        //do no thing
+    }
 
     public FrameLayout(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
@@ -20,7 +27,7 @@ public class FrameLayout extends AbstractLayout<FrameLayout.FrameLayoutParameter
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        //do nothing
+        super.onDraw(mouseX, mouseY, partialTicks);
     }
 
     @Override

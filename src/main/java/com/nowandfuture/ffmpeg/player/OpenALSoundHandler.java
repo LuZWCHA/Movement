@@ -64,9 +64,9 @@ public class OpenALSoundHandler implements PlayHandler {
         sampleRate = frame.sampleRate;
         audioChannels = frame.audioChannels;
 
-        byte[] buffer = Utils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
-        byte[] mono = Utils.getMonoAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
-        AudioFormat format = Utils.getAudioFormat(sampleFormat,sampleRate, audioChannels,sampleRate);
+//        byte[] buffer = SoundUtils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
+        byte[] mono = SoundUtils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
+        AudioFormat format = SoundUtils.getAudioFormat(sampleFormat,sampleRate, audioChannels,sampleRate);
 
         processed += soundManager.checkProcessed(name);
         int queue = soundManager.checkQueued(name) + 1;
@@ -77,7 +77,6 @@ public class OpenALSoundHandler implements PlayHandler {
         //discard this frame
         if(queue > 20) {return;}
         soundManager.feedRawData(name,mono,format);
-
 
         lastTime = System.currentTimeMillis();
     }

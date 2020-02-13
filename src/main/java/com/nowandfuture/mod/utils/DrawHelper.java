@@ -17,6 +17,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.Color;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -538,5 +539,9 @@ public class DrawHelper {
         g = (g & 255) << 8;
         b &= 255;
         return a | r | g | b;
+    }
+
+    public static int colorInt(Color color){
+        return colorInt(color.getRed(),color.getGreen(),color.getBlue(),color.getAlpha());
     }
 }

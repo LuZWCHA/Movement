@@ -4,14 +4,8 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.Java2DFrameConverter;
 import com.nowandfuture.ffmpeg.player.OpenGLDisplayHandler;
-import com.nowandfuture.ffmpeg.player.Utils;
 import com.nowandfuture.mod.Movement;
 import net.minecraft.client.renderer.GlStateManager;
-import org.bytedeco.ffmpeg.avutil.AVFrame;
-import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.PointerPointer;
-import org.bytedeco.javacpp.PointerScope;
 
 import java.awt.image.BufferedImage;
 

@@ -1,15 +1,8 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
-import com.nowandfuture.ffmpeg.player.Utils;
-import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
 
-import javax.sound.sampled.AudioFormat;
-import java.nio.ByteBuffer;
-
 import static org.lwjgl.openal.AL10.*;
-import static org.lwjgl.openal.AL11.AL_STREAMING;
-import static org.lwjgl.openal.AL11.alSpeedOfSound;
 
 public class SoundSource {
 

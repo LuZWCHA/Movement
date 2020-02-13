@@ -5,18 +5,16 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacpp.Pointer;
 
-import java.nio.Buffer;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16;
-import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16P;
 
 public class SimplePlayer implements IMediaPlayer{
     private FFmpegFrameGrabber grabber;
+    private int channels;
 
     private BlockingQueue<Frame> imageCache;
     private BlockingQueue<Frame> audioCache;
@@ -35,6 +33,7 @@ public class SimplePlayer implements IMediaPlayer{
         imageCache = new LinkedBlockingQueue<>(100);
         audioCache = new LinkedBlockingQueue<>(100);
         syncInfo = new IMediaPlayer.SyncInfo();
+        channels = 2;
     }
 
     public void setHandlers(PlayHandler videoHandler, PlayHandler audioHandler){
@@ -102,7 +101,7 @@ public class SimplePlayer implements IMediaPlayer{
         grabber.setVideoOption("threads", "0");
         grabber.setAudioOption("threads", "0");
         grabber.setOption("hwaccel", "videotoolbox");
-        grabber.setAudioChannels(1);
+        grabber.setAudioChannels(channels);
         grabber.setSampleFormat(AV_SAMPLE_FMT_S16);
 
         try {
@@ -169,12 +168,12 @@ public class SimplePlayer implements IMediaPlayer{
     private void cleanup(){
         for (Frame frame:
                 imageCache){
-            Utils.cloneFrameDeallocate(frame);
+            SoundUtils.cloneFrameDeallocate(frame);
         }
 
         for (Frame frame:
                 audioCache){
-            Utils.cloneFrameDeallocate(frame);
+            SoundUtils.cloneFrameDeallocate(frame);
         }
 
         imageCache.clear();
@@ -214,6 +213,13 @@ public class SimplePlayer implements IMediaPlayer{
         synchronized (syncInfo) {
             syncInfo.notifyAll();
             syncInfo.sysStartTime = -1;
+        }
+    }
+
+    public void setChannels(int channels){
+        this.channels = channels;
+        if(grabber != null){
+            grabber.setAudioChannels(channels);
         }
     }
 

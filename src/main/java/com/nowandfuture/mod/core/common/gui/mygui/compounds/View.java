@@ -44,7 +44,7 @@ public abstract class View extends ViewGroup {
     }
 
     /**
-     * this method would execute at the first time of the view been load (at parent view's onLoad)
+     * this method would execute at the first time of the view been load (at parent view's onLoad())
      * and it only execute one time on a view's life
      */
     @Override
@@ -82,7 +82,7 @@ public abstract class View extends ViewGroup {
 
 
     /**
-     * @param scissor whether it will be scissor by parent
+     * @param scissor whether it will be scissored by parent
      *                if it set true,this view may scissor by its parents/parent(if this view is out of this parents)
      *                else not be scissored
      */

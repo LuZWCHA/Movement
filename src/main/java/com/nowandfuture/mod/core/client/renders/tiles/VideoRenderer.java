@@ -37,20 +37,17 @@ import java.util.function.Predicate;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGR;
 
-// TODO: 2020/2/1  visual focus algorithm and cull of unseeing panel
-//PBO is as slow as subteximage2d...
+//PBO is supported
 public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePlayer> {
 
     //improve performance ,value 0~100 is valid
     public static int DRAW_FRAME_NUMBER = 0;
     public static double MAX_DISTANCE = 12;
     private static Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
-    private Random r = new Random();
-    //unused
     private static Map<BlockPos,PBOFrameTexture> frameCache2 = new HashMap<>();
+    private Random r = new Random();
 
     private static FrameTexture loadingTexture;
-    //unused
     private static final ResourceLocation LOADING_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/loading.png");
 
     private static int GC_COUNTER;
@@ -201,6 +198,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
     }
 
+    @Deprecated
     private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
 
         final float videoWidth = image.getWidth();

@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
+import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
 import net.minecraft.client.Minecraft;
@@ -122,8 +123,8 @@ public class RootView implements MyGui{
         topView.layout(this.getWidth(),this.getHeight());
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(getX(),getY(),0);
-        topView.draw(mouseX - getX(), mouseY - getY(), partialTicks);
+        GlStateManager.translate(topView.getX(),topView.getY(),0);
+        topView.draw(mouseX - topView.getX(), mouseY - topView.getY(), partialTicks);
         GlStateManager.popMatrix();
 
     }
@@ -208,5 +209,9 @@ public class RootView implements MyGui{
     public void setVisible(boolean v){
         if(topView != null)
             topView.setVisible(v);
+    }
+
+    public boolean isShowDebugInfo(){
+        return context.gameSettings.showDebugInfo;
     }
 }

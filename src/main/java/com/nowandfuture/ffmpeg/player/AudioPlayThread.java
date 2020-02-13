@@ -2,10 +2,8 @@ package com.nowandfuture.ffmpeg.player;
 
 import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.Frame;
-import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacpp.PointerScope;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -99,7 +97,7 @@ public class AudioPlayThread extends Thread {
                 interrupt();
             }finally {
                 if(frame != null)
-                    Utils.cloneFrameDeallocate(frame);
+                    SoundUtils.cloneFrameDeallocate(frame);
             }
         }
 

@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.renderer.GlStateManager;
 
 import javax.annotation.Nonnull;
 
@@ -44,16 +45,26 @@ public class Button extends View {
         button.setHeight(height);
     }
 
+    //fixed minecraft button absolute location drawable
     @Override
     public void setX(int x) {
         super.setX(x);
-        button.setX(x);
+        button.setX(0);
     }
 
+    //fixed minecraft button absolute location drawable
     @Override
     public void setY(int y) {
         super.setY(y);
-        button.setY(y);
+        button.setY(0);
+    }
+
+    public void setEnable(boolean enable){
+        button.enabled = enable;
+    }
+
+    public boolean isEnabled(){
+        return button.enabled;
     }
 
     @Override

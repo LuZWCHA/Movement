@@ -1,7 +1,7 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
 
-import com.nowandfuture.ffmpeg.player.Utils;
+import com.nowandfuture.ffmpeg.player.SoundUtils;
 import org.lwjgl.openal.AL10;
 
 import javax.sound.sampled.AudioFormat;
@@ -20,7 +20,7 @@ public class SoundBuffer {
         this.bufferId = AL10.alGenBuffers();
         ByteBuffer byteBuffer = (ByteBuffer)buffer;
         this.audioFormat = audioFormat;
-        int format = Utils.getOpenALFormat(audioFormat);
+        int format = SoundUtils.getOpenALFormat(audioFormat);
         alBufferData(bufferId, format,byteBuffer, (int) audioFormat.getSampleRate());
         isStream = false;
     }
@@ -29,7 +29,7 @@ public class SoundBuffer {
         this.bufferId = AL10.alGenBuffers();
         this.audioFormat = audioFormat;
 
-        int format = Utils.getOpenALFormat(audioFormat);
+        int format = SoundUtils.getOpenALFormat(audioFormat);
         isStream = true;
         //alBufferData(bufferId, format,byteBuffer, (int) audioFormat.getSampleRate());
     }

@@ -6,15 +6,13 @@ import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.*;
 import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
 import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.transformers.LinearTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
@@ -88,7 +86,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private SliderView xSliderView,ySliderView,zSliderView;
     private NumberBox xOffset,yOffset,zOffset;
 
-    private MyButton resetBtn,recoverBtn;
+    private Button resetBtn,recoverBtn;
 
 
     private int currentType = -1;
@@ -111,9 +109,11 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         xOffset = new NumberBox(getRootView(),rightLayout);
         yOffset = new NumberBox(getRootView(),rightLayout);
         zOffset = new NumberBox(getRootView(),rightLayout);
+        resetBtn = new Button(getRootView(),rightLayout);
+        recoverBtn = new Button(getRootView(),rightLayout);
 
         rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView,
-                xOffset,yOffset,zOffset);
+                xOffset,yOffset,zOffset,resetBtn,recoverBtn);
 
         tileMovementModule.setSlotChanged(new ChangeListener.ChangeEvent() {
             @Override
@@ -149,8 +149,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         previewView.setWidth(100);
         previewView.setHeight(80);
 
-        resetBtn = createMyButton(270,90,50,16,R.name(R.id.text_module_btn_preview_reset_id));
-        recoverBtn = createMyButton(324,90,50,16,R.name(R.id.text_module_btn_preview_recover_id));
+        resetBtn.setX(0);
+        resetBtn.setY(90);
+        resetBtn.setWidth(50);
+        resetBtn.setHeight(16);
+        resetBtn.setText(R.name(R.id.text_module_btn_preview_reset_id));
+
+        recoverBtn.setX(54);
+        recoverBtn.setY(90);
+        recoverBtn.setWidth(50);
+        recoverBtn.setHeight(16);
+        recoverBtn.setText(R.name(R.id.text_module_btn_preview_recover_id));
 
         xSliderView.setRange(180,-180,0);
         xSliderView.setX(0);
@@ -195,15 +204,15 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         });
 
         xOffset.setX(0);
-        xOffset.setY(160);
+        xOffset.setY(140);
         xOffset.setWidth(100);
         xOffset.setHeight(10);
         yOffset.setX(0);
-        yOffset.setY(180);
+        yOffset.setY(160);
         yOffset.setWidth(100);
         yOffset.setHeight(10);
         zOffset.setX(0);
-        zOffset.setY(200);
+        zOffset.setY(180);
         zOffset.setWidth(100);
         zOffset.setHeight(10);
 
@@ -331,16 +340,16 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             }
         });
 
-        bind(resetBtn, new ActionClick() {
+        resetBtn.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 previewView.resetView();
             }
         });
 
-        bind(recoverBtn, new ActionClick() {
+        recoverBtn.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 previewView.reload();
                 previewView.saveToFrame();
                 xSliderView.setProgress(0);
@@ -400,8 +409,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 applyBtn,
                 exportBtn,
                 importBtn,
-                recoverBtn,
-                resetBtn,
                 keyTitle,
                 totalTimeLabel,
                 totalTimeBox,
