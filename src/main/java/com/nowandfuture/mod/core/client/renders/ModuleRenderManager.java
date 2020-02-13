@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public enum ModuleRenderManager {
@@ -31,6 +32,7 @@ public enum ModuleRenderManager {
     private BlockingQueue<RegionRenderCacheBuilder> queueFreeRenderBuilders;
 
     private Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
+    private int cpuCores;
     private boolean isInit = false;
 
     ModuleRenderManager(){
@@ -50,15 +52,14 @@ public enum ModuleRenderManager {
 //        }
 
         int i = Math.max(1, (int)((double)Runtime.getRuntime().maxMemory() * 0.15D) / 10485760);
-        int j = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors(), 1, i / 2));
+        cpuCores = Math.max(1, MathHelper.clamp(Runtime.getRuntime().availableProcessors(), 1, i / 2));
         clippingHelper = new ClippingHelperExt();
         priorityBlockingQueue = new PriorityBlockingQueue<>();
-        executor = new ThreadPoolExecutor(1,j,ALIVE_TIME,TimeUnit.MILLISECONDS,priorityBlockingQueue);
-
+        initExecutor(cpuCores);
         if(chunkRenderDispatcher == null) {
             queueFreeRenderBuilders = Queues.newArrayBlockingQueue(i);
 
-            int countRenderBuilders = MathHelper.clamp(j * 10, 1, i);
+            int countRenderBuilders = MathHelper.clamp(cpuCores * 10, 1, i);
             for (int l = 0; l < countRenderBuilders; ++l) {
                 this.queueFreeRenderBuilders.add(new RegionRenderCacheBuilder());
             }
@@ -66,6 +67,10 @@ public enum ModuleRenderManager {
 
         cubesRendererMap = new HashMap<>();
         isInit = true;
+    }
+
+    private void initExecutor(int maxSize){
+        executor = new ThreadPoolExecutor(1,maxSize,ALIVE_TIME,TimeUnit.MILLISECONDS,priorityBlockingQueue);
     }
 
     public void addCubesRenderer(@Nonnull AbstractPrefab abstractPrefab){
@@ -85,7 +90,7 @@ public enum ModuleRenderManager {
         return cubesRendererMap.get(prefab);
     }
 
-    public void stopAll(){
+    public void invalid(){
         executor.shutdownNow();
         priorityBlockingQueue.clear();
 
@@ -114,6 +119,7 @@ public enum ModuleRenderManager {
     }
 
     public void execute(Runnable runnable){
+
         executor.execute(runnable);
     }
 

@@ -30,7 +30,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
 
     private Vector3f newV;
     private World world;
-    private static float DELTA = 1E-4f;
+    private static float DELTA = 1E-8f;
 
     public AxisAlignedBBWrap(Entity e, float impactTime,  @Nullable Vector3f v) {
         super(0,0,0,0,0,0);
@@ -121,6 +121,11 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
     }
 
     private void setV(Vector3f v){
+        if(impactTime < 0){
+            newV = new Vector3f(v.x ,v.y,v.z);
+            return;
+        }
+
         if(v.lengthSquared() == 0) {
             newV = new Vector3f(0,0,0);
             return;
@@ -133,7 +138,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             float x = v1.x,y = v1.y,z = v1.z;
             AxisAlignedBB other = org.offset(0,0,0);
 
-            List<AxisAlignedBB> list = world.getCollisionBoxes(impactEntity, org.expand(x, y, z));
+            List<AxisAlignedBB> list = world.getCollisionBoxes(impactEntity, org.expand(x, y, z).grow(0.005));
 
             for (AxisAlignedBB a :
                     list) {
@@ -181,7 +186,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             }else if(impactCount == 1) {
                 Vector3f impactAxis = impactAxises.get(0);
                 if(impactAxis.lengthSquared() != 0) {
-                    subVOnAxis(v1, impactAxis.normalise(), 1);
+                    subVOnAxis(v1, impactAxis, 1);
                 }
             } else if(impactCount == 2){
                 Vector3f axis2 = Vector3f.cross(impactAxises.get(0),
@@ -198,80 +203,83 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 v1 = new Vector3f(0,0,0);
             }
 
-            newV = new Vector3f(checkSmall(v1.x),checkSmall(v1.y),checkSmall(v1.z));
+            newV = new Vector3f(v1.x,v1.y,v1.z);
 
             impactEntity.motionX = newV.x;
             impactEntity.motionY = newV.y;
             impactEntity.motionZ = newV.z;
+            impactEntity.setEntityBoundingBox(org);
 
-            AxisAlignedBB axisAlignedBB =org.expand(newV.x,newV.y,newV.z);
+            AxisAlignedBB axisAlignedBB = org.expand(newV.x,newV.y,newV.z);
             List<AxisAlignedBB> testList = world.getCollisionBoxes(impactEntity,
                    axisAlignedBB);
             x = newV.x;y = newV.y;z = newV.z;
             if(!testList.isEmpty()){
-//                if (y != 0.0D)
-//                {
-//                    int k = 0;
-//
-//                    for (int l = testList.size(); k < l; ++k)
-//                    {
-//                        AxisAlignedBB axisAlignedBB1 = testList.get(k);
-//                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
-//                            float y1 = newV.y * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
-//                            if((Math.abs(y1) < Math.abs(y))) y = y1;
-//                        }else {
-//                            y = (float) axisAlignedBB1.calculateYOffset(org, y);
-//                        }
-//                    }
-//
-//                    other = org.offset(0,y,0);
-//                }
-//
-//                if (x != 0.0D)
-//                {
-//                    int j5 = 0;
-//
-//                    for (int l5 = testList.size(); j5 < l5; ++j5)
-//                    {
-//                        AxisAlignedBB axisAlignedBB1 = testList.get(j5);
-//                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
-//                            float x1 = newV.x * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
-//                            if((Math.abs(x1) < Math.abs(x))) x = x1;
-//                        }else {
-//                            x = (float) axisAlignedBB1.calculateXOffset(other, x);
-//                        }
-//                    }
-//
-//                    if (x != 0.0D)
-//                    {
-//                        other = other.offset(x,0,0);
-//                    }
-//                }
-//
-//                if (z != 0.0D)
-//                {
-//                    int k5 = 0;
-//
-//                    for (int i6 = testList.size(); k5 < i6; ++k5)
-//                    {
-//                        AxisAlignedBB axisAlignedBB1 = testList.get(k5);
-//                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
-//                            float z1 = newV.z * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
-//                            if(Math.abs(z1) < Math.abs(z)) z = z1;
-//                        }else {
-//                            z = (float) axisAlignedBB1.calculateZOffset(other, z);
-//                        }
-//                    }
-//
-//                    if (z != 0.0D)
-//                    {
-//                        other = other.offset(0,0,z);
-//                    }
-//                }
+                if (y != 0.0D)
+                {
+                    int k = 0;
 
-//                newV.set(x,y,z);
-                newV.set(0,0,0);
+                    for (int l = testList.size(); k < l; ++k)
+                    {
+                        AxisAlignedBB axisAlignedBB1 = testList.get(k);
+                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
+                            float y1 = newV.y * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
+                            if((Math.abs(y1) < Math.abs(y))) y = y1;
+                        }else {
+                            y = (float) axisAlignedBB1.calculateYOffset(org, y);
+                        }
+                    }
+
+                    other = org.offset(0,y,0);
+                }
+
+                if (x != 0.0D)
+                {
+                    int j5 = 0;
+
+                    for (int l5 = testList.size(); j5 < l5; ++j5)
+                    {
+                        AxisAlignedBB axisAlignedBB1 = testList.get(j5);
+                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
+                            float x1 = newV.x * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
+                            if((Math.abs(x1) < Math.abs(x))) x = x1;
+                        }else {
+                            x = (float) axisAlignedBB1.calculateXOffset(other, x);
+                        }
+                    }
+
+                    if (x != 0.0D)
+                    {
+                        other = other.offset(x,0,0);
+                    }
+                }
+
+                if (z != 0.0D)
+                {
+                    int k5 = 0;
+
+                    for (int i6 = testList.size(); k5 < i6; ++k5)
+                    {
+                        AxisAlignedBB axisAlignedBB1 = testList.get(k5);
+                        if(axisAlignedBB1 instanceof AxisAlignedBBWrap) {
+                            float z1 = newV.z * ((AxisAlignedBBWrap) axisAlignedBB1).getImpactTime();
+                            if(Math.abs(z1) < Math.abs(z)) z = z1;
+                        }else {
+                            z = (float) axisAlignedBB1.calculateZOffset(other, z);
+                        }
+                    }
+
+                    if (z != 0.0D)
+                    {
+                        other = other.offset(0,0,z);
+                    }
+                }
+
+                newV.set(x,y,z);
             }
+            impactEntity.motionX = newV.x;
+            impactEntity.motionY = newV.y;
+            impactEntity.motionZ = newV.z;
 
             if(setX)
                 impactEntity.setEntityBoundingBox(impactEntity.getEntityBoundingBox().offset(newV.x,0,0));

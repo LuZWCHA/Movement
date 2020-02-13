@@ -434,13 +434,13 @@ public class OBBox {
                     float[] res2 = getInterval(staticOBB, axis0);
                     if (res1[1] <= res2[0]) {
                         float a = (res2[0] - res1[1]) / length;
-                        if (a >= maxTime && a <= 1) {
+                        if (a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis0;
                         }
                     } else if (res2[1] <= res1[0]) {
                         float a = (-res2[1] + res1[0]) / length;
-                        if (a >= maxTime && a <= 1) {
+                        if (a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis0;
                         }
@@ -455,13 +455,13 @@ public class OBBox {
                     float[] res4 = getInterval(staticOBB, axis1);
                     if (res3[1] <= res4[0]) {
                         float a = (res4[0] - res3[1]) / length;
-                        if (a >= maxTime && a <= 1) {
+                        if (a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis1;
                         }
                     } else if (res3[0] >= res4[1]) {
                         float a = (res3[0] - res4[1]) / length;
-                        if (a >= maxTime && a <= 1) {
+                        if (a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis1;
                         }
@@ -482,13 +482,13 @@ public class OBBox {
                     float[] res2 = getInterval(staticOBB, axis2);
                     if (res1[1] <= res2[0]){
                         float a = (res2[0] - res1[1])/length;
-                        if(a >= maxTime && a <= 1) {
+                        if(a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis2;
                         }
                     }else if(res2[1] <= res1[0]){
                         float a = (-res2[1] + res1[0])/length;
-                        if(a >= maxTime && a <= 1) {
+                        if(a > maxTime && a <= 1) {
                             maxTime = a;
                             axis = axis2;
                         }

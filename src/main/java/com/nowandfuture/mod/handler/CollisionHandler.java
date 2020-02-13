@@ -50,15 +50,10 @@ public class CollisionHandler {
                 try {
 
                     if(obBox.intersect(abb)){
-
                         float impactTime = 0;
                         Vector3f v;
                         if(entity != null) {
                             AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
-
-                            if(obBox.intersect(orgAABB)){
-                                continue;
-                            }
 
                             v = new Vector3f(
                                     ((float) entity.motionX),

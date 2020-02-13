@@ -69,7 +69,7 @@ public class RenderHandler {
             TransformedBlockRenderMap.INSTANCE.clear();
             renderModules.clear();
             Utils.mapCache = null;
-            ModuleRenderManager.INSTANCE.stopAll();
+            ModuleRenderManager.INSTANCE.invalid();
 
             SyncTasks.INSTANCE.showdownNow();
             SyncTasks.INSTANCE.init();
