@@ -195,11 +195,12 @@ public class PreviewView extends View {
     }
 
     @Override
-    public void layout(int parentWidth, int parentHeight) {
-        super.layout(parentWidth, parentHeight);
+    public void onLayout(int parentWidth, int parentHeight) {
+        super.onLayout(parentWidth, parentHeight);
         ScaledResolution scaledresolution = new ScaledResolution(getRoot().context);
 
         trackball.tbReshape(getWidth() * scaledresolution.getScaleFactor(),getHeight() * scaledresolution.getScaleFactor());
+
     }
 
     @Override

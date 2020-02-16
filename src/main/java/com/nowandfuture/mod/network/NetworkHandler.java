@@ -42,11 +42,6 @@ public enum NetworkHandler {
         channel.registerMessage(MovementMessage.LongDataMessage.class,MovementMessage.LongDataMessage.class,baseId++,Side.SERVER);
     }
 
-    @SubscribeEvent
-    public void handlerMessage(IMessage message){
-
-    }
-
     @SideOnly(Side.CLIENT)
     public void sendClientCommandMessage(String message){
         Minecraft.getMinecraft().player.sendMessage(new TextComponentString(message));

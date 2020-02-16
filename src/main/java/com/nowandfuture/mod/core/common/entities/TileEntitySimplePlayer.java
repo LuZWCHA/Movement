@@ -15,6 +15,7 @@ import joptsimple.internal.Strings;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -44,7 +45,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     private String url;
     private int brightness;
     private EnumFacing facing;
-    private short width,height;
+    private int width,height;
     private float volume;
 
     private IMediaPlayer simplePlayer;
@@ -105,20 +106,19 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         url = compound.getString(NBT_URL);
-        width = compound.getShort(NBT_PANEL_SIZE_X);
-        height = compound.getShort(NBT_PANEL_SIZE_Y);
+        width = compound.getInteger(NBT_PANEL_SIZE_X);
+        height = compound.getInteger(NBT_PANEL_SIZE_Y);
 
         if(width < 1) width = 1;
         if(height < 1) height = 1;
         setFacing(EnumFacing.values()[compound.getInteger(NBT_FACE)]);
 
-        if(world.isRemote) {
-            volume = compound.getFloat(NBT_VOLUME);
-            if(compound.hasKey(NBT_BRIGHTNESS))
-                brightness = compound.getInteger(NBT_BRIGHTNESS);
-            else
-                brightness = 15;
-        }
+        volume = compound.getFloat(NBT_VOLUME);
+        if(compound.hasKey(NBT_BRIGHTNESS))
+            brightness = compound.getInteger(NBT_BRIGHTNESS);
+        else
+            brightness = 15;
+
 
     }
 
@@ -127,15 +127,20 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         super.writeToNBT(compound);
         compound.setString(NBT_URL,url == null ? Strings.EMPTY:url);
         compound.setInteger(NBT_FACE,facing.ordinal());
-        compound.setShort(NBT_PANEL_SIZE_X,width);
-        compound.setShort(NBT_PANEL_SIZE_Y,height);
+        compound.setInteger(NBT_PANEL_SIZE_X,width);
+        compound.setInteger(NBT_PANEL_SIZE_Y,height);
 
-        if(world.isRemote) {
-            compound.setFloat(NBT_VOLUME, volume);
-            compound.setInteger(NBT_BRIGHTNESS, brightness);
-        }
+        compound.setFloat(NBT_VOLUME, volume);
+        compound.setInteger(NBT_BRIGHTNESS, brightness);
 
         return compound;
+    }
+
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+        NBTTagCompound compound = pkt.getNbtCompound();
+        writeToNBT(compound);
     }
 
     @Override
@@ -234,14 +239,19 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         }
 
         if(world.isRemote){
-            TileEntitySpecialRenderer renderer =
-                    TileEntityRendererDispatcher.instance.getRenderer(this);
-            if(renderer instanceof  VideoRenderer){
-                ((VideoRenderer) renderer).clear(this);
-            }
+            clearGLSource();
         }
 
         super.invalidate();
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void clearGLSource(){
+        TileEntitySpecialRenderer renderer =
+                TileEntityRendererDispatcher.instance.getRenderer(this);
+        if(renderer instanceof  VideoRenderer){
+            ((VideoRenderer) renderer).clear(this);
+        }
     }
 
     @Override
@@ -333,19 +343,19 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         }
     }
 
-    public short getWidth() {
+    public int getWidth() {
         return width;
     }
 
-    public void setWidth(short width) {
+    public void setWidth(int width) {
         this.width = width;
     }
 
-    public short getHeight() {
+    public int getHeight() {
         return height;
     }
 
-    public void setHeight(short height) {
+    public void setHeight(int height) {
         this.height = height;
     }
 

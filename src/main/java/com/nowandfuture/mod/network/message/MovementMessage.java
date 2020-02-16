@@ -7,6 +7,7 @@ import com.nowandfuture.mod.network.NetworkHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.ByteBufUtil;
 import joptsimple.internal.Strings;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -318,6 +319,8 @@ public abstract class MovementMessage implements IMessage {
     }
 
 
+    //move to StringDataMessage.class
+    @Deprecated
     public static class RenamePrefabMessage extends MovementMessage implements IMessageHandler<RenamePrefabMessage,IMessage>{
         public static final int TAG = 4;
         private String name;
@@ -561,9 +564,22 @@ public abstract class MovementMessage implements IMessage {
                                 break;
                             case GUI_PLAYER_FACING_ROTATE:
                                 if(tileEntity instanceof TileEntitySimplePlayer){
-                                    ((TileEntitySimplePlayer) tileEntity).setFacing(EnumFacing.values()[data]);
+                                    ((TileEntitySimplePlayer) tileEntity).setFacing(EnumFacing.values()[message.data]);
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
                                 }
+                                break;
+                            case GUI_PLAYER_SIZE_X:
+                                if(tileEntity instanceof TileEntitySimplePlayer){
+                                    ((TileEntitySimplePlayer) tileEntity).setWidth(message.data);
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                }
+                                break;
+                            case GUI_PLAYER_SIZE_Y:
+                                if(tileEntity instanceof TileEntitySimplePlayer){
+                                    ((TileEntitySimplePlayer) tileEntity).setHeight(message.data);
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                }
+                                break;
 
                         }
 
@@ -613,8 +629,11 @@ public abstract class MovementMessage implements IMessage {
             super.toBytes(buf);
             buf.writeShort(flag);
             if(data == null) data = "";
-            buf.writeInt(data.length());
-            buf.writeCharSequence(data, StandardCharsets.UTF_8);
+            int writerIndex = buf.writerIndex();
+            // pre write a length to take on place
+            buf.writeInt(0);
+            int length = ByteBufUtil.writeUtf8(buf, data);
+            buf.setInt(writerIndex,length);
         }
 
         public String getData() {
@@ -665,6 +684,7 @@ public abstract class MovementMessage implements IMessage {
                                         }
                                     }
                                 }
+                                break;
                             case GUI_PLAYER_URL:
                                 if (tileEntity instanceof TileEntitySimplePlayer) {
                                     String url = message.data;

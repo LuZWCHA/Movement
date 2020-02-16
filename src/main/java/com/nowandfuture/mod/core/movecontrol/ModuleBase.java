@@ -208,16 +208,7 @@ public class ModuleBase implements IModule,ITickable {
             else
                 prefab.readFromNBT(recNBT);
         }
-//
-//        if(compound.hasKey(NBT_TRANSFORMERS_TAG) && world.isRemote) {
-//            NBTTagCompound transNBT = compound.getCompoundTag(NBT_TRANSFORMERS_TAG);
-//            if(transformerHead == null){
-//                transformerHead = AbstractTransformNode.Builder.newBuilder().
-//                         buildFromNBTTag(transNBT);
-//            }else {
-//                transformerHead.readFromNBT(transNBT);
-//            }
-//        }
+
 
         if(compound.hasKey(NBT_KEYFRAMES_LINE_TAG)){
             NBTTagCompound keysNBT = compound.getCompoundTag(NBT_KEYFRAMES_LINE_TAG);
@@ -240,10 +231,6 @@ public class ModuleBase implements IModule,ITickable {
         if(prefab.isLocalWorldInit())
             compound.setTag(NBT_PREFAB_TAG,
                 prefab.writeToNBT(new NBTTagCompound()));
-
-//        if(world.isRemote && transformerHead != null)
-//            compound.setTag(NBT_TRANSFORMERS_TAG,
-//                transformerHead.writeToNBT(new NBTTagCompound()));
 
         compound.setTag(NBT_KEYFRAMES_LINE_TAG,
                 line.serializeNBT(new NBTTagCompound()));

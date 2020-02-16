@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.client.renders.videorenderer;
 
+import com.nowandfuture.mod.Movement;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.texture.DynamicTexture;
@@ -16,7 +17,6 @@ public class PixelBuffer {
     public PixelBuffer(){
         pboId = GL15.glGenBuffers();
         checkError();
-        System.out.println(pboId);
     }
 
     public void unbindPBO(int target){
@@ -84,7 +84,7 @@ public class PixelBuffer {
     private void checkError(){
         int error = GL11.glGetError();
         if(error != GL11.GL_NO_ERROR){
-            System.out.println("error:" + error);
+            Movement.logger.warn("OpenGL Error:" + error);
         }
     }
 

@@ -160,7 +160,6 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         super.invalidate();
         if(world.isRemote)
             moduleBase.invalid();
-//        if(world.isRemote)
         CollisionHandler.modules.remove(this);
     }
 

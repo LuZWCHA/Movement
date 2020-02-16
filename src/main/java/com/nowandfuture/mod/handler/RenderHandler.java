@@ -5,6 +5,7 @@ import com.nowandfuture.asm.RenderHook;
 import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
+import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.utils.SyncTasks;
@@ -40,12 +41,10 @@ public class RenderHandler {
             IRender iRender = renderModules.poll();
             RenderHook.offer(iRender);
         }
-//        long time = System.currentTimeMillis();
         scores.clear();
         VideoRendererUtil.
                 getScoreOfScreen(Minecraft.getMinecraft(),scores,
                         renderWorldLastEvent.getPartialTicks());
-//        System.out.println("delay:" + (System.currentTimeMillis() - time));
     }
 
 
@@ -78,13 +77,17 @@ public class RenderHandler {
                 public void accept(TileEntity tileEntity) {
                     if(tileEntity instanceof TileEntitySimplePlayer){
                         try {
-                            ((TileEntitySimplePlayer) tileEntity).getSimplePlayer().end();
+                            ((TileEntitySimplePlayer) tileEntity).end();
                         } catch (Exception e) {
                             e.printStackTrace();
+                        }finally {
+
                         }
                     }
                 }
             });
+
+            VideoRenderer.clear();
         }
     }
 

@@ -95,6 +95,7 @@ public class NumberBox extends ViewGroup {
         });
 
         textField.setText(String.valueOf(curValue));
+        textField.setCursorPosition(0);
 //        textField.setTextColor(DrawHelper.colorInt(0,0,0,255));
     }
 
@@ -116,6 +117,8 @@ public class NumberBox extends ViewGroup {
         plusBtn.setX(textFieldWidth + textField.getX() + 2);
         plusBtn.setY(0);
         textField.setText(String.valueOf(curValue));
+        textField.setCursorPositionZero();
+
     }
 
     @Override
@@ -145,6 +148,8 @@ public class NumberBox extends ViewGroup {
     private void valueChanged(){
         System.out.println("curValue = " + curValue);
         textField.setText(String.valueOf(curValue));
+        textField.setCursorPositionZero();
+
         if(valueChangedListener != null){
             valueChangedListener.accept(curValue);
         }
@@ -186,6 +191,10 @@ public class NumberBox extends ViewGroup {
         this.focusChangedListener = focusChangedListener;
     }
 
+    public void setEditable(boolean value){
+        textField.setEnabled(value);
+    }
+
     @Override
     protected boolean onLongClicked(int mouseX, int mouseY, int mouseButton) {
         return true;
@@ -203,7 +212,6 @@ public class NumberBox extends ViewGroup {
 
     @Override
     public boolean onKeyType(char typedChar, int keyCode) {
-        System.out.println("type");
         return textField.keyTyped2(typedChar, keyCode);
     }
 
@@ -226,12 +234,12 @@ public class NumberBox extends ViewGroup {
     @Override
     public void focused() {
         super.focused();
-        System.out.println("focus");
     }
 
     @Override
     public void onUpdate() {
-        textField.update();
+        if(textField.isFocused())
+            textField.update();
     }
 
     public void setValueChangedListener(Consumer<Integer> valueChangedListener) {

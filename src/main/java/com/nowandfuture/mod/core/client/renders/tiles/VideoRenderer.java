@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResource;
@@ -50,6 +51,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     public VideoRenderer(){
     }
 
+
     public static void clear(){
         frameCache.forEach(new BiConsumer<BlockPos, FrameTexture>() {
             @Override
@@ -78,7 +80,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                     blockPosFrameTextureEntry.getValue().deleteGlTexture();
                     return true;
                 }
-                return false;
+                return true;
             }
         });
 
@@ -89,7 +91,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                     blockPosFrameTextureEntry.getValue().deleteGlTexture();
                     return true;
                 }
-                return false;
+                return true;
             }
         });
     }
@@ -172,7 +174,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         FrameTexture texture = frameCache2.get(te.getPos());
         if(texture!=null){
             //need update texture size
-            if(texture.getRealHeight() != videoHeight || texture.getRealWidth() != videoWidth){
+            if(texture.getRealHeight() != videoHeight || texture.getRealWidth() != videoWidth
+            ||texture.getHeight() != (int)(h*scale) || texture.getWidth() != ((int) (w * scale))){
                 texture.deleteGlTexture();
                 frameCache2.remove(te.getPos());
             }
