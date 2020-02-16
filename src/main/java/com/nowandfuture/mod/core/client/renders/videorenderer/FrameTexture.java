@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.client.renders;
+package com.nowandfuture.mod.core.client.renders.videorenderer;
 
 import com.nowandfuture.mod.Movement;
 import net.minecraft.client.renderer.GlStateManager;

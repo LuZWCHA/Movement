@@ -16,6 +16,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
     private OBBox bounding;
     private float impactTime;
     private Vector3f v;
+    private int count =0;
 
     private List<Vector3f> impactAxises;
 
@@ -72,7 +73,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
         if(v == null)
             return calculateXYZOffset(other,offsetX);
         else {
-            checkAABBLimits(other, v);
+            checkAABBLimits();
             setV(v);
             //disable moving by offsetX
             return checkSmall(newV.x);
@@ -85,7 +86,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
         if(v == null)
             return calculateXYZOffset(other,offsetY);
         else{
-            checkAABBLimits(other,v);
+            checkAABBLimits();
             setV(v);
             //disable moving by offsetY
             return checkSmall(newV.y);
@@ -98,7 +99,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
         if(v == null)
             return calculateXYZOffset(other, offsetZ);
         else{
-            checkAABBLimits(other,v);
+            checkAABBLimits();
             setV(v);
             //disable moving by offsetZ
             return checkSmall(newV.z);
@@ -112,7 +113,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
         return value;
     }
 
-    private void checkAABBLimits(AxisAlignedBB other,Vector3f v){
+    private void checkAABBLimits(){
         if(checkZeros) return;
         if(this.v.x == 0) setX = true;
         if(this.v.y == 0) setY = true;
@@ -121,7 +122,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
     }
 
     private void setV(Vector3f v){
-        if(impactTime < 0){
+        if(impactTime < 0 || impactTime > 1){
             newV = new Vector3f(v.x ,v.y,v.z);
             return;
         }
@@ -187,6 +188,8 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 Vector3f impactAxis = impactAxises.get(0);
                 if(impactAxis.lengthSquared() != 0) {
                     subVOnAxis(v1, impactAxis, 1);
+                    if(v1.y==0)
+                        v1.y += -0.078f;
                 }
             } else if(impactCount == 2){
                 Vector3f axis2 = Vector3f.cross(impactAxises.get(0),
@@ -195,19 +198,19 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                     axis2.normalise();
                     float f = Vector3f.dot(v, axis2);
                     v1 = new Vector3f(axis2.x * f, axis2.y * f, axis2.z * f);
-
-                } else {
-                    v1 = new Vector3f(0, 0, 0);
+                }else{
+                    v1 = new Vector3f(0,0,0);
                 }
             }else{
                 v1 = new Vector3f(0,0,0);
             }
 
             newV = new Vector3f(v1.x,v1.y,v1.z);
+            System.out.println(newV.toString());
+            if(v1.y > 0 && v.y <= 0){
+                impactEntity.onGround = true;
+            }
 
-            impactEntity.motionX = newV.x;
-            impactEntity.motionY = newV.y;
-            impactEntity.motionZ = newV.z;
             impactEntity.setEntityBoundingBox(org);
 
             AxisAlignedBB axisAlignedBB = org.expand(newV.x,newV.y,newV.z);
@@ -277,9 +280,8 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
 
                 newV.set(x,y,z);
             }
-            impactEntity.motionX = newV.x;
-            impactEntity.motionY = newV.y;
-            impactEntity.motionZ = newV.z;
+
+            System.out.println(newV.toString());
 
             if(setX)
                 impactEntity.setEntityBoundingBox(impactEntity.getEntityBoundingBox().offset(newV.x,0,0));

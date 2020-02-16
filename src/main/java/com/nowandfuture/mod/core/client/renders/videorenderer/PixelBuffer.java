@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.client.renders;
+package com.nowandfuture.mod.core.client.renders.videorenderer;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;

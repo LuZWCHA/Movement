@@ -73,13 +73,17 @@ public class OBBox {
             }
         }
 
-        public void getPlane(float[] plane){
+
+        /**
+         * @param output the out put of the Face's geometry parameters,the form:ax+by+cz+d=0
+         */
+        public void getPlane(float[] output){
             final float a = (v2.y - v1.y) * (v3.z - v1.z) - (v2.z -v1.z) * (v3.y - v1.y);
             final float b = (v2.z - v1.z) * (v3.x - v1.x) - (v2.x - v1.x) * (v3.z - v1.z);
             final float c = (v2.x - v1.x) * (v3.y - v1.y) - (v2.y - v1.y) * (v3.x - v1.x);
             final float d = - (a * v1.x + b * v1.y + c * v1.z);
 
-            plane = new float[]{a,b,c,d};
+            output = new float[]{a,b,c,d};
         }
 
         //not finished
@@ -125,6 +129,7 @@ public class OBBox {
         }
     }
 
+    //unused
     @Deprecated
     public enum ROOM{
         INSIDE(0x3f),
@@ -393,7 +398,7 @@ public class OBBox {
     }
 
     public float collisionDetermination(OBBox other, Vector3f v, Vector3f a){
-        return Collision.sweepTest(other,this,v,a);
+        return Collision.satTest(other,this,v,a);
     }
 
     public boolean intersect(OBBox other){
@@ -420,8 +425,7 @@ public class OBBox {
 
     public static class Collision{
 
-        //SAT collision test
-        public static float sweepTest(OBBox moveOBB,OBBox staticOBB,Vector3f v,Vector3f ar){
+        public static float satTest(OBBox moveOBB, OBBox staticOBB, Vector3f v, Vector3f ar){
             float maxTime = Float.MIN_VALUE;
             Vector3f axis = null;
             for (int i = 0; i <3; i++)
@@ -578,5 +582,7 @@ public class OBBox {
             }
         }
     }
+
+
 
 }

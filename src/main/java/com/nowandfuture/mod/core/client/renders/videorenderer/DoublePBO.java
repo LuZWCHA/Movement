@@ -1,5 +1,6 @@
-package com.nowandfuture.mod.core.client.renders;
+package com.nowandfuture.mod.core.client.renders.videorenderer;
 
+import com.nowandfuture.mod.core.client.renders.videorenderer.PixelBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 

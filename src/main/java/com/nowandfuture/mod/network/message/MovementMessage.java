@@ -187,7 +187,7 @@ public abstract class MovementMessage implements IMessage {
         public static final short GUI_START_FLAG = 0x0002;
         public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x0003;
         public static final short GUI_ENABLE_COLLISION_FLAG = 0x0004;
-//        public static final short GUI_PLAYER_FACING_ROTATE = 0x0005;
+        public static final short GUI_VIDEO_PLAYER_STATE_FLAG = 0x0005;
 
         private short flag;
 
@@ -297,6 +297,13 @@ public abstract class MovementMessage implements IMessage {
                                     }
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,
                                             ((TileEntityShowModule) tileEntity).getCollisionEnablePacket()
+                                    );
+                                }
+                                break;
+                            case GUI_VIDEO_PLAYER_STATE_FLAG:
+                                if(tileEntity instanceof TileEntitySimplePlayer){
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                            ((TileEntitySimplePlayer) tileEntity).getUpdatePacket()
                                     );
                                 }
                                 break;

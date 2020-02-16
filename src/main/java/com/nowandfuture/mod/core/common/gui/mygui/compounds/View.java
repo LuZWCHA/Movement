@@ -19,12 +19,17 @@ public abstract class View extends ViewGroup {
     }
 
     @Override
-    protected void onChildrenLayout() {
+    public final void layout(int parentWidth, int parentHeight) {
+        super.layout(parentWidth, parentHeight);
+    }
+
+    @Override
+    protected final void onChildrenLayout() {
         //do nothing
     }
 
     @Override
-    public final void onLayout(int parentWidth, int parentHeight) {
+    public void onLayout(int parentWidth, int parentHeight) {
 
     }
 

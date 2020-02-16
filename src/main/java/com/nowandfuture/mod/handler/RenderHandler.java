@@ -5,7 +5,7 @@ import com.nowandfuture.asm.RenderHook;
 import com.nowandfuture.asm.Utils;
 import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
-import com.nowandfuture.mod.core.client.renders.VideoRendererUtil;
+import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.utils.SyncTasks;
 import net.minecraft.client.Minecraft;

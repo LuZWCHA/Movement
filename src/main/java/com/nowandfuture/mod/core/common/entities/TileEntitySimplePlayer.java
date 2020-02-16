@@ -3,12 +3,10 @@ package com.nowandfuture.mod.core.common.entities;
 import com.google.common.collect.Lists;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
-import com.nowandfuture.ffmpeg.player.JavaSoundHandler;
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.MinecraftJavaSoundHandler;
-import com.nowandfuture.mod.core.client.renders.MinecraftOpenALSoundHandler;
-import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
+import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenALSoundHandler;
+import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenGLDisplayHandler;
 import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.common.MediaPlayerServer;
 import com.nowandfuture.mod.network.NetworkHandler;
@@ -47,6 +45,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     private int brightness;
     private EnumFacing facing;
     private short width,height;
+    private float volume;
 
     private IMediaPlayer simplePlayer;
 
@@ -56,6 +55,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         width = 4;
         height = 4;
         facing = EnumFacing.NORTH;
+        volume = 0;
         brightness = 15;
         sync = false;
     }
@@ -105,22 +105,36 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         url = compound.getString(NBT_URL);
-        brightness = compound.getInteger(NBT_BRIGHTNESS);
         width = compound.getShort(NBT_PANEL_SIZE_X);
         height = compound.getShort(NBT_PANEL_SIZE_Y);
+
         if(width < 1) width = 1;
         if(height < 1) height = 1;
         setFacing(EnumFacing.values()[compound.getInteger(NBT_FACE)]);
+
+        if(world.isRemote) {
+            volume = compound.getFloat(NBT_VOLUME);
+            if(compound.hasKey(NBT_BRIGHTNESS))
+                brightness = compound.getInteger(NBT_BRIGHTNESS);
+            else
+                brightness = 15;
+        }
+
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
         compound.setString(NBT_URL,url == null ? Strings.EMPTY:url);
-        compound.setInteger(NBT_BRIGHTNESS,brightness);
         compound.setInteger(NBT_FACE,facing.ordinal());
         compound.setShort(NBT_PANEL_SIZE_X,width);
         compound.setShort(NBT_PANEL_SIZE_Y,height);
+
+        if(world.isRemote) {
+            compound.setFloat(NBT_VOLUME, volume);
+            compound.setInteger(NBT_BRIGHTNESS, brightness);
+        }
+
         return compound;
     }
 
@@ -285,12 +299,13 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
 
     @SideOnly(Side.CLIENT)
     public void setVolume(float volume){
+        this.volume = volume;
         ((SimplePlayer)simplePlayer).setVolume(volume);
     }
 
     @SideOnly(Side.CLIENT)
     public float getVolume(){
-        return ((SimplePlayer)simplePlayer).getVolume();
+        return this.volume;
     }
 
     @SideOnly(Side.CLIENT)

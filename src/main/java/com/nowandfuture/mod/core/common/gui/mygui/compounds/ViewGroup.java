@@ -3,6 +3,7 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.ISizeChanged;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -12,11 +13,10 @@ import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class ViewGroup extends Gui implements MyGui {
+public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     private int width;
     private int height;
@@ -114,12 +114,20 @@ public abstract class ViewGroup extends Gui implements MyGui {
 
     @Override
     public void setWidth(int width) {
-        this.width = width;
+        if(width != this.width) {
+            int temp = this.width;
+            this.width = width;
+            onWidthChanged(temp,width);
+        }
     }
 
     @Override
     public void setHeight(int height) {
-        this.height = height;
+        if(height != this.height) {
+            int temp = this.height;
+            this.height = height;
+            onHeightChanged(temp,height);
+        }
     }
 
     public void layout(int parentWidth,int parentHeight){
@@ -141,6 +149,22 @@ public abstract class ViewGroup extends Gui implements MyGui {
                 children) {
             view.layout(this.width,this.height);
         }
+    }
+
+    @Override
+    public void onWidthChanged(int old, int cur) {
+        if(getParent() != null)
+            onLayout(getParent().getWidth(),getParent().getHeight());
+        else
+            onLayout(-1,-1);
+    }
+
+    @Override
+    public void onHeightChanged(int old, int cur) {
+        if(getParent() != null)
+            onLayout(getParent().getWidth(),getParent().getHeight());
+        else
+            onLayout(-1,-1);
     }
 
     /**
@@ -176,7 +200,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
      */
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
-        onDrawAtRootView(mouseX, mouseY, partialTicks);
+        onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
 
         for (ViewGroup view :
                 children) {
@@ -200,7 +224,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
      * @param partialTicks
      * draw at root-view
      */
-    protected void onDrawAtRootView(int mouseX, int mouseY, float partialTicks){
+    protected void onDrawAtScreenCoordinate(int mouseX, int mouseY, float partialTicks){
 
     }
 
@@ -229,7 +253,7 @@ public abstract class ViewGroup extends Gui implements MyGui {
         }else{
             onReleased(mouseX, mouseY, state);
             if(RootView.isInside(this,mouseX,mouseY)){
-                if(Minecraft.getSystemTime() - lastPressTime < root.LONG_CLICK)
+                if(Minecraft.getSystemTime() - lastPressTime < root.longClickThreshold)
                     mouseClicked(mouseX,mouseY,state);
                 else{
                     if(actionClick != null) actionClick.longClick(this,state,Minecraft.getSystemTime() - lastPressTime);
@@ -381,10 +405,10 @@ public abstract class ViewGroup extends Gui implements MyGui {
     /**
      * when GUI close
      */
-    public void clear(){
+    public void destroy(){
         for (ViewGroup view :
                 children) {
-            view.clear();
+            view.destroy();
         }
         children.clear();
     }

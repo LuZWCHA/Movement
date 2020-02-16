@@ -2,14 +2,16 @@ package com.nowandfuture.mod.core.client.renders.tiles;
 
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.*;
+import com.nowandfuture.mod.core.client.renders.videorenderer.FrameTexture;
+import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenGLDisplayHandler;
+import com.nowandfuture.mod.core.client.renders.videorenderer.PBOFrameTexture;
+import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.handler.RenderHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -19,15 +21,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL21;
-import sun.nio.ch.DirectBuffer;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -35,7 +31,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_BGR;
 
 //PBO is supported
 public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePlayer> {
@@ -154,7 +149,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         }
     }
 
-    private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
+    private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame, BufferedImage image){
 
         final float videoWidth = image.getWidth();
         final float videoHeight = image.getHeight();
@@ -242,7 +237,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         }
     }
 
-    private void drawFrame(FrameTexture texture,TileEntitySimplePlayer te,double x,double y,double z){
+    private void drawFrame(FrameTexture texture, TileEntitySimplePlayer te, double x, double y, double z){
 
         Vec3d[] panel = new Vec3d[4];
         panel[0] = new Vec3d(0,0,0);

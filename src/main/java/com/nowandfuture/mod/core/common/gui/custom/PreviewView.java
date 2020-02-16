@@ -208,7 +208,7 @@ public class PreviewView extends View {
     }
 
     @Override
-    protected void onDrawAtRootView(int mouseX, int mouseY, float partialTicks) {
+    protected void onDrawAtScreenCoordinate(int mouseX, int mouseY, float partialTicks) {
         if(checkNotNull()){
             drawModule();
         }
@@ -398,8 +398,8 @@ public class PreviewView extends View {
     }
 
     @Override
-    public void clear() {
+    public void destroy() {
         clearPreview();
-        super.clear();
+        super.destroy();
     }
 }

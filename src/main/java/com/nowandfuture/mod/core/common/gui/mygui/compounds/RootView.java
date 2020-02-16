@@ -1,6 +1,5 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
-import com.nowandfuture.mod.core.client.renders.MinecraftOpenGLDisplayHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
 import net.minecraft.client.Minecraft;
@@ -10,7 +9,7 @@ import net.minecraft.client.renderer.GlStateManager;
 public class RootView implements MyGui{
     public Minecraft context = Minecraft.getMinecraft();
 
-    protected long LONG_CLICK = 1000;//ms
+    protected long longClickThreshold = 1000;//ms
 
     private int x,y,w,h;
 
@@ -203,7 +202,7 @@ public class RootView implements MyGui{
     }
 
     public void clear(){
-        topView.clear();
+        topView.destroy();
     }
 
     public void setVisible(boolean v){

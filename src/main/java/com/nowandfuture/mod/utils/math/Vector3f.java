@@ -28,6 +28,11 @@ public class Vector3f extends Vector implements Serializable {
         this.set(x, y, z);
     }
 
+    public Vector3f(double x, double y, double z) {
+        this();
+        this.set((float) x, (float) y, (float) z);
+    }
+
     public Vector3f(BlockPos vector3f) {
         this();
         this.x = vector3f.getX();

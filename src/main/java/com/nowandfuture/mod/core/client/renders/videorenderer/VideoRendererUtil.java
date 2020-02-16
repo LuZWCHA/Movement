@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.client.renders;
+package com.nowandfuture.mod.core.client.renders.videorenderer;
 
 import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;

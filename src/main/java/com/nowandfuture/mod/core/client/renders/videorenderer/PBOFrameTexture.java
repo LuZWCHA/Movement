@@ -1,9 +1,7 @@
-package com.nowandfuture.mod.core.client.renders;
+package com.nowandfuture.mod.core.client.renders.videorenderer;
 
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
 import sun.nio.ch.DirectBuffer;

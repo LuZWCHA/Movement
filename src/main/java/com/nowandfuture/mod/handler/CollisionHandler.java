@@ -23,7 +23,7 @@ public class CollisionHandler {
     public void handleCollision(GetCollisionBoxesEvent event){
 
         Entity entity = event.getEntity();
-        AxisAlignedBB abb = event.getAabb();
+        AxisAlignedBB expanded = event.getAabb();
         List<AxisAlignedBB> list = event.getCollisionBoxesList();
 
         modules.removeIf(new Predicate<TileEntityModule>() {
@@ -38,10 +38,10 @@ public class CollisionHandler {
 
             if(!module.isEnable() || !module.isEnableCollision()) continue;
 
-            AxisAlignedBB axisAlignedBB = module.getModuleBase().getMinAABB();
-            if(axisAlignedBB != null){
+            AxisAlignedBB moduleAABB = module.getModuleBase().getMinAABB();
+            if(moduleAABB != null){
 
-                OBBox obBox = new OBBox(axisAlignedBB);
+                OBBox obBox = new OBBox(moduleAABB);
                 Matrix4f matrix4f = module.getModuleBase().getTransRes();
                 obBox.mulMatrix(matrix4f);
                 module.setRenderBox(new OBBox(obBox));
@@ -49,21 +49,18 @@ public class CollisionHandler {
                 obBox.translate(module.getModulePos());
                 try {
 
-                    if(obBox.intersect(abb)){
+                    if(obBox.intersect(expanded)){
                         float impactTime = 0;
                         Vector3f v;
                         if(entity != null) {
                             AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
 
-                            v = new Vector3f(
-                                    ((float) entity.motionX),
-                                    ((float) entity.motionY),
-                                    ((float) entity.motionZ)
-                            );
+                            v = calculateExpandValue(orgAABB,expanded);
 
                             Vector3f axis = new Vector3f();
 
                             float time = obBox.collisionDetermination(orgAABB, v,axis);
+//                            System.out.println(time);
                             if(time >= 0) {
                                 module.setImpactAxis(axis);
                                 AxisAlignedBBWrap wrap = null;
@@ -96,5 +93,16 @@ public class CollisionHandler {
             }
         }
 
+    }
+
+    private Vector3f calculateExpandValue(AxisAlignedBB org,AxisAlignedBB expanded){
+        Vector3f v = new Vector3f();
+        double ex = expanded.minX - org.minX;
+        double ey = expanded.minY - org.minY;
+        double ez = expanded.minZ - org.minZ;
+        v.x = (float) (ex == 0 ? expanded.maxX - org.maxX : ex);
+        v.y = (float) (ey == 0 ? expanded.maxY - org.maxY : ey);
+        v.z = (float) (ez == 0 ? expanded.maxZ - org.maxZ : ez);
+        return v;
     }
 }

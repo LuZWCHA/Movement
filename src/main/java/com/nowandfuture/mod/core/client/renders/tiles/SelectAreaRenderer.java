@@ -1,7 +1,5 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
-import com.nowandfuture.ffmpeg.player.SimplePlayer;
-import com.nowandfuture.mod.core.client.renders.FrameTexture;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.renderer.*;

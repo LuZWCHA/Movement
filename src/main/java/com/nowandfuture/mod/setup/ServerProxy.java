@@ -8,5 +8,6 @@ public class ServerProxy extends DefaultServerProxy {
     @Override
     public void preInit(FMLPreInitializationEvent e) {
         super.preInit(e);
+
     }
 }
