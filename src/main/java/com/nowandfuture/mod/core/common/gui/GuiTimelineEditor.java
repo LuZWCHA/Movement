@@ -13,6 +13,7 @@ import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.core.transformers.LinearTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
@@ -20,7 +21,7 @@ import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -443,8 +444,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     private void exportTimeline(){
-        MovementMessage.VoidMessage voidMessage =
-                new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
+        LMessage.VoidMessage voidMessage =
+                new LMessage.VoidMessage(LMessage.VoidMessage.GUI_EXPORT_TIMELINE_FLAG);
         voidMessage.setPos(tileMovementModule.getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
     }
@@ -462,14 +463,14 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine.setStep(1);
 
         NBTTagCompound compound = timeLine.serializeNBT(new NBTTagCompound());
-        MovementMessage.NBTMessage nbtMessage =
-                new MovementMessage.NBTMessage(MovementMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
+        LMessage.NBTMessage nbtMessage =
+                new LMessage.NBTMessage(LMessage.NBTMessage.GUI_APPLY_TIMELINE_FLAG,compound);
         nbtMessage.setPos(tileMovementModule.getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
     }
 
     private void startOrStop(){
-        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_RESTART_FLAG);
+        LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_RESTART_FLAG);
         voidMessage.setPos(tileMovementModule.getPos());
         if(tileMovementModule.getLine().isEnable()){
             tileMovementModule.getLine().setEnable(false);

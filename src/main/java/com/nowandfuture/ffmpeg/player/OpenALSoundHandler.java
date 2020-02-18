@@ -9,8 +9,6 @@ import org.lwjgl.util.vector.Vector3f;
 import paulscode.sound.*;
 
 import javax.sound.sampled.AudioFormat;
-import java.util.LinkedList;
-import java.util.Queue;
 
 //openal has shufftering when playing audio
 public class OpenALSoundHandler implements PlayHandler {
@@ -23,12 +21,10 @@ public class OpenALSoundHandler implements PlayHandler {
     private IMediaPlayer.SyncInfo syncInfo;
     protected String name;
     protected Vector3f pos;
-    private Queue<byte[]> cache;
-    private int processed = 0;
+    protected int OpenAlQueueMaxSize = 20;
 
     public OpenALSoundHandler(){
         soundManager = new SoundManager();
-        cache = new LinkedList<>();
         name = "audio";
         pos = new Vector3f();
         initSoundManager();
@@ -64,18 +60,16 @@ public class OpenALSoundHandler implements PlayHandler {
         sampleRate = frame.sampleRate;
         audioChannels = frame.audioChannels;
 
-//        byte[] buffer = SoundUtils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
         byte[] mono = SoundUtils.getAudio(frame.samples,simplePlayer.getVolume(),sampleFormat);
         AudioFormat format = SoundUtils.getAudioFormat(sampleFormat,sampleRate, audioChannels,sampleRate);
 
-        processed += soundManager.checkProcessed(name);
-        int queue = soundManager.checkQueued(name) + 1;
+        int queued = soundManager.checkQueued(name) + 1;
 
-        simplePlayer.getSyncInfo().offset = - (long) (queue * mono.length / sampleRate) * 1000;
+        simplePlayer.getSyncInfo().offset = - (long) (queued * mono.length / sampleRate) * 1000;
         soundManager.flushProcessed(name);
 
         //discard this frame
-        if(queue > 20) {return;}
+        if(queued > OpenAlQueueMaxSize) return;
         soundManager.feedRawData(name,mono,format);
 
         lastTime = System.currentTimeMillis();
@@ -89,8 +83,7 @@ public class OpenALSoundHandler implements PlayHandler {
 
     @Override
     public void destroy() {
-        soundManager.stop(name);
-        flush();
+//        flush();
         soundManager.cleanup();
     }
 

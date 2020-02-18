@@ -37,16 +37,10 @@ public class DisplayThread extends Thread{
         try {
             while (!isInterrupted()){
                 synchronized (syncInfo) {
-
                     if (syncInfo.isPause()) {
-                        try {
-                            syncInfo.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        syncInfo.wait();
                     }
                 }
-
 
                 frame = imageCache.poll();
 //          if(syncInfo.isAudioFrameGet)

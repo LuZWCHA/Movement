@@ -206,7 +206,8 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             }
 
             newV = new Vector3f(v1.x,v1.y,v1.z);
-            System.out.println(newV.toString());
+//            System.out.println(newV.toString());
+
             if(v1.y > 0 && v.y <= 0){
                 impactEntity.onGround = true;
             }

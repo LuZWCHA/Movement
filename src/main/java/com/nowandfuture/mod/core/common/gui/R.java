@@ -47,6 +47,10 @@ public interface R {
         public static final String text_module_btn_preview_reset_id = "movement.module.btn.preview.reset";
         public static final String text_module_btn_preview_recover_id = "movement.module.lab.preview.recover";
 
+        //-------------------------------------player gui-----------------------------------------
+        public static final String text_player_btn_play_id = "movement.player.btn.play";
+        public static final String text_player_btn_stop_id = "movement.player.btn.stop";
+        public static final String text_player_btn_screen_rotate_id = "movement.player.btn.rotate";
 
     }
 

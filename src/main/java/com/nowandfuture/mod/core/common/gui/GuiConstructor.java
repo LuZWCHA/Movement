@@ -9,11 +9,10 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.slots.PrefabOnlySlot;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
 import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -153,7 +152,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00000000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
         });
 
@@ -172,7 +171,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00010000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
         });
 
@@ -190,7 +189,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00020000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
 
         });
@@ -213,7 +212,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00040000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
 
         });
@@ -237,7 +236,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00050000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
         });
 
@@ -260,7 +259,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             private void sendData(int data){
                 data |= 0x00060000;
-                sendIntMessageToServer(MovementMessage.IntDataSyncMessage.RESIZE_FLAG,data);
+                sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
         });
 
@@ -315,7 +314,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
     }
 
     private void sendIntMessageToServer(short flag,int data){
-        MovementMessage.IntDataSyncMessage message = new MovementMessage.IntDataSyncMessage(flag,data);
+        LMessage.IntDataSyncMessage message = new LMessage.IntDataSyncMessage(flag,data);
         message.setPos(tileConstructor.getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(message);
     }
@@ -356,7 +355,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         if(!tileConstructor.isEmpty()&&
                 !tileConstructor.getPrefabName().equals(nameTexField.getText()))                 {
             NetworkHandler.INSTANCE.sendMessageToServer(
-                    new MovementMessage.RenamePrefabMessage(
+                    new LMessage.RenamePrefabMessage(
                             tileConstructor.getPos(),
                             nameTexField.getText())
 
@@ -374,7 +373,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
                             .equals(nameTexField.getText())) {
 
                 NetworkHandler.INSTANCE.sendMessageToServer(
-                        new MovementMessage.RenamePrefabMessage(
+                        new LMessage.RenamePrefabMessage(
                                 tileConstructor.getPos(),
                                 nameTexField.getText())
                 );

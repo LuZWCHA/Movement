@@ -1,7 +1,5 @@
 package com.nowandfuture.mod.core.common.gui;
 
-import com.google.common.base.Utf8;
-import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
@@ -9,13 +7,12 @@ import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.*;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
-import org.lwjgl.util.Color;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -25,11 +22,12 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     public static final int GUI_ID = 0x107;
     private TileEntitySimplePlayer player;
 
-    private MyTextField myTextField;
+    private MyTextField urlTextField;
 
     private Button playBtn, stopBtn, rotateBtn;
     private SliderView volumeView;
     private NumberBox widthBox,heightBox;
+    private ComboBox comboBox;
     private FrameLayout btnLayout;
 
     public GuiMediaPlayer(TileEntitySimplePlayer player) {
@@ -43,7 +41,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         volumeView = new SliderView(getRootView(),btnLayout);
         widthBox = new NumberBox(getRootView(),btnLayout);
         heightBox = new NumberBox(getRootView(),btnLayout);
-        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox);
+        comboBox = new ComboBox(getRootView(),btnLayout);
+        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox,comboBox);
 
         xSize = 200;
         ySize = 100;
@@ -51,7 +50,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
 
     @Override
     public void onLoad() {
-        myTextField = createMyTextField(20,20,160,14,"video url");
+        urlTextField = createMyTextField(20,20,160,14,"video url");
 
         btnLayout.setX(20);
         btnLayout.setY(40);
@@ -75,9 +74,9 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         volumeView.setHeight(10);
         volumeView.setRange(1,0,0);
 
-        playBtn.setText("play!");
-        stopBtn.setText("stop!");
-        rotateBtn.setText("rotate");
+        playBtn.setText(R.name(R.id.text_player_btn_play_id));
+        stopBtn.setText(R.name(R.id.text_player_btn_stop_id));
+        rotateBtn.setText(R.name(R.id.text_player_btn_screen_rotate_id));
 
         widthBox.setX(60);
         widthBox.setY(20);
@@ -101,7 +100,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         playBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
-                String url = myTextField.getText();
+                String url = urlTextField.getText();
                 if(!Strings.isNullOrEmpty(url)){
                     SyncTasks.INSTANCE.addTask(new Callable<Boolean>() {
                         @Override
@@ -114,8 +113,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                                 public void run() {
                                     player.setUrl(url);
                                     String sendUrl = new String(url.getBytes(), StandardCharsets.UTF_8);
-                                    MovementMessage.StringDataSyncMessage message =
-                                            new MovementMessage.StringDataSyncMessage(MovementMessage.StringDataSyncMessage.GUI_PLAYER_URL,
+                                    LMessage.StringDataSyncMessage message =
+                                            new LMessage.StringDataSyncMessage(LMessage.StringDataSyncMessage.GUI_PLAYER_URL,
                                                     sendUrl);
                                     message.setPos(player.getPos());
                                     NetworkHandler.INSTANCE.sendMessageToServer(message);
@@ -150,8 +149,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
             @Override
             public void onClicked(View v) {
                 player.setFacing(player.getFacing().rotateY());
-                MovementMessage.IntDataSyncMessage message =
-                        new MovementMessage.IntDataSyncMessage(MovementMessage.IntDataSyncMessage.GUI_PLAYER_FACING_ROTATE,
+                LMessage.IntDataSyncMessage message =
+                        new LMessage.IntDataSyncMessage(LMessage.IntDataSyncMessage.GUI_PLAYER_FACING_ROTATE,
                                 player.getFacing().ordinal());
                 message.setPos(player.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
@@ -172,8 +171,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
             public void accept(Integer integer) {
                 if(player !=null) {
                     player.setWidth(integer.shortValue());
-                    MovementMessage.IntDataSyncMessage intDataSyncMessage =
-                            new MovementMessage.IntDataSyncMessage(MovementMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_X,integer);
+                    LMessage.IntDataSyncMessage intDataSyncMessage =
+                            new LMessage.IntDataSyncMessage(LMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_X,integer);
                     intDataSyncMessage.setPos(player.getPos());
                     NetworkHandler.INSTANCE.sendMessageToServer(intDataSyncMessage);
                 }
@@ -185,8 +184,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
             public void accept(Integer integer) {
                 if(player !=null) {
                     player.setHeight(integer.shortValue());
-                    MovementMessage.IntDataSyncMessage intDataSyncMessage =
-                            new MovementMessage.IntDataSyncMessage(MovementMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_Y,integer);
+                    LMessage.IntDataSyncMessage intDataSyncMessage =
+                            new LMessage.IntDataSyncMessage(LMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_Y,integer);
                     intDataSyncMessage.setPos(player.getPos());
                     NetworkHandler.INSTANCE.sendMessageToServer(intDataSyncMessage);
                 }
@@ -195,10 +194,10 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
 
         addView(btnLayout);
 
-        addGuiCompoundsRelative(myTextField);
+        addGuiCompoundsRelative(urlTextField);
 
-        myTextField.setMaxStringLength(512);
-        myTextField.setText(player.getUrl() == null ? Strings.EMPTY : player.getUrl());
+        urlTextField.setMaxStringLength(512);
+        urlTextField.setText(player.getUrl() == null ? Strings.EMPTY : player.getUrl());
         if(player.getSimplePlayer().isLoading()){
             playBtn.setEnable(false);
         }
@@ -211,6 +210,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     @Override
     public void updateScreen() {
         super.updateScreen();
+        //sync from server
         if(widthBox.getCurValue() != player.getWidth()){
             widthBox.setCurValue(player.getWidth());
         }
@@ -221,15 +221,15 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
 
     @Override
     protected void childFocused(MyGui gui) {
-        if(gui == myTextField){
-            myTextField.setFocused(true);
+        if(gui == urlTextField){
+            urlTextField.setFocused(true);
         }
     }
 
     @Override
     protected void childLoseFocus(MyGui gui) {
-        if(gui == myTextField){
-            myTextField.setFocused(false);
+        if(gui == urlTextField){
+            urlTextField.setFocused(false);
         }
     }
 

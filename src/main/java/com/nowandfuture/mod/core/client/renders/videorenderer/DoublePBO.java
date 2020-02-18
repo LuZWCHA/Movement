@@ -1,22 +1,21 @@
 package com.nowandfuture.mod.core.client.renders.videorenderer;
 
-import com.nowandfuture.mod.core.client.renders.videorenderer.PixelBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 
 import java.nio.ByteBuffer;
-
+//never used
 public class DoublePBO {
-    PixelBuffer[] pbos;
+    PixelBufferObject[] pbos;
     private int textureId;
     private long tag;
 
     private int swapIndex = 0;
 
     public DoublePBO(){
-        pbos = new PixelBuffer[2];
-        PixelBuffer pbo1 = new PixelBuffer();
-        PixelBuffer pbo2 = new PixelBuffer();
+        pbos = new PixelBufferObject[2];
+        PixelBufferObject pbo1 = new PixelBufferObject();
+        PixelBufferObject pbo2 = new PixelBufferObject();
 
         pbos[0] = pbo1;
         pbos[1] = pbo2;
@@ -80,7 +79,7 @@ public class DoublePBO {
     private void checkError(){
         int error = GL11.glGetError();
         if(error != GL11.GL_NO_ERROR){
-            System.out.println("error:" + error);
+            System.out.println("OpenGL Error:" + error);
         }
     }
 }

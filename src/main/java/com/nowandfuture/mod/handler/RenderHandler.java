@@ -47,12 +47,9 @@ public class RenderHandler {
                         renderWorldLastEvent.getPartialTicks());
     }
 
-
     public static Map<BlockPos,Integer> getScores(){
         return scores;
     }
-
-
 
     public static Deque<IRender> getRenderModules() {
         return renderModules;

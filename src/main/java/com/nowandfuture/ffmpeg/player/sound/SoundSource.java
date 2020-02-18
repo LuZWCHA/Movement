@@ -1,5 +1,6 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
+import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Vector3f;
 
 import static org.lwjgl.openal.AL10.*;
@@ -63,7 +64,21 @@ public class SoundSource {
     }
 
     public void cleanup() {
-        alDeleteSources(sourceId);
+        try
+        {
+            AL10.alSourceStop(sourceId);
+            AL10.alGetError();
+        }
+        catch( Exception e )
+        {}
+        try
+        {
+            // Delete the source:
+            AL10.alDeleteSources(sourceId);
+            AL10.alGetError();
+        }
+        catch( Exception e )
+        {}
     }
 
     public int getSourceId() {

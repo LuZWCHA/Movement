@@ -10,11 +10,11 @@ import org.lwjgl.opengl.*;
 import java.nio.ByteBuffer;
 
 //target:GL_PIXEL_PACK_BUFFER or GL_PIXEL_UNPACK_BUFFER
-public class PixelBuffer {
+public class PixelBufferObject {
     private int pboId;
     private long tag;
 
-    public PixelBuffer(){
+    public PixelBufferObject(){
         pboId = GL15.glGenBuffers();
         checkError();
     }

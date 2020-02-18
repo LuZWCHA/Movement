@@ -62,9 +62,10 @@ public class DecodeThread extends Thread {
 
                 if(frame == null){
                     if(grabber.getTimestamp() < grabber.getLengthInTime()) {
-                        if(syncInfo.isDecodeFinished())
+                        if(syncInfo.isDecodeFinished()) {
                             syncInfo.setDecodeFinished(false);
-                        break;
+                            break;
+                        }
                     }
                     else{
                         syncInfo.setDecodeFinished(true);
@@ -98,7 +99,9 @@ public class DecodeThread extends Thread {
                 if(grabber != null) {
                     grabber.stop();
                     grabber.release();
+                    syncInfo.setDecodeFinished(true);
                 }
+
             } catch (FrameGrabber.Exception e) {
                 e.printStackTrace();
             }

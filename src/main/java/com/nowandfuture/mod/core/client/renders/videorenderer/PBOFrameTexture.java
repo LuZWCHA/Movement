@@ -14,7 +14,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_BGR;
 
 public class PBOFrameTexture extends FrameTexture {
-    private PixelBuffer pbo;
+    private PixelBufferObject pbo;
 
     public PBOFrameTexture(BufferedImage p_i1270_1_) {
         super(p_i1270_1_);
@@ -23,7 +23,7 @@ public class PBOFrameTexture extends FrameTexture {
 
     public PBOFrameTexture(int p_i1271_1_, int p_i1271_2_) {
         super(p_i1271_1_, p_i1271_2_);
-        pbo = new PixelBuffer();
+        pbo = new PixelBufferObject();
     }
 
     public void updateBufferedImage(BufferedImage image,long id){
@@ -39,7 +39,7 @@ public class PBOFrameTexture extends FrameTexture {
 
     @Override
     public void subBufferedImage(BufferedImage image, int offsetX, int offsetY, long id) {
-        if(id == pbo.getTag()) return;
+        if(id == pbo.getTag() && pbo.getPBOId() != -1) return;
         pbo.setTag(id);
         GlStateManager.bindTexture(glTextureId);
 

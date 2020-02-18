@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FrameLayout;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -212,5 +212,14 @@ public class RootView implements MyGui{
 
     public boolean isShowDebugInfo(){
         return context.gameSettings.showDebugInfo;
+    }
+
+    public <T extends ViewGroup> T createInstance(Class<T> clazz){
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

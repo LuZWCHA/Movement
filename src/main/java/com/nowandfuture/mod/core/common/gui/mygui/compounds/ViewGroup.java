@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
+import java.nio.Buffer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,8 +32,13 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     private boolean isFocused;
     private boolean visible = true;
+    private int[] pads = new int[4];
 
     private AbstractGuiContainer.ActionClick actionClick;
+
+    protected ViewGroup(){
+
+    }
 
     public ViewGroup(@Nonnull RootView rootView){
         this(rootView,rootView.getTopView());
@@ -447,6 +453,53 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         for (ViewGroup vg :
                 children) {
             vg.setVisible(visible);
+        }
+    }
+
+
+    public static class Builder{
+        ViewGroup viewGroup;
+
+        private Builder(RootView rootView,Class<? extends ViewGroup> clazz){
+            viewGroup = rootView.createInstance(clazz);
+        }
+
+        public static Builder newBuilder(RootView rootView,Class<? extends ViewGroup> clazz){
+            return new Builder(rootView,clazz);
+        }
+
+        public Builder setX(int x){
+            viewGroup.setX(x);
+            return this;
+        }
+
+        public Builder setY(int y){
+            viewGroup.setY(y);
+            return this;
+        }
+
+        public Builder setWidth(int width){
+            viewGroup.setWidth(width);
+            return this;
+        }
+
+        public Builder setHeight(int height){
+            viewGroup.setHeight(height);
+            return this;
+        }
+
+        public Builder setVisible(boolean visible){
+            viewGroup.setVisible(visible);
+            return this;
+        }
+
+        public Builder setFocused(boolean focused){
+            viewGroup.setFocused(focused);
+            return this;
+        }
+
+        public ViewGroup build(){
+            return viewGroup;
         }
     }
 

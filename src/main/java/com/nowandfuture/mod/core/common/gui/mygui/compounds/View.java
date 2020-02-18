@@ -85,7 +85,6 @@ public abstract class View extends ViewGroup {
         }
     }
 
-
     /**
      * @param scissor whether it will be scissored by parent
      *                if it set true,this view may scissor by its parents/parent(if this view is out of this parents)

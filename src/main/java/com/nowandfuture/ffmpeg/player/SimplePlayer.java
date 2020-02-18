@@ -182,9 +182,6 @@ public class SimplePlayer implements IMediaPlayer{
 
         imageCache.clear();
         audioCache.clear();
-
-        System.runFinalization();
-        System.gc();
     }
 
     public void seekToTimestamp(long ts) throws FrameGrabber.Exception {

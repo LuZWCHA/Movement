@@ -16,7 +16,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     private Java2DFrameConverter java2DFrameConverter = new Java2DFrameConverter();
 
     public MinecraftOpenGLDisplayHandler(){
-        super();
+
     }
 
     @Override
@@ -40,12 +40,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
     @Override
     public void destroy() {
-        Movement.proxy.addScheduledTaskClient(new Runnable() {
-            @Override
-            public void run() {
-                GlStateManager.deleteTexture(id);
-            }
-        });
+
     }
 
     @Override

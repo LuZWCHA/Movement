@@ -55,7 +55,7 @@ public class FrameTexture extends DynamicTexture {
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){
-            System.out.println("error:" + error);
+            Movement.logger.warn("OpenGL Error:" + error);
         }
     }
 
@@ -76,7 +76,7 @@ public class FrameTexture extends DynamicTexture {
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){
-            Movement.logger.warn("OpenGL error:" + error);
+            Movement.logger.warn("OpenGL Error:" + error);
         }
     }
 

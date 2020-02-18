@@ -43,8 +43,11 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     private static Map<BlockPos,PBOFrameTexture> frameCache2 = new HashMap<>();
     private Random r = new Random();
 
-    private static FrameTexture loadingTexture;
-    private static final ResourceLocation LOADING_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/loading.png");
+    private static FrameTexture loadingTexture,backgroundTexture;
+    private static final ResourceLocation LOADING_GUI_TEXTURE =
+            new ResourceLocation(Movement.MODID,"textures/gui/loading.png");
+    private static final ResourceLocation BACKGROUND_GUI_TEXTURE =
+            new ResourceLocation(Movement.MODID,"textures/gui/background.png");
 
     private static int GC_COUNTER;
 
@@ -69,6 +72,11 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         frameCache2.clear();
         if(loadingTexture != null){
             loadingTexture.deleteGlTexture();
+            loadingTexture = null;
+        }
+        if(backgroundTexture != null){
+            backgroundTexture.deleteGlTexture();
+            backgroundTexture = null;
         }
     }
 
@@ -105,7 +113,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         v.add(te.getScreenAABB().getCenter());
         Vec3i d = te.getFacing().getDirectionVec();
 
-        if(v.lengthSquared() > (1<<8) || v.dotProduct(new Vec3d(d.getX(),d.getY(),d.getZ())) < 0){
+        if(v.lengthSquared() > te.getMaxRenderDistanceSquared() || v.dotProduct(new Vec3d(d.getX(),d.getY(),d.getZ())) < 0){
             return;
         }
 
@@ -129,6 +137,16 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                         bufferedimage.getGraphics().dispose();
                     }
                     drawFrame(loadingTexture,te,x,y,z);
+                }else{
+                    if(backgroundTexture == null){
+                        IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(BACKGROUND_GUI_TEXTURE);
+                        BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
+
+                        backgroundTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
+                        backgroundTexture.updateBufferedImage(bufferedimage,0);
+                        bufferedimage.getGraphics().dispose();
+                    }
+                    drawFrame(backgroundTexture,te,x,y,z);
                 }
 
             } catch (IOException e) {
@@ -252,7 +270,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
         ResourceLocation location =
-                textureManager.getDynamicTextureLocation("video",texture);
+                textureManager.getDynamicTextureLocation("staticVideo",texture);
 
         this.setLightmapDisabled(false);
         textureManager.bindTexture(location);
@@ -292,17 +310,23 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                 break;
             case EAST:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
             case WEST:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
             case SOUTH:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
         }

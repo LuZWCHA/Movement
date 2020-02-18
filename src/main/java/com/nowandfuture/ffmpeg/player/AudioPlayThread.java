@@ -30,15 +30,17 @@ public class AudioPlayThread extends Thread {
 
         init();
         Frame frame = null;
-        while (!isInterrupted()){
 
             try {
-                synchronized (syncInfo) {
 
-                    if (syncInfo.isPause()) {
-                        syncInfo.wait();
+                while (!isInterrupted()) {
+
+                    synchronized (syncInfo) {
+
+                        if (syncInfo.isPause()) {
+                            syncInfo.wait();
+                        }
                     }
-                }
 
 //                if(!grabber.hasAudio()){
 //                    long timestamp = System.currentTimeMillis() * avutil.AV_TIME_BASE / 1000;
@@ -52,54 +54,52 @@ public class AudioPlayThread extends Thread {
 //                    continue;
 //                }
 
-                frame = audioCache.poll();
-                if(frame == null) {
+                    frame = audioCache.poll();
+                    if (frame == null) {
 
-                    if(!syncInfo.isDecodeFinished()) {
+                        if (!syncInfo.isDecodeFinished()) {
 //                        sleep(baseDelay);
-                    } else {
-                        syncInfo.setPause(true);
+                        } else {
+                            syncInfo.setPause(true);
+                        }
+                        continue;
                     }
-                    continue;
-                }
 
-                long timestamp = frame.timestamp;
+                    long timestamp = frame.timestamp;
 
-                if(syncInfo.sysStartTime == -1) {
-                    syncInfo.sysStartTime = System.currentTimeMillis() - timestamp * 1000 / avutil.AV_TIME_BASE;
-                }
+                    if (syncInfo.sysStartTime == -1) {
+                        syncInfo.sysStartTime = System.currentTimeMillis() - timestamp * 1000 / avutil.AV_TIME_BASE;
+                    }
 
-                long time  = (System.currentTimeMillis() - syncInfo.sysStartTime) * avutil.AV_TIME_BASE / 1000;
+                    long time = (System.currentTimeMillis() - syncInfo.sysStartTime) * avutil.AV_TIME_BASE / 1000;
 
-                if(timestamp > time){
-                    if(timestamp - time > baseDelay * 1000 / avutil.AV_TIME_BASE ||
-                            timestamp - time > IMediaPlayer.SyncInfo.MAX_VIDEO_DIFF * 1000 / avutil.AV_TIME_BASE ){
-                        factor += 2;
-                    }else {
-                        sleep((timestamp - time) / 1000);
+                    if (timestamp > time) {
+                        if (timestamp - time > baseDelay * 1000 / avutil.AV_TIME_BASE ||
+                                timestamp - time > IMediaPlayer.SyncInfo.MAX_VIDEO_DIFF * 1000 / avutil.AV_TIME_BASE) {
+                            factor += 2;
+                        } else {
+                            sleep((timestamp - time) / 1000);
+                            factor = -baseDelay;
+                        }
+                    } else {
                         factor = -baseDelay;
                     }
-                }else{
-                    factor = -baseDelay;
+
+                    if (factor < -baseDelay) factor = -baseDelay;
+                    if (factor > IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF) factor = IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF;
+
+                    setting(timestamp);
+                    play(frame);
+                    sleep(baseDelay + factor);
                 }
 
-                if(factor < -baseDelay) factor = -baseDelay;
-                if(factor > IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF) factor = IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF;
-
-                setting(timestamp);
-                play(frame);
-                sleep(baseDelay + factor);
-
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
-            }catch (Exception e){
-                e.printStackTrace();
-                interrupt();
-            }finally {
+            } finally {
                 if(frame != null)
                     SoundUtils.cloneFrameDeallocate(frame);
             }
-        }
+
 
         finished();
     }

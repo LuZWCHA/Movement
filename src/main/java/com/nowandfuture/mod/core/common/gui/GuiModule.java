@@ -8,7 +8,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -51,8 +51,8 @@ public class GuiModule extends AbstractGuiContainer {
                 long total = tileEntityShowModule.getLine().getTotalTick();
                 long tick = aFloat.longValue();
                 System.out.println("tick = " + tick);
-                MovementMessage.LongDataMessage message =
-                        new MovementMessage.LongDataMessage(MovementMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
+                LMessage.LongDataMessage message =
+                        new LMessage.LongDataMessage(LMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
                 message.setPos(tileEntityShowModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
 //                tileEntityShowModule.getLine().setTick(tick);
@@ -88,7 +88,7 @@ public class GuiModule extends AbstractGuiContainer {
             public void clicked(MyGui gui, int button) {
                 tileEntityShowModule.setEnableCollision(!tileEntityShowModule.isEnableCollision());
                 updateCollisionEnableBtn();
-                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_ENABLE_COLLISION_FLAG);
+                LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_ENABLE_COLLISION_FLAG);
                 voidMessage.setPos(tileEntityShowModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
             }
@@ -108,7 +108,7 @@ public class GuiModule extends AbstractGuiContainer {
             public void clicked(MyGui gui, int button) {
                 tileEntityShowModule.setShowBlock(!tileEntityShowModule.isShowBlock());
                 updateShowOrHideBtn();
-                MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_SHOW_OR_HIDE_BLOCK_FLAG);
+                LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_SHOW_OR_HIDE_BLOCK_FLAG);
                 voidMessage.setPos(tileEntityShowModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
 
@@ -160,7 +160,7 @@ public class GuiModule extends AbstractGuiContainer {
 
     @SuppressWarnings("Duplicates")
     private void startOrStop(){
-        MovementMessage.VoidMessage voidMessage = new MovementMessage.VoidMessage(MovementMessage.VoidMessage.GUI_START_FLAG);
+        LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_START_FLAG);
         voidMessage.setPos(tileEntityShowModule.getPos());
         if(tileEntityShowModule.getLine().isEnable()){
             tileEntityShowModule.getLine().setEnable(false);

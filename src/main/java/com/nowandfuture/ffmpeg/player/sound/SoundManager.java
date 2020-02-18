@@ -1,6 +1,7 @@
 package com.nowandfuture.ffmpeg.player.sound;
 
 import com.nowandfuture.ffmpeg.player.SoundUtils;
+import com.nowandfuture.mod.Movement;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL10;
@@ -72,7 +73,7 @@ public class SoundManager {
     }
 
     protected void errorMessage(String message) {
-        this.logger.warning(this.getClass().getName()+":"+message);
+        Movement.logger.warn(message);
     }
 
     private boolean checkALError() {
@@ -99,8 +100,6 @@ public class SoundManager {
                 return true;
         }
     }
-
-
 
     public float millisInBuffer(int alBufferi,AudioFormat format) {
         return (float)AL10.alGetBufferi(alBufferi, 8196) / (float)AL10.alGetBufferi(alBufferi, 8195) / ((float)AL10.alGetBufferi(alBufferi, 8194) / 8.0F) / (float)format.getSampleRate() * 1000.0F;
@@ -253,6 +252,7 @@ public class SoundManager {
         if(soundSource != null){
             int sourceId = soundSource.getSourceId();
             if (AL10.alGetSourcei(sourceId, AL10.AL_SOURCE_STATE) == AL_PLAYING) {
+                this.checkALError();
                 AL10.alSourceStop(sourceId);
                 this.checkALError();
             }
@@ -278,16 +278,16 @@ public class SoundManager {
                 if(checkProcessed) {
                     if (processed-- <= 0) return;
                 }
-                int id = AL10.alSourceUnqueueBuffers(sourceId);
-
-                if (this.checkALError()) {
-                    break;
+                try
+                {
+                    AL10.alSourceUnqueueBuffers(sourceId);
                 }
-
-                AL10.alDeleteBuffers(id);
-                if (this.checkALError()) {
-                    break;
+                catch( Exception e )
+                {
+                    return;
                 }
+                if(checkALError())
+                    return;
             }
             this.millisPreviouslyPlayed = 0.0F;
         }

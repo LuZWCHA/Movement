@@ -60,7 +60,6 @@ public class CollisionHandler {
                             Vector3f axis = new Vector3f();
 
                             float time = obBox.collisionDetermination(orgAABB, v,axis);
-//                            System.out.println(time);
                             if(time >= 0) {
                                 module.setImpactAxis(axis);
                                 AxisAlignedBBWrap wrap = null;

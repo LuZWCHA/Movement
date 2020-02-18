@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
+package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.LayoutParameter;
@@ -10,7 +10,6 @@ import java.util.List;
 
 //not finished
 public class LinearLayout extends AbstractLayout<LinearLayout.LinearLayoutParameter> {
-
 
     public LinearLayout(@Nonnull RootView rootView) {
         super(rootView);

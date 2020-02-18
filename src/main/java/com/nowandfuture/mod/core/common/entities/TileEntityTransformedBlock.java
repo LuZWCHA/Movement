@@ -6,7 +6,7 @@ import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
 import com.nowandfuture.mod.handler.IKeyListener;
 import com.nowandfuture.mod.handler.KeyBindHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -276,8 +276,8 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
             }
 
             if(changed) {
-                MovementMessage.NBTMessage nbtMessage =
-                        new MovementMessage.NBTMessage(MovementMessage.NBTMessage.TRANSFORMED_BLOCK_FLAG, getUpdateTag());
+                LMessage.NBTMessage nbtMessage =
+                        new LMessage.NBTMessage(LMessage.NBTMessage.TRANSFORMED_BLOCK_FLAG, getUpdateTag());
                 nbtMessage.setPos(getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
             }

@@ -1,12 +1,9 @@
-package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
+package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.LayoutParameter;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
-import com.nowandfuture.mod.utils.DrawHelper;
-import net.minecraft.client.gui.Gui;
-import org.lwjgl.util.Color;
 
 import javax.annotation.Nonnull;
 

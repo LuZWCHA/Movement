@@ -26,15 +26,16 @@ import java.nio.charset.StandardCharsets;
 
 import static com.nowandfuture.mod.utils.math.MathHelper.*;
 
-public abstract class MovementMessage implements IMessage {
+public abstract class LMessage implements IMessage {
     private int x,y,z;
     private int tag;
+    public short flag;
 
-    public MovementMessage(){
+    public LMessage(){
         tag = -1;
     }
 
-    public MovementMessage(int x, int y, int z){
+    public LMessage(int x, int y, int z){
         this.x = x;
         this.y = y;
         this.z = z;
@@ -95,14 +96,13 @@ public abstract class MovementMessage implements IMessage {
         z = pos.getZ();
     }
 
-    public static class NBTMessage extends MovementMessage implements IMessageHandler<NBTMessage,IMessage>{
+    public static class NBTMessage extends LMessage implements IMessageHandler<NBTMessage,IMessage>{
         public static final int TAG = 6;
 
         public static final short GUI_APPLY_TIMELINE_FLAG = 0x0000;
         public static final short TRANSFORMED_BLOCK_FLAG = 0x0001;
 
-        private short flag;
-        private NBTTagCompound nbt;
+        public NBTTagCompound nbt;
 
         public NBTMessage(){
             setTag(TAG);
@@ -152,7 +152,6 @@ public abstract class MovementMessage implements IMessage {
                         switch (message.flag){
                             case GUI_APPLY_TIMELINE_FLAG:
                                 if(tileEntity instanceof TileEntityModule){
-
                                     NBTTagCompound nbtTagCompound = message.nbt;
                                     if(nbtTagCompound != null){
                                         ((TileEntityModule) tileEntity).getLine().deserializeNBT(nbtTagCompound);
@@ -180,7 +179,7 @@ public abstract class MovementMessage implements IMessage {
         }
     }
 
-    public static class VoidMessage extends MovementMessage implements IMessageHandler<VoidMessage,IMessage>{
+    public static class VoidMessage extends LMessage implements IMessageHandler<VoidMessage,IMessage>{
         public static final int TAG = 5;
 
         public static final short GUI_RESTART_FLAG = 0x0000;
@@ -189,8 +188,6 @@ public abstract class MovementMessage implements IMessage {
         public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x0003;
         public static final short GUI_ENABLE_COLLISION_FLAG = 0x0004;
         public static final short GUI_VIDEO_PLAYER_STATE_FLAG = 0x0005;
-
-        private short flag;
 
         public VoidMessage(){
             setTag(TAG);
@@ -214,7 +211,6 @@ public abstract class MovementMessage implements IMessage {
 
         @Override
         public IMessage onMessage(VoidMessage message, MessageContext ctx) {
-
             BlockPos blockPos = new BlockPos(message.getX(),message.getY(),message.getZ());
             TileEntity tileEntity = NetworkHandler.getServerWorld(ctx).getTileEntity(blockPos);
             final EntityPlayerMP player = NetworkHandler.getServerPlayer(ctx);
@@ -319,9 +315,9 @@ public abstract class MovementMessage implements IMessage {
     }
 
 
-    //move to StringDataMessage.class
+    //this method will move to StringDataMessage.java
     @Deprecated
-    public static class RenamePrefabMessage extends MovementMessage implements IMessageHandler<RenamePrefabMessage,IMessage>{
+    public static class RenamePrefabMessage extends LMessage implements IMessageHandler<RenamePrefabMessage,IMessage>{
         public static final int TAG = 4;
         private String name;
 
@@ -392,13 +388,12 @@ public abstract class MovementMessage implements IMessage {
     }
 
 
-    public static class FloatDataSyncMessage extends MovementMessage implements IMessageHandler<FloatDataSyncMessage,IMessage>{
+    public static class FloatDataSyncMessage extends LMessage implements IMessageHandler<FloatDataSyncMessage,IMessage>{
         public static final int TAG = 3;
 
         public static final short PROGRESS_FLAG = 0x0000;
 
-        private short flag;
-        private float data;
+        public float data;
 
         public FloatDataSyncMessage(){
             super();
@@ -472,7 +467,7 @@ public abstract class MovementMessage implements IMessage {
         }
     }
 
-    public static class IntDataSyncMessage extends MovementMessage implements IMessageHandler<IntDataSyncMessage,IMessage>{
+    public static class IntDataSyncMessage extends LMessage implements IMessageHandler<IntDataSyncMessage,IMessage>{
         public static final int TAG = 3;
 
         public static final short RESIZE_FLAG = 0x0000;
@@ -480,8 +475,7 @@ public abstract class MovementMessage implements IMessage {
         public static final short GUI_PLAYER_SIZE_X = 0x0002;
         public static final short GUI_PLAYER_SIZE_Y = 0x0003;
 
-        private short flag;
-        private int data;
+        public int data;
 
         public IntDataSyncMessage(){
             super();
@@ -593,14 +587,13 @@ public abstract class MovementMessage implements IMessage {
         }
     }
 
-    public static class StringDataSyncMessage extends MovementMessage implements IMessageHandler<StringDataSyncMessage,IMessage>{
+    public static class StringDataSyncMessage extends LMessage implements IMessageHandler<StringDataSyncMessage,IMessage>{
         public static final int TAG = 3;
 
         public static final short CONSTRUCT_LOCK_FLAG = 0x0000;
         public static final short GUI_PLAYER_URL = 0x0001;
 
-        private short flag;
-        private String data;
+        public String data;
 
         public StringDataSyncMessage(){
             super();
@@ -705,13 +698,12 @@ public abstract class MovementMessage implements IMessage {
     }
 
     //client
-    public static class LongDataMessage extends MovementMessage implements IMessageHandler<LongDataMessage,IMessage>{
+    public static class LongDataMessage extends LMessage implements IMessageHandler<LongDataMessage,IMessage>{
         public static final int TAG = 0;
 
         public static final short GUI_TICK_SLIDE = 0x0000;
 
-        private short flag;
-        private long data;
+        public long data;
 
         public LongDataMessage(){
             super();
@@ -845,7 +837,7 @@ public abstract class MovementMessage implements IMessage {
         }
     }
 
-    public static class ReplaceTransformersSyncMessage extends MovementMessage {
+    public static class ReplaceTransformersSyncMessage extends LMessage {
         public static final int TAG = 2;
 
         //time line

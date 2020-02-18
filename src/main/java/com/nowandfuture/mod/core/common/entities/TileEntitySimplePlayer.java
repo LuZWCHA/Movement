@@ -11,6 +11,7 @@ import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.common.MediaPlayerServer;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import joptsimple.internal.Strings;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -22,6 +23,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -29,7 +31,7 @@ import java.util.function.Consumer;
 
 // TODO: 2020/1/31 server sync not finished
 //client only now
-public class TileEntitySimplePlayer extends TileEntity implements ITickable {
+public class TileEntitySimplePlayer extends TileEntity implements ITickable,IClickableTile {
 
     private static String NBT_URL = "Url";
     private static String NBT_BRIGHTNESS = "Brightness";
@@ -46,15 +48,15 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     private int brightness;
     private EnumFacing facing;
     private int width,height;
-    private float volume;
+    private float volume,channels;
 
     private IMediaPlayer simplePlayer;
 
     private AxisAlignedBB screenAABB;
 
     public TileEntitySimplePlayer(){
-        width = 4;
-        height = 4;
+        width = 1;
+        height = 1;
         facing = EnumFacing.NORTH;
         volume = 0;
         brightness = 15;
@@ -96,6 +98,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
 
     public void end() throws Exception {
         simplePlayer.end();
+        clearGLSource();
     }
 
     public boolean seekTo(long time){
@@ -106,20 +109,18 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         url = compound.getString(NBT_URL);
-        width = compound.getInteger(NBT_PANEL_SIZE_X);
-        height = compound.getInteger(NBT_PANEL_SIZE_Y);
+        int w = compound.getInteger(NBT_PANEL_SIZE_X);
+        int h = compound.getInteger(NBT_PANEL_SIZE_Y);
 
-        if(width < 1) width = 1;
-        if(height < 1) height = 1;
         setFacing(EnumFacing.values()[compound.getInteger(NBT_FACE)]);
+        setWidth(Math.max(1,w));
+        setHeight(Math.max(1,h));
 
         volume = compound.getFloat(NBT_VOLUME);
         if(compound.hasKey(NBT_BRIGHTNESS))
             brightness = compound.getInteger(NBT_BRIGHTNESS);
         else
             brightness = 15;
-
-
     }
 
     @Override
@@ -136,11 +137,10 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         return compound;
     }
 
-
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         NBTTagCompound compound = pkt.getNbtCompound();
-        writeToNBT(compound);
+        readFromNBT(compound);
     }
 
     @Override
@@ -164,7 +164,6 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         return screenAABB;
     }
 
-    @SideOnly(Side.CLIENT)
     public void updateAABB(){
         Vec3d[] panel = new Vec3d[4];
         panel[0] = new Vec3d(0,0,0);
@@ -194,7 +193,8 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
 
     @Override
     public double getMaxRenderDistanceSquared() {
-        return 1<<8;
+        int max = Math.max(getWidth(),getHeight()) << 2;
+        return Math.max(super.getMaxRenderDistanceSquared(),max * max);
     }
 
     @Override
@@ -286,11 +286,6 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         }
     }
 
-    @Override
-    public void onChunkUnload() {
-        super.onChunkUnload();
-    }
-
     public EnumFacing getFacing() {
         return facing;
     }
@@ -301,9 +296,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         }
         if(this.facing != facing) {
             this.facing = facing;
-
-            if(world.isRemote)
-                updateAABB();
+            updateAABB();
         }
     }
 
@@ -318,7 +311,6 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
         return this.volume;
     }
 
-    @SideOnly(Side.CLIENT)
     private void transformPanel(Vec3d[] panel, EnumFacing facing){
         switch (facing){
             case NORTH:
@@ -327,28 +319,38 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
                 break;
             case EAST:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
             case WEST:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
             case SOUTH:
                 for (int i = 0;i < 4;i++) {
+                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
+                    panel[i] = panel[i].addVector(0.5,0,0.5);
                 }
                 break;
         }
     }
+
 
     public int getWidth() {
         return width;
     }
 
     public void setWidth(int width) {
-        this.width = width;
+        if(width != this.width) {
+            this.width = width;
+            updateAABB();
+        }
     }
 
     public int getHeight() {
@@ -356,7 +358,10 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
     }
 
     public void setHeight(int height) {
-        this.height = height;
+        if(height != this.height) {
+            this.height = height;
+            updateAABB();
+        }
     }
 
     public int getBrightness() {
@@ -373,5 +378,45 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable {
 
     public int getVideoHeight(){
         return simplePlayer.getHeight();
+    }
+
+    //double click will be ignore
+    //when right click triggered by FML EVENT BUS,InteractEvent (by block/entity) will be executed
+    //twice rapidly,to prevent this situation,filter these double click event
+    long lastClickTime = -100;
+    @Override
+    public boolean onRightClick(Vec3d hit) {
+
+        long diff = System.currentTimeMillis() - lastClickTime;
+        lastClickTime = System.currentTimeMillis();
+        if(diff < 100) return false;
+
+        if(simplePlayer.getSyncInfo().isPause()){
+            simplePlayer.resume();
+        }else{
+            simplePlayer.pause();
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onLeftClick(Vec3d hit) {
+        return false;
+    }
+
+    @Override
+    public Vec3d getClickableFaceNormal() {
+        Vec3i vec3i = getFacing().getDirectionVec();
+        return new Vec3d(vec3i);
+    }
+
+    @Override
+    public float getReachedDistance() {
+        return 8;
+    }
+
+    @Override
+    public AxisAlignedBB getClickBox() {
+        return getScreenAABB().offset(getPos());
     }
 }

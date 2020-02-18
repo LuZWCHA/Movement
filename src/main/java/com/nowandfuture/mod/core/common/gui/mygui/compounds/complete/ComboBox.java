@@ -24,11 +24,19 @@ public class ComboBox extends ViewGroup {
 
     private Consumer<Integer> onItemClicked;
 
+    public ComboBox(RootView rootView,ViewGroup parent){
+        super(rootView, parent);
+        init();
+    }
+
     public ComboBox(@Nonnull RootView rootView) {
         super(rootView);
+        init();
+    }
 
+    private void init(){
         label = new MyLabel(Minecraft.getMinecraft().fontRenderer,0,0,0,getWidth(),labelHeight,DrawHelper.colorInt(255,255,255,255));
-        simpleStringList = new SimpleStringList(rootView,this);
+        simpleStringList = new SimpleStringList(getRoot(),this);
         addChild(simpleStringList);
 
         contents = new ArrayList<>();

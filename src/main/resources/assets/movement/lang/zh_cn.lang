@@ -62,3 +62,7 @@ movement.key.rot.y.plus=y轴正方向旋转
 movement.key.rot.z.neg=z轴负方向旋转
 movement.key.rot.z.plus=z轴正方向旋转
 movement.key.adjust=方向调节（跳跃键为重置方向）
+
+movement.player.btn.play=播放
+movement.player.btn.stop=停止
+movement.player.btn.rotate=旋转

@@ -11,7 +11,7 @@ import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.network.BigNBTTagSplitPacketTool;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.DivBytesMessage;
-import com.nowandfuture.mod.network.message.MovementMessage;
+import com.nowandfuture.mod.network.message.LMessage;
 import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -289,8 +289,8 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
             if(isConstructing()) {
 
                 if(timeout % 10 == 0){
-                    MovementMessage.FloatDataSyncMessage message =
-                            new MovementMessage.FloatDataSyncMessage(MovementMessage.FloatDataSyncMessage.PROGRESS_FLAG,
+                    LMessage.FloatDataSyncMessage message =
+                            new LMessage.FloatDataSyncMessage(LMessage.FloatDataSyncMessage.PROGRESS_FLAG,
                                     (float) getProgress());
                     message.setPos(getPos());
                     NetworkHandler.INSTANCE.sendMessageToServer(message);
@@ -349,8 +349,8 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
     @SideOnly(Side.CLIENT)
     public void askForConstruct(){
         String name = Minecraft.getMinecraft().player.getName();
-        MovementMessage.StringDataSyncMessage message =
-                new MovementMessage.StringDataSyncMessage(MovementMessage.StringDataSyncMessage.CONSTRUCT_LOCK_FLAG, name);
+        LMessage.StringDataSyncMessage message =
+                new LMessage.StringDataSyncMessage(LMessage.StringDataSyncMessage.CONSTRUCT_LOCK_FLAG, name);
         message.setPos(getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(message);
     }
@@ -444,16 +444,16 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
 
     @Override
     public void onError(Exception e) {
-        MovementMessage.FloatDataSyncMessage message =
-                new MovementMessage.FloatDataSyncMessage(MovementMessage.FloatDataSyncMessage.PROGRESS_FLAG, -1);
+        LMessage.FloatDataSyncMessage message =
+                new LMessage.FloatDataSyncMessage(LMessage.FloatDataSyncMessage.PROGRESS_FLAG, -1);
         message.setPos(getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(message);
     }
 
     @Override
     public void onStart() {
-        MovementMessage.FloatDataSyncMessage message =
-                new MovementMessage.FloatDataSyncMessage(MovementMessage.FloatDataSyncMessage.PROGRESS_FLAG, 0);
+        LMessage.FloatDataSyncMessage message =
+                new LMessage.FloatDataSyncMessage(LMessage.FloatDataSyncMessage.PROGRESS_FLAG, 0);
         message.setPos(getPos());
         NetworkHandler.INSTANCE.sendMessageToServer(message);
     }
@@ -478,8 +478,8 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
                     });
         }catch (Exception e){
             e.printStackTrace();
-            MovementMessage.FloatDataSyncMessage message =
-                    new MovementMessage.FloatDataSyncMessage(MovementMessage.FloatDataSyncMessage.PROGRESS_FLAG, -1);
+            LMessage.FloatDataSyncMessage message =
+                    new LMessage.FloatDataSyncMessage(LMessage.FloatDataSyncMessage.PROGRESS_FLAG, -1);
             message.setPos(getPos());
             NetworkHandler.INSTANCE.sendMessageToServer(message);
         }
