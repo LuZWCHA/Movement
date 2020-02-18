@@ -101,7 +101,7 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
         GlStateManager.pushMatrix();
 
         GlStateManager.translate(x,y,z);
-        // TODO: 2020/1/26 make table of some tileEntities skip transform in some direction
+        // TODO: 2020/1/26 some tileEntities need to skip transform in some direction-axises
         transform(te,true,!(tileEntityWrapper instanceof TileEntityEnchantmentTable),true);
         GlStateManager.translate(-x,-y,-z);
 

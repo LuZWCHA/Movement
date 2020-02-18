@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-//todo collect all obboxs and computer the final position
+//todo has some issues still,I don't know what cases them
 public class AxisAlignedBBWrap extends AxisAlignedBB {
 
     private OBBox bounding;

@@ -9,7 +9,7 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-// TODO: 2020/2/2 Optimize
+// TODO: 2020/2/2 Optimize，Gjk arithmetic may be considered
 public class OBBox {
     private Vector3f xyz000;
     private Vector3f xyz001;
@@ -582,7 +582,5 @@ public class OBBox {
             }
         }
     }
-
-
 
 }
