@@ -211,6 +211,11 @@ public class KeyFrameLine extends TimeLine {
             pre = now;
         }
 
+        if(now != null && now.getBeginTick() < curTick){
+            now = now.clone();
+            now.setBeginTick(getTotalTick());
+        }
+
         if(pre == null && now == null){
             return TimeSection.EMPTY();
         }

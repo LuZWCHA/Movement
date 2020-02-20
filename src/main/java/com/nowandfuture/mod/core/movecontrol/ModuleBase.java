@@ -131,6 +131,8 @@ public class ModuleBase implements IModule,ITickable {
 
                 section = line.getSection(kt);
 
+                transformerHead.prepare(line);
+
                 if(section == null || section.isEmpty()) continue;
 
                 transformerHead.transformStart(matrix4f, (float) line.getSectionProgress(section, (float) p),

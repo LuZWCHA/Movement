@@ -15,7 +15,7 @@ public class Trackball{
      * would then track the mouse as closely as possible. This is a simple
      * example, though, so that is left as an Exercise for the Programmer.
      */
-    public float TRACKBALLSIZE = 5f;
+    public float trackballSize = 5f;
 
     public Quaternion curquat = new Quaternion();
     Quaternion lastquat = new Quaternion();
@@ -131,9 +131,9 @@ public class Trackball{
          * First, figure out z-coordinates for projection of P1 and P2 to
          * deformed sphere
          */
-        p1 = new Vector3f(p1x, p1y, projectToSphere(TRACKBALLSIZE, p1x,
+        p1 = new Vector3f(p1x, p1y, projectToSphere(trackballSize, p1x,
                 p1y));
-        p2 = new Vector3f(p2x, p2y, projectToSphere(TRACKBALLSIZE, p2x,
+        p2 = new Vector3f(p2x, p2y, projectToSphere(trackballSize, p2x,
                 p2y));
 
 
@@ -146,7 +146,7 @@ public class Trackball{
          * Figure out how much to rotate around that axis.
          */
         Vector3f.sub(p1,p2,d);
-        t = d.length() / (2.0f * TRACKBALLSIZE);
+        t = d.length() / (2.0f * trackballSize);
 
         /*
          * Avoid problems with out-of-control values...
@@ -155,7 +155,7 @@ public class Trackball{
             t = 1.0f;
         if (t < -1.0)
             t = -1.0f;
-        phi = 2.0f * (float) Math.asin(t) * TRACKBALLSIZE;
+        phi = 2.0f * (float) Math.asin(t) * trackballSize;
 
         q.setFromAxisAngle(new Vector4f(a.getX(),a.getY(),a.getZ(),phi));
     }

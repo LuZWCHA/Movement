@@ -78,6 +78,10 @@ public class PreviewView extends View {
         this.axisDisplacement.z = z;
     }
 
+    public Vector3f getAxisDisplacement() {
+        return axisDisplacement;
+    }
+
     public void saveToFrame(){
         if(nextKeyFrame == null) nextKeyFrame = new RotationTransformNode.RotationKeyFrame();
         nextKeyFrame.center = new BlockPos(axisDisplacement.x,axisDisplacement.y,axisDisplacement.z);
@@ -200,12 +204,12 @@ public class PreviewView extends View {
         ScaledResolution scaledresolution = new ScaledResolution(getRoot().context);
 
         trackball.tbReshape(getWidth() * scaledresolution.getScaleFactor(),getHeight() * scaledresolution.getScaleFactor());
-
     }
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(128,128,128,128));
+        GlStateManager.disableAlpha();
+        drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(128,128,128,0));
     }
 
     @Override
@@ -257,7 +261,7 @@ public class PreviewView extends View {
         x = (2.0f * x - getWidth()) / getWidth();
         y = (getHeight() - 2.0f * y) / getHeight();
 
-        z = trackball.projectToSphere(trackball.TRACKBALLSIZE,x,y);
+        z = trackball.projectToSphere(trackball.trackballSize,x,y);
 
         isPressed = false;
         super.onReleased(mouseX, mouseY, state);
@@ -268,7 +272,7 @@ public class PreviewView extends View {
         float scroll = (float)Mouse.getEventDWheel() / 128f;
         oZ += scroll;
         if(oZ < 1) oZ = 1f;
-        trackball.TRACKBALLSIZE = oZ;
+        trackball.trackballSize = oZ / 2;
         return true;
     }
 
@@ -285,7 +289,7 @@ public class PreviewView extends View {
         x = (2.0f * x - getWidth()) / getWidth();
         y = (getHeight() - 2.0f * y) / getHeight();
 
-        z = trackball.projectToSphere(trackball.TRACKBALLSIZE,x,y);
+        z = trackball.projectToSphere(trackball.trackballSize,x,y);
 
         lastX = mouseX;
         lastY = mouseY;

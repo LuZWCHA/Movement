@@ -3,7 +3,9 @@ package com.nowandfuture.mod.core.common.gui;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.gui.mygui.*;
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
@@ -89,9 +91,6 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         nameTexField.setEnableBackgroundDrawing(false);
         nameTexField.setMaxStringLength(40);
 
-        xLengthLab.addLine("");
-        yLengthLab.addLine("");
-        zLengthLab.addLine("");
         xLengthLab.setCentered();
         yLengthLab.setCentered();
         zLengthLab.setCentered();
@@ -342,9 +341,9 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         }
     }
 
+
     @Override
-    public void onGuiClosed() {
-        super.onGuiClosed();
+    public void onDestroy() {
         //remove listener
         tileConstructor.setLockChanged(null);
         tileConstructor.setAreaSizeChanged(null);

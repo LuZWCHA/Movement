@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
@@ -29,6 +30,11 @@ public class BezierTransformNode extends AbstractTransformNode<BezierTransformNo
 
     @Override
     protected void transformPost(Matrix4f renderer, float p, BezierKeyFrame preKey, BezierKeyFrame key) {
+
+    }
+
+    @Override
+    public void prepare(KeyFrameLine frameLine) {
 
     }
 

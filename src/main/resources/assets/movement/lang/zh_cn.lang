@@ -53,7 +53,7 @@ item.blockCopier.name=方块拷贝器
 itemGroup.Movement Mod=运动渲染
 
 movement.module.btn.preview.reset=重置视角
-movement.module.lab.preview.recover=恢复视图
+movement.module.lab.preview.recover=置为前帧
 
 movement.key.rot.x.neg=x轴负方向旋转
 movement.key.rot.x.plus=x轴正方向旋转

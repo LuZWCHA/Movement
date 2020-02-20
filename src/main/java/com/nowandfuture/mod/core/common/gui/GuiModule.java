@@ -201,8 +201,7 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     @Override
-    public void onGuiClosed() {
-        super.onGuiClosed();
+    public void onDestroy() {
         view.setProgressChanged(null);
     }
 

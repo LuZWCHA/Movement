@@ -282,7 +282,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 newV.set(x,y,z);
             }
 
-            System.out.println(newV.toString());
+//            System.out.println(newV.toString());
 
             if(setX)
                 impactEntity.setEntityBoundingBox(impactEntity.getEntityBoundingBox().offset(newV.x,0,0));

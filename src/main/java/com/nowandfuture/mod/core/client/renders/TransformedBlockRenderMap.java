@@ -42,6 +42,8 @@ public enum  TransformedBlockRenderMap implements IWorldEventListener, IRender {
     private static float DELTA = 1.0f / 2048;
     private boolean hasEdited = false;
 
+    private boolean isShaderOn;
+
     TransformedBlockRenderMap(){
         map = new HashMap<>();
         transformedBlockRenders = new HashSet[BlockRenderLayer.values().length];
@@ -50,6 +52,7 @@ public enum  TransformedBlockRenderMap implements IWorldEventListener, IRender {
             transformedBlockRenders[blockRenderLayer.ordinal()]
                     = new HashSet<>();
         }
+        isShaderOn = OptifineHelper.isActive() && OptifineHelper.isShaders();
         Minecraft.getMinecraft().world.addEventListener(this);
     }
 
@@ -79,7 +82,7 @@ public enum  TransformedBlockRenderMap implements IWorldEventListener, IRender {
         }
     }
 
-    public void clear(){
+    public void clearGLSource(){
         map.forEach(new BiConsumer<BlockPos, TransformedBlockRender>() {
             @Override
             public void accept(BlockPos pos, TransformedBlockRender transformedBlockRender) {
@@ -91,6 +94,18 @@ public enum  TransformedBlockRenderMap implements IWorldEventListener, IRender {
                 transformedBlockRenders) {
             list.clear();
         }
+    }
+
+    public void checkShader(){
+        boolean curState = OptifineHelper.isActive() && OptifineHelper.isShaders();
+        if(isShaderOn != curState) {
+            clearGLSource();
+            isShaderOn = curState;
+        }
+    }
+
+    public void clear(){
+        clearGLSource();
         hasEdited = false;
         Minecraft.getMinecraft().world.removeEventListener(this);
     }

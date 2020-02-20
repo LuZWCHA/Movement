@@ -36,10 +36,11 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
 
     @Override
     public void renderTileEntityFast(TileEntityTransformedBlock te, double x, double y, double z, float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
-        if(Utils.mapCache != null &&
+        TransformedBlockRenderMap.INSTANCE.checkShader();
+        if(!getWorld().isBlockLoaded(te.getPos()) || te.isInvalid() || (Utils.mapCache != null &&
                 !Utils.mapCache.containsKey(
                         CubesBuilder.transferToRenderChunkPos(te.getPos().getX(),
-                                te.getPos().getY(),te.getPos().getZ()))
+                                te.getPos().getY(),te.getPos().getZ())))
         ) {
 
             TransformedBlockRenderMap.INSTANCE.removeRender(te.getPos());

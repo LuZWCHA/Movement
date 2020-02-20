@@ -4,6 +4,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.*;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import mezz.jei.api.gui.IAdvancedGuiHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -13,11 +14,13 @@ import net.minecraft.inventory.Container;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class AbstractGuiContainer extends GuiContainer {
+public abstract class AbstractGuiContainer extends GuiContainer{
 
     private HashMap<Integer,MyGuiWrapper> actions;
     private List<MyGui> guiList;
@@ -76,13 +79,15 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         actions.put(gui.getId(),new MyGuiWrapper(gui, action));
     }
 
+    protected AbstractGuiContainer(){super(null);}
+
     public AbstractGuiContainer(Container inventorySlotsIn) {
         super(inventorySlotsIn);
         actions = new HashMap<>();
         guiList = new ArrayList<>();
 
         rootView = new RootView(this.guiLeft,this.guiTop,this.xSize,this.ySize);
-        GuiIdManager.INSTANCE.register(this,getId());
+        GuiManager.INSTANCE.register(this,getId());
     }
 
     @Override
@@ -112,6 +117,8 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         this.mc = mcIn;
         this.itemRender = mc.getRenderItem();
         this.fontRenderer = mc.fontRenderer;
+
+        int oldW = this.width,oldH = this.height;
         this.width = w;
         this.height = h;
 
@@ -140,7 +147,7 @@ public abstract class AbstractGuiContainer extends GuiContainer {
     public abstract long getId();
 
     public long genChildId(){
-        return GuiIdManager.INSTANCE.getSuggestId(this);
+        return GuiManager.INSTANCE.getSuggestId(this);
     }
 
     public MyButton createMyButton(int x, int y, int width, int height, String string){
@@ -366,9 +373,10 @@ public abstract class AbstractGuiContainer extends GuiContainer {
     }
 
     @Override
-    public void onGuiClosed() {
+    public final void onGuiClosed() {
         onDestroy();
         super.onGuiClosed();
+        isFirstInit = true;
     }
 
     public void onDestroy(){
@@ -388,4 +396,5 @@ public abstract class AbstractGuiContainer extends GuiContainer {
         }
     }
 
+    protected JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler(){return null;}
 }

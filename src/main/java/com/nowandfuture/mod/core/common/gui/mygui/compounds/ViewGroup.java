@@ -160,17 +160,17 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     @Override
     public void onWidthChanged(int old, int cur) {
         if(getParent() != null)
-            onLayout(getParent().getWidth(),getParent().getHeight());
+            layout(getParent().getWidth(),getParent().getHeight());
         else
-            onLayout(-1,-1);
+            layout(-1,-1);
     }
 
     @Override
     public void onHeightChanged(int old, int cur) {
         if(getParent() != null)
-            onLayout(getParent().getWidth(),getParent().getHeight());
+            layout(getParent().getWidth(),getParent().getHeight());
         else
-            onLayout(-1,-1);
+            layout(-1,-1);
     }
 
     /**

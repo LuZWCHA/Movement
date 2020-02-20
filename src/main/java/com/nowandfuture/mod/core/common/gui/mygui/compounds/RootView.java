@@ -68,6 +68,14 @@ public class RootView implements MyGui{
         topView.onLoad();
     }
 
+    @Deprecated
+    public void onSizeChanged(int oldW,int oldH,int w,int h){
+//        if(oldW != w)
+//            topView.onWidthChanged(oldW,w);
+//        if(oldH != h)
+//            topView.onHeightChanged(oldH,h);
+    }
+
     @Override
     public int getId() {
         return 0;

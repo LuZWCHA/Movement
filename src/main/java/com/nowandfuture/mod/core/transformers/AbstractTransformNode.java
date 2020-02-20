@@ -2,6 +2,8 @@ package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -33,8 +35,9 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
 
     //transform start from the root to this, because of GL Matrix use the stack,so the final order is form the this to next
     public final void transformStart(final Matrix4f renderer, float p, KeyFrame pre, KeyFrame now){
-        if(pre == null) pre = now;
-        if(now == null) now = pre;
+        if(pre == null) {
+            pre = now.clone();
+        }
 
         if(getNext() != null)
             getNext().transformStart(renderer,p,pre,now);
@@ -58,6 +61,10 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
 
         if(getNext() != null)
             getNext().transformEnd(renderer, p,(T)pre,(T)now);
+    }
+
+    public void prepare(KeyFrameLine frameLine){
+
     }
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);

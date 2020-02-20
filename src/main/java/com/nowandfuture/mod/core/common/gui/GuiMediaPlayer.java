@@ -3,10 +3,14 @@ package com.nowandfuture.mod.core.common.gui;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.*;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
@@ -14,7 +18,7 @@ import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 //client only
@@ -42,7 +46,6 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         widthBox = new NumberBox(getRootView(),btnLayout);
         heightBox = new NumberBox(getRootView(),btnLayout);
         comboBox = new ComboBox(getRootView(),btnLayout);
-        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox,comboBox);
 
         xSize = 200;
         ySize = 100;
@@ -51,6 +54,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     @Override
     public void onLoad() {
         urlTextField = createMyTextField(20,20,160,14,"video url");
+        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox,comboBox);
 
         btnLayout.setX(20);
         btnLayout.setY(40);
@@ -236,5 +240,15 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     @Override
     public long getId() {
         return GUI_ID;
+    }
+
+    @Override
+    public JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler() {
+        return new JEIGuiHandler<GuiMediaPlayer>() {
+            @Override
+            public Class<GuiMediaPlayer> getGuiContainerClass() {
+                return GuiMediaPlayer.class;
+            }
+        };
     }
 }

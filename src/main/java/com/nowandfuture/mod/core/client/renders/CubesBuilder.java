@@ -1,6 +1,5 @@
 package com.nowandfuture.mod.core.client.renders;
 
-import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.nowandfuture.asm.Utils;
@@ -20,7 +19,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
-
+import net.minecraftforge.fml.client.FMLClientHandler;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -236,7 +235,7 @@ public class CubesBuilder {
             }
         } else
             return true;
-        return OptifineHelper.isActive();
+        return FMLClientHandler.instance().hasOptifine();
     }
 
     //get the pos's(d3,d4,d5) render-chunk-pos in the world

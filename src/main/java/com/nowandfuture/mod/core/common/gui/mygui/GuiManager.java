@@ -1,13 +1,15 @@
 package com.nowandfuture.mod.core.common.gui.mygui;
 
-import java.util.HashMap;
-import java.util.Map;
+import mezz.jei.api.gui.IAdvancedGuiHandler;
 
-public enum  GuiIdManager {
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+
+public enum GuiManager {
     INSTANCE;
     private Map<AbstractGuiContainer,Long> guiContainerLongMap;
 
-    GuiIdManager(){
+    GuiManager(){
         guiContainerLongMap = new HashMap<>();
     }
 

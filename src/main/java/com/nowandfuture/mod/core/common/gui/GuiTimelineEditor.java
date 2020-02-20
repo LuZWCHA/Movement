@@ -3,16 +3,20 @@ package com.nowandfuture.mod.core.common.gui;
 import com.google.common.base.Predicate;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
-import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.*;
 import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
 import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
+import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.core.transformers.LinearTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
@@ -36,6 +40,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -49,7 +54,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     private final static ResourceLocation MODULE_GUI_TEXTURE =
             new ResourceLocation(Movement.MODID,
                     "textures/gui/movement_module.png");
-    private final FrameLayout rightLayout;
+    private FrameLayout rightLayout;
 
     private TileEntityTimelineEditor tileMovementModule;
     private InventoryPlayer inventoryPlayer;
@@ -89,8 +94,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private Button resetBtn,recoverBtn;
 
-
     private int currentType = -1;
+
+    private GuiTimelineEditor(){super();}
 
     public GuiTimelineEditor(InventoryPlayer playerInv, TileEntityTimelineEditor tileMovementModule){
         super(new ContainerAnmEditor(playerInv,tileMovementModule));
@@ -113,9 +119,6 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         resetBtn = new Button(getRootView(),rightLayout);
         recoverBtn = new Button(getRootView(),rightLayout);
 
-        rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView,
-                xOffset,yOffset,zOffset,resetBtn,recoverBtn);
-
         tileMovementModule.setSlotChanged(new ChangeListener.ChangeEvent() {
             @Override
             public void changed(int index) {
@@ -134,6 +137,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     @Override
     public void onLoad() {
+        rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView,
+                xOffset,yOffset,zOffset,resetBtn,recoverBtn);
+
         timeLine = tileMovementModule.getLine().clone();
         //trans a clone of keyframe line not the origin one
         timelineView.init(timeLine,tileMovementModule.getPrefab());
@@ -353,12 +359,12 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             public void onClicked(View v) {
                 previewView.reload();
                 previewView.saveToFrame();
-                xSliderView.setProgress(0);
-                ySliderView.setProgress(0);
-                zSliderView.setProgress(0);
-                xOffset.setCurValue(0);
-                yOffset.setCurValue(0);
-                zOffset.setCurValue(0);
+                xSliderView.setProgress(previewView.getXAngle());
+                ySliderView.setProgress(previewView.getYAngle());
+                zSliderView.setProgress(previewView.getZAngle());
+                xOffset.setCurValue((int) previewView.getAxisDisplacement().x);
+                yOffset.setCurValue((int) previewView.getAxisDisplacement().y);
+                zOffset.setCurValue((int) previewView.getAxisDisplacement().z);
             }
         });
 
@@ -441,6 +447,10 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         if(compound!= null){
             timeLine.deserializeNBT(compound);
         }
+    }
+
+    public boolean isPreviewShow(){
+        return previewView.isVisible();
     }
 
     private void exportTimeline(){
@@ -606,8 +616,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     @Override
-    public void onGuiClosed() {
-        super.onGuiClosed();
+    public void onDestroy() {
         tileMovementModule.setSlotChanged(null);
         comboBox.setOnItemClicked(null);
     }
@@ -728,4 +737,24 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         return GUI_ID;
     }
 
+    @Override
+    public JEIGuiHandler<GuiTimelineEditor> createJEIGuiHandler() {
+        return new JEIGuiHandler<GuiTimelineEditor>() {
+            @Override
+            public Class<GuiTimelineEditor> getGuiContainerClass() {
+                return GuiTimelineEditor.class;
+            }
+
+            @Override
+            public List<Rectangle> getGuiExtraAreas(GuiTimelineEditor guiContainer) {
+                List<Rectangle> list = new ArrayList<>();
+                list.add(new Rectangle(getGuiLeft() + xSize ,getGuiTop(),guiContainer.isPreviewShow() ? 100:0,220));
+                return list;
+            }
+        };
+    }
+
+    public static JEIGuiHandler getJEIGuiHandler(){
+        return new GuiTimelineEditor().createJEIGuiHandler();
+    }
 }
