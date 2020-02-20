@@ -27,9 +27,16 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
         vector3f.set(key.center.getX() + .5f,key.center.getY() + .5f,key.center.getZ() + .5f);
         renderer.translate(vector3f);
 
-        Quaternion res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX,preKey.rotY,preKey.rotZ),
-                MathHelper.eulerAnglesToQuaternion(key.rotX,key.rotY,key.rotZ),p);
-        MathHelper.mult(renderer,res);
+        Quaternion res;
+
+        //prevent Quaternion's calculation error over 180 degrees which caused model's shaking
+        if(preKey.rotX == key.rotX && preKey.rotY == key.rotY && preKey.rotZ == key.rotZ){
+            res = MathHelper.eulerAnglesToQuaternion(key.rotX,key.rotY,key.rotZ);
+        }else {
+            res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX, preKey.rotY, preKey.rotZ),
+                    MathHelper.eulerAnglesToQuaternion(key.rotX, key.rotY, key.rotZ), p);
+        }
+        MathHelper.mult(renderer, res);
 
         renderer.translate(vector3f.negate());
     }

@@ -91,7 +91,8 @@ public enum ModuleRenderManager {
     }
 
     public void invalid(){
-        executor.shutdownNow();
+        if(!executor.isShutdown())
+            executor.shutdownNow();
         priorityBlockingQueue.clear();
 
         for (CubesRenderer c :

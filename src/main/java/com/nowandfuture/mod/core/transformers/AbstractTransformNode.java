@@ -37,6 +37,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     public final void transformStart(final Matrix4f renderer, float p, KeyFrame pre, KeyFrame now){
         if(pre == null) {
             pre = now.clone();
+            pre.setBeginTick(0);
         }
 
         if(getNext() != null)

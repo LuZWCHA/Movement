@@ -220,6 +220,7 @@ public class CubesBuilder {
     }
 
     //check is the renderchunks are render(which chunks are contain the cube)
+    @Deprecated
     public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos) throws NoSuchFieldException, IllegalAccessException {
 
         OBBox bounding = cube.getTransformedOBBounding();
@@ -235,7 +236,7 @@ public class CubesBuilder {
             }
         } else
             return true;
-        return FMLClientHandler.instance().hasOptifine();
+        return false;
     }
 
     //get the pos's(d3,d4,d5) render-chunk-pos in the world

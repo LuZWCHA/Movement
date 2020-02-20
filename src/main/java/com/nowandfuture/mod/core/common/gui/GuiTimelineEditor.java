@@ -748,7 +748,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public List<Rectangle> getGuiExtraAreas(GuiTimelineEditor guiContainer) {
                 List<Rectangle> list = new ArrayList<>();
-                list.add(new Rectangle(getGuiLeft() + xSize ,getGuiTop(),guiContainer.isPreviewShow() ? 100:0,220));
+                list.add(new Rectangle(guiContainer.getGuiLeft() + guiContainer.getXSize() ,guiContainer.getGuiTop(),guiContainer.isPreviewShow() ? 100:0,220));
                 return list;
             }
         };

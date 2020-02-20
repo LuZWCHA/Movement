@@ -42,7 +42,7 @@ movement.tooltip.timeline.enable=启用:
 
 tile.ConstructorBlock.name=构建器
 tile.ModuleCoreBlock.name=核心模块
-tile.ModuleTimelineEditorBlock.name=动画编辑器
+tile.ModuleTimelineEditorBlock.name=动画编辑模块
 tile.TransformedBlock.name=变换方块
 
 item.timeline.name=时间线
