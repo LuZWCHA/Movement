@@ -1,6 +1,5 @@
 package com.nowandfuture.asm;
 
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.BlockRenderLayer;

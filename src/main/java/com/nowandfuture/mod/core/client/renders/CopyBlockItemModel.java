@@ -1,10 +1,7 @@
 package com.nowandfuture.mod.core.client.renders;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mojang.realmsclient.util.Pair;
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.handler.RegisterHandler;
 import net.minecraft.block.Block;
@@ -13,20 +10,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.client.model.*;
-import net.minecraftforge.client.model.pipeline.IVertexConsumer;
-import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
-import net.minecraftforge.client.model.pipeline.VertexTransformer;
-import net.minecraftforge.common.model.TRSRTransformation;
+import net.minecraftforge.client.model.IModel;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -95,7 +87,16 @@ public class CopyBlockItemModel implements IBakedModel{
 
                 if(nbt != null && nbt.hasKey(BlockInfoCopyItem.NBT_BLOCK_ID)){
                     IBlockState storedBlk = (Block.getStateById(nbt.getInteger(BlockInfoCopyItem.NBT_BLOCK_ID)));
-                    IBakedModel storedBlkModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(storedBlk);
+                    IBakedModel storedBlkModel;
+                    if(storedBlk.getBlock().getRenderType(storedBlk) ==
+                            EnumBlockRenderType.ENTITYBLOCK_ANIMATED){
+                        ItemStack itemStack = new ItemStack(storedBlk.getBlock(),1);
+                        itemStack.setItemDamage(storedBlk.getBlock().getMetaFromState(storedBlk));
+                        storedBlkModel = Minecraft.getMinecraft().getRenderItem()
+                                .getItemModelWithOverrides(itemStack, world,entity);
+                    }
+                    else
+                        storedBlkModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(storedBlk);
                     builder.putModel(storedBlk, storedBlkModel);
                 }else {
                     builder.putModel(null, lowerModel);
@@ -199,9 +200,9 @@ public class CopyBlockItemModel implements IBakedModel{
         {
             if (type == ItemCameraTransforms.TransformType.GUI)
             {
-                selectors.get(0).second().handlePerspective(type);
+                return selectors.get(1).second().handlePerspective(type);
             }
-            return this.selectors.get(1).second().handlePerspective(type);
+            return this.selectors.get(0).second().handlePerspective(type);
         }
 
         public boolean isAmbientOcclusion()

@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.client.renders;
 
+import com.creativemd.creativecore.client.mods.optifine.OptifineHelper;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.nowandfuture.asm.Utils;
@@ -222,7 +223,6 @@ public class CubesBuilder {
     //check is the renderchunks are render(which chunks are contain the cube)
     @Deprecated
     public static boolean checkRenderChunkIsRender(RenderCube cube,BlockPos basePos) throws NoSuchFieldException, IllegalAccessException {
-
         OBBox bounding = cube.getTransformedOBBounding();
         Map<BlockPos,RenderChunk> map = Utils.getRenderChunkMap();
 
@@ -236,7 +236,7 @@ public class CubesBuilder {
             }
         } else
             return true;
-        return false;
+        return OptifineHelper.isActive();
     }
 
     //get the pos's(d3,d4,d5) render-chunk-pos in the world

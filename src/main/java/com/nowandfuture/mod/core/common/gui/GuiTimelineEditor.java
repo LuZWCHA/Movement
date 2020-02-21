@@ -27,6 +27,7 @@ import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
+import joptsimple.internal.Strings;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -133,6 +134,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     @Override
     public void updateScreen() {
         super.updateScreen();
+        timelineView.setCurTick(tileMovementModule.getLine().getTick());
     }
 
     @Override
@@ -298,7 +300,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         totalTimeBox.setValidator(new Predicate<String>() {
             @Override
             public boolean apply(@Nullable String input) {
-                if("".equals(input) || input ==null) {
+                if(Strings.EMPTY.equals(input) || input ==null) {
                     return true;
                 }
                 try {

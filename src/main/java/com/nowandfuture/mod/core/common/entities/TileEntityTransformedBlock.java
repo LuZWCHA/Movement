@@ -186,21 +186,23 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
 
     @Override
     public void setWorld(World worldIn) {
-        transformedBlockWorld = new TransformedBlockWorld(worldIn,localBlock,pos);
-        if(localBlock.tileEntity != null){
+        transformedBlockWorld = new TransformedBlockWorld(worldIn, localBlock, pos);
+        if (localBlock.tileEntity != null) {
             transformedBlockWorld.setRealWorld(worldIn);
             (localBlock.tileEntity).setWorld(transformedBlockWorld);
         }
+
         super.setWorld(worldIn);
     }
 
     @Override
     protected void setWorldCreate(World worldIn) {
-        transformedBlockWorld = new TransformedBlockWorld(worldIn,localBlock,pos);
-        if(localBlock.tileEntity != null){
+        transformedBlockWorld = new TransformedBlockWorld(worldIn, localBlock, pos);
+        if (localBlock.tileEntity != null) {
             transformedBlockWorld.setRealWorld(worldIn);
             (localBlock.tileEntity).setWorld(transformedBlockWorld);
         }
+
         super.setWorldCreate(worldIn);
     }
 
@@ -244,6 +246,7 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
     @SideOnly(Side.CLIENT)
     @Override
     public void onKeyDown() {
+        if(!world.isRemote) return;
         if(isInvalid()){
             KeyBindHandler.unregister(this);
             return;

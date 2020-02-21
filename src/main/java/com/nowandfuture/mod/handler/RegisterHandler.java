@@ -146,13 +146,6 @@ public final class RegisterHandler {
     }
 
     @SubscribeEvent
-    public static void registerModelBake(ModelBakeEvent event){
-        ModelResourceLocation model = new ModelResourceLocation(copyItem.getRegistryName(), "inventory");
-        event.getModelRegistry().putObject(model,new CopyBlockItemModel());
-
-    }
-
-    @SubscribeEvent
     public static void registerItems(ModelRegistryEvent event) {
         registerModel(constructorBlock,0);//"inventory"
         registerModel(anmEditorBlock,0);

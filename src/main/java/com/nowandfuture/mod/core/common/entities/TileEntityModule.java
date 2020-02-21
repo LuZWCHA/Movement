@@ -71,8 +71,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public void onLoad() {
         super.onLoad();
         moduleBase.createDefaultTransformer();
-        if(!world.isRemote)
-            CollisionHandler.modules.add(this);
+//        if(!world.isRemote)
+//            CollisionHandler.modules.add(this);
     }
 
     public void setModuleBase(@Nonnull ModuleBase moduleBase) {
@@ -160,7 +160,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         super.invalidate();
         if(world.isRemote)
             moduleBase.invalid();
-        CollisionHandler.modules.remove(this);
+//        CollisionHandler.modules.remove(this);
     }
 
     @Override
@@ -240,7 +240,6 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         }else if(pkt.getTileEntityType() == TIMELINE_UPDATE_PACKET){
             getLine().setEnable(nbtGet.getBoolean(NBT_ENABLE));
             getLine().update(nbtGet.getLong(NBT_TICK));
-
         }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
             getModuleBase().getLine().deserializeNBT(nbtGet);
         }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){

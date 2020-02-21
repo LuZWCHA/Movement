@@ -1,15 +1,9 @@
 package com.nowandfuture.asm;
 
-import net.minecraft.client.renderer.chunk.RenderChunk;
-import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
-import org.objectweb.asm.*;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.MethodNode;
-
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.function.Consumer;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 public class RenderChunkModifyPacket extends TransPacket {
     public static final String TARGET_CLASS = "net.minecraft.client.renderer.RenderGlobal$ContainerLocalRenderInformation";
@@ -40,7 +34,7 @@ public class RenderChunkModifyPacket extends TransPacket {
         methodVisitor.visitLabel(label0);
         methodVisitor.visitLineNumber(37, label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitFieldInsn(GETFIELD, "net/minecraft/client/renderer/RenderGlobal$ContainerLocalRenderInformation", "renderChunk"/*field_178036_a,renderChunk*/, "Lnet/minecraft/client/renderer/chunk/RenderChunk;");
+        methodVisitor.visitFieldInsn(GETFIELD, "net/minecraft/client/renderer/RenderGlobal$ContainerLocalRenderInformation", "field_178036_a"/*field_178036_a,renderChunk*/, "Lnet/minecraft/client/renderer/chunk/RenderChunk;");
         methodVisitor.visitInsn(ARETURN);
         Label label1 = new Label();
         methodVisitor.visitLabel(label1);

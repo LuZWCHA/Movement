@@ -45,7 +45,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import java.util.*;
-
 public class TransformedBlockWorld extends World {
     private World realWorld;
 

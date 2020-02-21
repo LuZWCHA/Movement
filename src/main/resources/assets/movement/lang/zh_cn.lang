@@ -32,7 +32,7 @@ movement.module.btn.hide=隐藏
 movement.module.btn.show=显示
 movement.module.btn.collision.enable=启用碰撞（测试）
 movement.module.btn.collision.disable=关闭碰撞（测试）
-movement.module.lab.collision.tip=仅使用最小包围盒检测碰撞
+movement.module.lab.collision.tip=使用最小包围盒检测碰撞
 
 movement.tooltip.prefab.size=大小
 movement.tooltip.timeline.mode=模式:

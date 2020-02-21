@@ -5,7 +5,6 @@ import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.TransformedBlockWorld;
 import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
-import com.nowandfuture.mod.handler.RegisterHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
@@ -38,7 +37,6 @@ import java.util.List;
 import java.util.Random;
 
 public class TransformedBlock extends Block {
-    private boolean isEdited;
 
     public TransformedBlock(Material blockMaterialIn, MapColor blockMapColorIn) {
         super(blockMaterialIn, blockMapColorIn);
@@ -431,7 +429,8 @@ public class TransformedBlock extends Block {
                             world.checkLight(pos.offset(EnumFacing.SOUTH));
 
                             worldIn.notifyBlockUpdate(pos, state, blockState, worldIn.isRemote ? 3 : 11);
-                            transformedBlock.setUpdateVBO(true);
+                            if(worldIn.isRemote)
+                                transformedBlock.setUpdateVBO(true);
                             return true;
                         }
                     }

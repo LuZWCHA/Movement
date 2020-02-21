@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.entity.Entity;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.event.world.GetCollisionBoxesEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -13,7 +14,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Predicate;
 
 //not finished,just test
 public class CollisionHandler {
@@ -26,12 +26,15 @@ public class CollisionHandler {
         AxisAlignedBB expanded = event.getAabb();
         List<AxisAlignedBB> list = event.getCollisionBoxesList();
 
-        modules.removeIf(new Predicate<TileEntityModule>() {
-            @Override
-            public boolean test(TileEntityModule tileEntityModule) {
-                return tileEntityModule.isInvalid();
-            }
-        });
+        if(entity == null) return;
+
+        modules.clear();
+
+        for (TileEntity te:
+        entity.getEntityWorld().loadedTileEntityList) {
+            if(te instanceof TileEntityModule)
+                modules.add((TileEntityModule) te);
+        }
 
         for (TileEntityModule module:
                 modules) {

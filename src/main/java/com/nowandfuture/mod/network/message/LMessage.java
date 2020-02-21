@@ -165,7 +165,7 @@ public abstract class LMessage implements IMessage {
                                     NBTTagCompound nbtTagCompound = message.nbt;
                                     if(nbtTagCompound != null){
                                         tileEntity.readFromNBT(nbtTagCompound);
-                                        NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                        NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                     }
                                 }
                                 break;
@@ -754,7 +754,6 @@ public abstract class LMessage implements IMessage {
                     case GUI_TICK_SLIDE:
                         if(tileEntity instanceof TileEntityShowModule) {
                             ((TileEntityShowModule) tileEntity).getLine().setTick(message.data);
-                            System.out.println(message.data);
                             NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityShowModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityShowModule) tileEntity).getLine().isEnable()));
                         }
                         break;
