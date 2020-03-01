@@ -48,7 +48,7 @@ public class TimeLine {
     }
 
     @Override
-    protected TimeLine clone(){
+    public TimeLine clone(){
         return new TimeLine(this);
     }
 
@@ -185,6 +185,11 @@ public class TimeLine {
 
     public void resetTick(){
         this.tick = 0;
+    }
+
+    public void reset(){
+        step = 1;
+        resetTick();
     }
 
     public void toMaxTick(){

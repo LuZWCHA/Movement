@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.gui;
 
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
+import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
@@ -21,7 +21,7 @@ public class GuiModule extends AbstractGuiContainer {
 
     private static final ResourceLocation MODULE_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/module_shower.png");
 
-    private TileEntityShowModule tileEntityShowModule;
+    private TileEntityCoreModule tileEntityCoreModule;
     private SliderView view;
     private MyLabel tickLabel;
     private MyLabel tipLabel;
@@ -29,9 +29,9 @@ public class GuiModule extends AbstractGuiContainer {
     private MyButton hideBlockBtn;
     private MyButton useClientCollisionBtn;//not finished
 
-    public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityShowModule tileEntityModule) {
+    public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityCoreModule tileEntityModule) {
         super(new ContainerModule(inventorySlotsIn,tileEntityModule));
-        this.tileEntityShowModule = tileEntityModule;
+        this.tileEntityCoreModule = tileEntityModule;
 
         xSize = 177;
         ySize = 166;
@@ -48,11 +48,10 @@ public class GuiModule extends AbstractGuiContainer {
         view.setProgressChanged(new Consumer<Float>() {
             @Override
             public void accept(Float aFloat) {
-                long total = tileEntityShowModule.getLine().getTotalTick();
                 long tick = aFloat.longValue();
                 LMessage.LongDataMessage message =
                         new LMessage.LongDataMessage(LMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
-                message.setPos(tileEntityShowModule.getPos());
+                message.setPos(tileEntityCoreModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
 //                tileEntityShowModule.getLine().setTick(tick);
             }
@@ -60,7 +59,7 @@ public class GuiModule extends AbstractGuiContainer {
         view.setProgressChanging(new Consumer<Float>() {
             @Override
             public void accept(Float aFloat) {
-                long total = tileEntityShowModule.getLine().getTotalTick();
+                long total = tileEntityCoreModule.getLine().getTotalTick();
                 long tick = aFloat.longValue();
 
                 tickLabel.setFirst(String.valueOf(tick));
@@ -68,8 +67,8 @@ public class GuiModule extends AbstractGuiContainer {
         });
         addView(view);
 
-        long tick = tileEntityShowModule.getLine().getTick();
-        long total = tileEntityShowModule.getLine().getTotalTick();
+        long tick = tileEntityCoreModule.getLine().getTick();
+        long total = tileEntityCoreModule.getLine().getTotalTick();
         view.setRange(total,0,0);
         tickLabel = createMyLabel(130,70,20,12,-1);
         tipLabel = createMyLabel(8,10,157,16,-1);
@@ -85,10 +84,10 @@ public class GuiModule extends AbstractGuiContainer {
         bind(useClientCollisionBtn, new ActionClick() {
             @Override
             public void clicked(MyGui gui, int button) {
-                tileEntityShowModule.setEnableCollision(!tileEntityShowModule.isEnableCollision());
+                tileEntityCoreModule.setEnableCollision(!tileEntityCoreModule.isEnableCollision());
                 updateCollisionEnableBtn();
                 LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_ENABLE_COLLISION_FLAG);
-                voidMessage.setPos(tileEntityShowModule.getPos());
+                voidMessage.setPos(tileEntityCoreModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
             }
         });
@@ -105,17 +104,17 @@ public class GuiModule extends AbstractGuiContainer {
         bind(hideBlockBtn, new ActionClick() {
             @Override
             public void clicked(MyGui gui, int button) {
-                tileEntityShowModule.setShowBlock(!tileEntityShowModule.isShowBlock());
+                tileEntityCoreModule.setShowBlock(!tileEntityCoreModule.isShowBlock());
                 updateShowOrHideBtn();
                 LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_SHOW_OR_HIDE_BLOCK_FLAG);
-                voidMessage.setPos(tileEntityShowModule.getPos());
+                voidMessage.setPos(tileEntityCoreModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
 
             }
         });
 
         //noinspection Duplicates
-        if(tileEntityShowModule.getStackInSlot(1).isEmpty()){
+        if(tileEntityCoreModule.getStackInSlot(1).isEmpty()){
             view.setVisible(false);
             tickLabel.visible = false;
         }else{
@@ -134,7 +133,7 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     private void updateCollisionEnableBtn(){
-        if(tileEntityShowModule.isEnableCollision()){
+        if(tileEntityCoreModule.isEnableCollision()){
             useClientCollisionBtn.displayString = R.name(R.id.text_module_btn_collision_disable_id);
         }else {
             useClientCollisionBtn.displayString = R.name(R.id.text_module_btn_collision_enable_id);
@@ -142,7 +141,7 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     private void updateShowOrHideBtn(){
-        if(tileEntityShowModule.isShowBlock()){
+        if(tileEntityCoreModule.isShowBlock()){
             hideBlockBtn.displayString = R.name(R.id.text_module_btn_hide_id);
         }else {
             hideBlockBtn.displayString = R.name(R.id.text_module_btn_show_id);
@@ -150,7 +149,7 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     private void updateStartOrStopBtn(){
-        if(!tileEntityShowModule.getLine().isEnable()){
+        if(!tileEntityCoreModule.getLine().isEnable()){
             startBtn.displayString = R.name(R.id.text_module_btn_start_id);
         }else {
             startBtn.displayString = R.name(R.id.text_module_btn_stop_id);
@@ -160,12 +159,12 @@ public class GuiModule extends AbstractGuiContainer {
     @SuppressWarnings("Duplicates")
     private void startOrStop(){
         LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_START_FLAG);
-        voidMessage.setPos(tileEntityShowModule.getPos());
-        if(tileEntityShowModule.getLine().isEnable()){
-            tileEntityShowModule.getLine().setEnable(false);
+        voidMessage.setPos(tileEntityCoreModule.getPos());
+        if(tileEntityCoreModule.getLine().isEnable()){
+            tileEntityCoreModule.getLine().setEnable(false);
             startBtn.displayString = R.name(R.id.text_module_btn_start_id);
         }else{
-            tileEntityShowModule.getLine().setEnable(true);
+            tileEntityCoreModule.getLine().setEnable(true);
             startBtn.displayString = R.name(R.id.text_module_btn_stop_id);
         }
         NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
@@ -176,7 +175,7 @@ public class GuiModule extends AbstractGuiContainer {
     public void updateScreen() {
         super.updateScreen();
 
-        if(tileEntityShowModule.getStackInSlot(1).isEmpty()){
+        if(tileEntityCoreModule.getStackInSlot(1).isEmpty()){
             view.setVisible(false);
             tickLabel.visible = false;
         }else{
@@ -185,8 +184,8 @@ public class GuiModule extends AbstractGuiContainer {
         }
 
         if(view.isVisible()){
-            long tick = tileEntityShowModule.getLine().getTick();
-            long total = tileEntityShowModule.getLine().getTotalTick();
+            long tick = tileEntityCoreModule.getLine().getTick();
+            long total = tileEntityCoreModule.getLine().getTotalTick();
 
             view.setRange(total,0,0);
             if(!view.isDrag()) {

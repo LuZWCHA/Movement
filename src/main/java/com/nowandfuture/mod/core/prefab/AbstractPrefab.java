@@ -100,14 +100,6 @@ public abstract class AbstractPrefab implements ITickable {
         return localWorld.getAllBlockNum();
     }
 
-//    public Vector3f getTransformedPos(Vector3f vector3f){
-//        return ;
-//    }
-//
-//    public Vector3f getTransformedWorldPos(Vector3f vector3f){
-//        return getTransformedPos(vector3f).translate(getBasePos().getX(),getBasePos().getY(),getBasePos().getZ());
-//    }
-
     public BlockPos getControlPoint() {
         return controlPoint;
     }
@@ -115,10 +107,6 @@ public abstract class AbstractPrefab implements ITickable {
     public void setBaseLocation(@Nonnull BlockPos baseLocation) {
         localWorld.setParentWorldPos(baseLocation);
     }
-
-//    public Vector3f getTransformedPos(){
-//        return localWorld.getTransformedPos();
-//    }
 
     public Vec3i getSize() {
         return size;
@@ -157,7 +145,8 @@ public abstract class AbstractPrefab implements ITickable {
                                 tileEntity.setWorld(worldWrap);
                                 ((ITickable) tileEntity).update();
                             } catch (Exception e) {
-                                Movement.logger.warn(tileEntity.getClass().getSimpleName() + "crashed, try to ban the tile entity in build!\n" + e.getMessage());
+                                Movement.logger.warn(tileEntity.getClass().getSimpleName() + " updated crashed, " +
+                                        "try to ban the tile entity in build!\n" + e.getMessage());
                                 tileEntity.setWorld(getActrualWorld());
                                 ((ITickable) tileEntity).update();
                             }

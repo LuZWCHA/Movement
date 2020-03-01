@@ -5,7 +5,7 @@ import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.gui.ContainerConstructor;
 import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.EmptyPrefab;
+import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import com.nowandfuture.mod.core.prefab.MultiThreadPrefabWrapper;
 import com.nowandfuture.mod.core.selection.AABBSelectArea;
 import com.nowandfuture.mod.network.BigNBTTagSplitPacketTool;
@@ -361,7 +361,7 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
                 !getStackInSlot(0).isEmpty()&&
                 isLock &&
                 lockUserName.equals(Minecraft.getMinecraft().player.getName())){
-            EmptyPrefab prefab = new EmptyPrefab(worldIn,pos.add(1,0,0),
+            NormalPrefab prefab = new NormalPrefab(worldIn,pos.add(1,0,0),
                     new Vec3i(aabbSelectArea.getXLength(),
                             aabbSelectArea.getYLength(),
                             aabbSelectArea.getZLength()));

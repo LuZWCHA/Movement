@@ -1,36 +1,27 @@
 package com.nowandfuture.mod.core.common.blocks;
 
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
 import com.nowandfuture.mod.core.common.gui.GuiModule;
-import com.nowandfuture.mod.core.selection.AxisAlignedBBWrap;
-import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.network.NetworkHandler;
-import com.nowandfuture.mod.utils.math.Matrix4f;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ModuleCoreBlock extends BlockDirectional {
 
@@ -50,8 +41,8 @@ public class ModuleCoreBlock extends BlockDirectional {
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if(tileEntity instanceof TileEntityShowModule){
-            InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityShowModule)tileEntity);
+        if(tileEntity instanceof TileEntityCoreModule){
+            InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityCoreModule)tileEntity);
             worldIn.updateComparatorOutputLevel(pos, this);
         }
         super.breakBlock(worldIn, pos, state);
@@ -141,7 +132,7 @@ public class ModuleCoreBlock extends BlockDirectional {
     @Nullable
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        return new TileEntityShowModule();
+        return new TileEntityCoreModule();
     }
 
     @Override

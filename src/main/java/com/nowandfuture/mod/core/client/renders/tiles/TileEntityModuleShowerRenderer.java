@@ -1,6 +1,6 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
+import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -12,10 +12,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<TileEntityShowModule>{
+public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<TileEntityCoreModule>{
 
     @Override
-    public void render(TileEntityShowModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+    public void render(TileEntityCoreModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         super.render(te, x, y, z, partialTicks, destroyStage, alpha);
 
         if(te.isShowBlock()) {
@@ -23,7 +23,7 @@ public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<Til
         }
     }
 
-    public void renderBlock(TileEntityShowModule te, double x, double y, double z){
+    public void renderBlock(TileEntityCoreModule te, double x, double y, double z){
         Minecraft.getMinecraft().entityRenderer.enableLightmap();
         RenderHelper.disableStandardItemLighting();
         GlStateManager.pushMatrix();

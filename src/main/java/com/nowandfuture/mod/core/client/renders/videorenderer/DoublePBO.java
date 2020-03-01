@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.client.renders.videorenderer;
 
+import com.nowandfuture.mod.Movement;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 
@@ -79,7 +80,7 @@ public class DoublePBO {
     private void checkError(){
         int error = GL11.glGetError();
         if(error != GL11.GL_NO_ERROR){
-            System.out.println("OpenGL Error:" + error);
+            Movement.logger.warn("OpenGL Error:" + error);
         }
     }
 }

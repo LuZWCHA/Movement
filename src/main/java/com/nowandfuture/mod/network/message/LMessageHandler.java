@@ -149,28 +149,28 @@ public class LMessageHandler<T extends LMessage,P extends IMessage> implements I
                                 }
                                 break;
                             case GUI_SHOW_OR_HIDE_BLOCK_FLAG:
-                                if(tileEntity instanceof TileEntityShowModule){
+                                if(tileEntity instanceof TileEntityCoreModule){
 
-                                    if(((TileEntityShowModule) tileEntity).isShowBlock()) {
-                                        ((TileEntityShowModule) tileEntity).setShowBlock(false);
+                                    if(((TileEntityCoreModule) tileEntity).isShowBlock()) {
+                                        ((TileEntityCoreModule) tileEntity).setShowBlock(false);
                                     }else{
-                                        ((TileEntityShowModule) tileEntity).setShowBlock(true);
+                                        ((TileEntityCoreModule) tileEntity).setShowBlock(true);
                                     }
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,
-                                            ((TileEntityShowModule) tileEntity).getShowBlockPacket()
+                                            ((TileEntityCoreModule) tileEntity).getShowBlockPacket()
                                     );
                                 }
                                 break;
                             case GUI_ENABLE_COLLISION_FLAG:
-                                if(tileEntity instanceof TileEntityShowModule){
+                                if(tileEntity instanceof TileEntityCoreModule){
 
-                                    if(((TileEntityShowModule) tileEntity).isEnableCollision()) {
-                                        ((TileEntityShowModule) tileEntity).setEnableCollision(false);
+                                    if(((TileEntityCoreModule) tileEntity).isEnableCollision()) {
+                                        ((TileEntityCoreModule) tileEntity).setEnableCollision(false);
                                     }else{
-                                        ((TileEntityShowModule) tileEntity).setEnableCollision(true);
+                                        ((TileEntityCoreModule) tileEntity).setEnableCollision(true);
                                     }
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,
-                                            ((TileEntityShowModule) tileEntity).getCollisionEnablePacket()
+                                            ((TileEntityCoreModule) tileEntity).getCollisionEnablePacket()
                                     );
                                 }
                                 break;
@@ -368,10 +368,10 @@ public class LMessageHandler<T extends LMessage,P extends IMessage> implements I
             if(tileEntity != null){
                 switch (message.flag){
                     case GUI_TICK_SLIDE:
-                        if(tileEntity instanceof TileEntityShowModule) {
-                            ((TileEntityShowModule) tileEntity).getLine().setTick(message.data);
+                        if(tileEntity instanceof TileEntityCoreModule) {
+                            ((TileEntityCoreModule) tileEntity).getLine().setTick(message.data);
                             System.out.println(message.data);
-                            NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityShowModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityShowModule) tileEntity).getLine().isEnable()));
+                            NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityCoreModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityCoreModule) tileEntity).getLine().isEnable()));
                         }
                         break;
                 }

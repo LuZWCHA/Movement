@@ -2,6 +2,7 @@ package com.nowandfuture.mod.core.client.renders;
 
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.FutureCallback;
+import com.nowandfuture.asm.IRender;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.client.Minecraft;
@@ -15,9 +16,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -34,6 +33,8 @@ public enum ModuleRenderManager {
     private Map<AbstractPrefab,CubesRenderer> cubesRendererMap;
     private int cpuCores;
     private boolean isInit = false;
+
+    private Queue<IRender> renderQueue;
 
     ModuleRenderManager(){
         init();
@@ -66,6 +67,7 @@ public enum ModuleRenderManager {
         }
 
         cubesRendererMap = new HashMap<>();
+        renderQueue = new LinkedList<>();
         isInit = true;
     }
 
@@ -94,6 +96,7 @@ public enum ModuleRenderManager {
         if(!executor.isShutdown())
             executor.shutdownNow();
         priorityBlockingQueue.clear();
+        renderQueue.clear();
 
         for (CubesRenderer c :
                 cubesRendererMap.values()) {
@@ -130,6 +133,10 @@ public enum ModuleRenderManager {
 
     public ClippingHelperExt getClippingHelper() {
         return clippingHelper;
+    }
+
+    public Queue<IRender> getRenderQueue() {
+        return renderQueue;
     }
 
     public static class ClippingHelperExt extends ClippingHelper {

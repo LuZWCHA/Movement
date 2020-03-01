@@ -3,7 +3,7 @@ package com.nowandfuture.mod.core.movecontrol;
 import com.nowandfuture.mod.api.IModule;
 import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.EmptyPrefab;
+import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import com.nowandfuture.mod.core.transformers.*;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
@@ -19,7 +19,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 
-public class ModuleBase implements IModule,ITickable {
+public class ModuleBase implements IModule {
 
     public final String NBT_MODULE_NAME = "ModuleName";
     public final String NBT_AUTHOR = "Author";
@@ -45,7 +45,7 @@ public class ModuleBase implements IModule,ITickable {
 
     public ModuleBase(){
         super();
-        prefab = new EmptyPrefab();
+        prefab = new NormalPrefab();
         line = new KeyFrameLine();
         transRes = new Matrix4f();
         //all animation only create on client
@@ -109,6 +109,12 @@ public class ModuleBase implements IModule,ITickable {
     @Override
     public BlockPos getModulePos() {
         return prefab.getBasePos();
+    }
+
+    @Override
+    public void doTransform(double p, Matrix4f matrix4f, BlockPos offset) {
+        transformPre(p,matrix4f);
+        transformPost(p,matrix4f);
     }
 
     public void setTransformNode(@Nonnull AbstractTransformNode part){

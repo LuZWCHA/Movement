@@ -1,13 +1,15 @@
 package com.nowandfuture.mod.api;
 
-import com.nowandfuture.asm.IRender;
+import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
-public interface IModule {
+public interface IModule extends ITickable {
     void readModuleFromNBT(NBTTagCompound compound);
     NBTTagCompound writeModuleToNBT(NBTTagCompound compound);
     boolean isEnable();
     BlockPos getModulePos();
+    void doTransform(double p, Matrix4f matrix4f, BlockPos offset);
 }

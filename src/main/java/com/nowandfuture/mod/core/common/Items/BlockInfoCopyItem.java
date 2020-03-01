@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.Items;
 
+import com.nowandfuture.mod.core.client.renders.tiles.CopyItemStackRenderer;
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
@@ -43,6 +44,7 @@ public class BlockInfoCopyItem extends Item {
                 return isEmpty(stack.getTagCompound()) ? 1:0;//1 - isReady
             }
         });
+        setTileEntityItemStackRenderer(new CopyItemStackRenderer());
     }
 
     @Override
@@ -97,4 +99,8 @@ public class BlockInfoCopyItem extends Item {
         return isEmpty;
     }
 
+    @Override
+    public void setTileEntityItemStackRenderer(@Nullable TileEntityItemStackRenderer teisr) {
+        super.setTileEntityItemStackRenderer(teisr);
+    }
 }

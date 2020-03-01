@@ -34,7 +34,7 @@ public class RenderChunkModifyPacket extends TransPacket {
         methodVisitor.visitLabel(label0);
         methodVisitor.visitLineNumber(37, label0);
         methodVisitor.visitVarInsn(ALOAD, 0);
-        methodVisitor.visitFieldInsn(GETFIELD, "net/minecraft/client/renderer/RenderGlobal$ContainerLocalRenderInformation", "field_178036_a"/*field_178036_a,renderChunk*/, "Lnet/minecraft/client/renderer/chunk/RenderChunk;");
+        methodVisitor.visitFieldInsn(GETFIELD, "net/minecraft/client/renderer/RenderGlobal$ContainerLocalRenderInformation", "renderChunk"/*field_178036_a,renderChunk*/, "Lnet/minecraft/client/renderer/chunk/RenderChunk;");
         methodVisitor.visitInsn(ARETURN);
         Label label1 = new Label();
         methodVisitor.visitLabel(label1);

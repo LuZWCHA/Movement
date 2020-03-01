@@ -321,7 +321,6 @@ public class DrawHelper {
         BufferBuilder var2 = Tessellator.getInstance().getBuffer();
         Tessellator tessellator = Tessellator.getInstance();
 
-        GlStateManager.color(1,0,0);
         var2.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
         var2.pos(0, 0, 0).endVertex();
         var2.pos(0, 5, 0).endVertex();

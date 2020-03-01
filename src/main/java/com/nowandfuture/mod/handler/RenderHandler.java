@@ -29,7 +29,6 @@ import java.util.function.Consumer;
 
 @SideOnly(Side.CLIENT)
 public class RenderHandler {
-    private static final Deque<IRender> renderModules = new LinkedList<>();
     private static final Map<BlockPos,Integer> scores = new LinkedHashMap<>();
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -41,8 +40,8 @@ public class RenderHandler {
     public void handleWorldRender(RenderWorldLastEvent renderWorldLastEvent) {
 
         RenderHook.forceClear();
-        while (!renderModules.isEmpty()){
-            IRender iRender = renderModules.poll();
+        while (!ModuleRenderManager.INSTANCE.getRenderQueue().isEmpty()){
+            IRender iRender = ModuleRenderManager.INSTANCE.getRenderQueue().poll();
             RenderHook.offer(iRender);
         }
         scores.clear();
@@ -61,25 +60,17 @@ public class RenderHandler {
         return scores;
     }
 
-    public static Deque<IRender> getRenderModules() {
-        return renderModules;
-    }
-
-    public static void addRenderer(IRender renderer){
-        renderModules.addFirst(renderer);
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void handleUnloadWorld(WorldEvent.Unload unload){
         if(unload.getWorld().isRemote) {
             TransformedBlockRenderMap.INSTANCE.clear();
-            renderModules.clear();
             Utils.mapCache = null;
             ModuleRenderManager.INSTANCE.invalid();
 
             SyncTasks.INSTANCE.showdownNow();
             SyncTasks.INSTANCE.init();
-            unload.getWorld().loadedTileEntityList.forEach(new Consumer<TileEntity>() {
+            unload.getWorld().loadedTileEntityList
+                    .forEach(new Consumer<TileEntity>() {
                 @Override
                 public void accept(TileEntity tileEntity) {
                     if(tileEntity instanceof TileEntitySimplePlayer){

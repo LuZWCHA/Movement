@@ -1,7 +1,6 @@
 package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.Movement;
-import com.nowandfuture.mod.core.client.renders.CopyBlockItemModel;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
@@ -9,14 +8,11 @@ import com.nowandfuture.mod.core.common.MovementCreativeTab;
 import com.nowandfuture.mod.core.common.blocks.*;
 import com.nowandfuture.mod.core.common.entities.*;
 import net.minecraft.block.Block;
-import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.ModelBakeEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
@@ -48,7 +44,7 @@ public final class RegisterHandler {
         GameRegistry.registerTileEntity(TileEntityModule.class,new ResourceLocation(MODID,"module_tile"));
         GameRegistry.registerTileEntity(TileEntityConstructor.class,new ResourceLocation(MODID,"constructor_tile"));
         GameRegistry.registerTileEntity(TileEntityTimelineEditor.class,new ResourceLocation(MODID,"editor_tile"));
-        GameRegistry.registerTileEntity(TileEntityShowModule.class,new ResourceLocation(MODID,"moduleshow_tile"));
+        GameRegistry.registerTileEntity(TileEntityCoreModule.class,new ResourceLocation(MODID,"moduleshow_tile"));
         GameRegistry.registerTileEntity(TileEntityTransformedBlock.class,new ResourceLocation(MODID,"transformedblock_tile"));
         GameRegistry.registerTileEntity(TileEntitySimplePlayer.class,new ResourceLocation(MODID,"video_tile"));
 

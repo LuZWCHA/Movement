@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
+import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.*;
@@ -25,7 +25,7 @@ public class GuiHandler implements IGuiHandler {
                 case GuiTimelineEditor.GUI_ID:
                     return new ContainerAnmEditor(player.inventory, (TileEntityTimelineEditor) tile);
                 case GuiModule.GUI_ID:
-                    return new ContainerModule(player.inventory, (TileEntityShowModule) tile);
+                    return new ContainerModule(player.inventory, (TileEntityCoreModule) tile);
                 case GuiMediaPlayer.GUI_ID:
                     return new ContainerSimplePlayer();
             }
@@ -44,7 +44,7 @@ public class GuiHandler implements IGuiHandler {
                 case GuiTimelineEditor.GUI_ID:
                     return new GuiTimelineEditor(player.inventory, (TileEntityTimelineEditor) tile);
                 case GuiModule.GUI_ID:
-                    return new GuiModule(player.inventory, (TileEntityShowModule) tile);
+                    return new GuiModule(player.inventory, (TileEntityCoreModule) tile);
                 case GuiMediaPlayer.GUI_ID:
                     return new GuiMediaPlayer((TileEntitySimplePlayer) tile);
             }

@@ -142,7 +142,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         rightLayout.addChildren(previewView,xSliderView,ySliderView,zSliderView,
                 xOffset,yOffset,zOffset,resetBtn,recoverBtn);
 
-        timeLine = tileMovementModule.getLine().clone();
+        timeLine = (KeyFrameLine) tileMovementModule.getLine().clone();
         //trans a clone of keyframe line not the origin one
         timelineView.init(timeLine,tileMovementModule.getPrefab());
 
@@ -592,7 +592,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numLabel0.setFirst(R.name(R.id.text_module_lab_value_scale_id));
                     numBox0.setText(String.valueOf(scaleKeyFrame.scale));
 
-                    keyTitle.setFirst(R.name(R.id.text_module_lab_key_title3_id) + String.valueOf(keyFrame.getBeginTick()));
+                    keyTitle.setFirst(R.name(R.id.text_module_lab_key_title3_id) + keyFrame.getBeginTick());
 
                     setVisible(true,numLabel0,numBox0);
                     break;

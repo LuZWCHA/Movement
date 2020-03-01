@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.entities;
 
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
 
@@ -10,4 +11,12 @@ public interface IClickableTile {
     Vec3d getClickableFaceNormal();
     float getReachedDistance();
     AxisAlignedBB getClickBox();
+    IBox getExtentBox();
+
+
+    interface IBox{
+        boolean intersect();
+        Vector3f intersectAt();
+        long intersectAtTime();
+    }
 }

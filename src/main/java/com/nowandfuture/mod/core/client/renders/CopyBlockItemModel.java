@@ -10,7 +10,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumBlockRenderType;
@@ -19,17 +21,22 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.model.IModel;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
+import net.minecraftforge.client.model.pipeline.IVertexConsumer;
+import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
+import net.minecraftforge.client.model.pipeline.VertexTransformer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
 
 public class CopyBlockItemModel implements IBakedModel{
-    private IBakedModel lowerModel;
+    private IBakedModel lowerModel,upperModel;
     private final static ModelResourceLocation lowerLocation = new ModelResourceLocation(RegisterHandler.copyItem.getRegistryName(), "inventory");
     public CopyBlockItemModel() {
         lowerModel = getBakedModel(lowerLocation);
@@ -41,7 +48,7 @@ public class CopyBlockItemModel implements IBakedModel{
     }
     @Override
     public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-        return Lists.newArrayList();
+        return upperModel.getQuads(state, side, rand);
     }
 
     @Override
@@ -54,6 +61,24 @@ public class CopyBlockItemModel implements IBakedModel{
         return false;
     }
 
+    //if no way to render chest and the other tileitem,render before
+    /**do render here,because stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack) don't render
+     * if (model.isBuiltInRenderer())
+     {
+     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+     GlStateManager.enableRescaleNormal();
+     stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack);
+     }
+     else
+     {
+     this.renderModel(model, stack);
+
+     if (stack.hasEffect())
+     {
+     this.renderEffect(model);
+     }
+     }*/
+    // TODO: 2020/2/22 render here
     @Override
     public boolean isBuiltInRenderer() {
         return false;
@@ -88,18 +113,21 @@ public class CopyBlockItemModel implements IBakedModel{
                 if(nbt != null && nbt.hasKey(BlockInfoCopyItem.NBT_BLOCK_ID)){
                     IBlockState storedBlk = (Block.getStateById(nbt.getInteger(BlockInfoCopyItem.NBT_BLOCK_ID)));
                     IBakedModel storedBlkModel;
+
                     if(storedBlk.getBlock().getRenderType(storedBlk) ==
                             EnumBlockRenderType.ENTITYBLOCK_ANIMATED){
-                        ItemStack itemStack = new ItemStack(storedBlk.getBlock(),1);
-                        itemStack.setItemDamage(storedBlk.getBlock().getMetaFromState(storedBlk));
-                        storedBlkModel = Minecraft.getMinecraft().getRenderItem()
-                                .getItemModelWithOverrides(itemStack, world,entity);
+                        Item item = storedBlk.getBlock().getItemDropped(storedBlk,new Random(),1);
+
+                        ItemStack itemStack = new ItemStack(item,1);
+//                        itemStack.setItemDamage(storedBlk.getBlock().getMetaFromState(storedBlk));
+                        storedBlkModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(itemStack);
                     }
                     else
                         storedBlkModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(storedBlk);
                     builder.putModel(storedBlk, storedBlkModel);
+                    upperModel = storedBlkModel;
                 }else {
-                    builder.putModel(null, lowerModel);
+                    builder.putModel(null, null);
                 }
                 return builder.makeMultipartModel();
             }
@@ -125,23 +153,21 @@ public class CopyBlockItemModel implements IBakedModel{
             this.cameraTransforms = ibakedmodel.getItemCameraTransforms();
         }
 
-
-
-        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand)
-        {
+        @Override
+        public List<BakedQuad> getQuads(@Nullable IBlockState state, @Nullable EnumFacing side, long rand){
             List<BakedQuad> list = Lists.<BakedQuad>newArrayList();
             List<BakedQuad> list2 = Lists.newArrayList();
             int i = 0;
             for (Pair<IBlockState, IBakedModel> entry : this.selectors)
             {
+                if(entry.second() == null) continue;
                 List<BakedQuad> list1 = entry.second().getQuads(entry.first(),side,rand++);
-
 
                 if(i++ == 1) {
                     list1.forEach(new Consumer<BakedQuad>() {
                         @Override
                         public void accept(BakedQuad bakedQuad) {
-                            list2.add(bakedQuad);
+                            list2.add(transform(bakedQuad));
                         }
                     });
                     list.addAll(list2);
@@ -153,46 +179,53 @@ public class CopyBlockItemModel implements IBakedModel{
 
             return list;
         }
-//
-//        private BakedQuad transform(BakedQuad quad, int slotNo, boolean isOpened) {
-//            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.BLOCK);
-//            final IVertexConsumer consumer = new VertexTransformer(builder) {
-//                @Override
-//                public void put(int element, float... data) {
-//                    VertexFormatElement formatElement = DefaultVertexFormats.BLOCK.getElement(element);
-//                    switch(formatElement.getUsage()) {
-//                        case POSITION: {
-//                            /*
-//                             * 0 is x (positive to east)
-//                             * 1 is y (positive to up)
-//                             * 2 is z (positive to south)
-//                             * 3 is idk
-//                             */
-//                            float[] newData = data;
-//
-//                            float moveToRight = (slotNo * 0.3f)/16f;
-//                            float moveForward = isOpened ? 0.3f/16f : 0f;
-//
-//                            newData[0] = newData[0] + moveToRight;
-//                            newData[2] = newData[2] + moveForward;
-//
-//                            System.out.println("newData = " + newData[2]);
-//                            parent.put(element, newData);
-//                            break;
-//                        }
-//                        case GENERIC:
-//
-//
-//                        default: {
-//                            parent.put(element, data);
-//                            break;
-//                        }
-//                    }
-//                }
-//            };
-//            quad.pipe(consumer);
-//            return builder.build();
-//        }
+
+        private BakedQuad transform(BakedQuad quad) {
+            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.BLOCK);
+            final IVertexConsumer consumer = new VertexTransformer(builder) {
+                @Override
+                public void put(int element, float... data) {
+                    VertexFormatElement formatElement = DefaultVertexFormats.BLOCK.getElement(element);
+                    switch(formatElement.getUsage()) {
+                        case COLOR: {
+                            /*
+                             * 0 is x (positive to east)
+                             * 1 is y (positive to up)
+                             * 2 is z (positive to south)
+                             * 3 is idk
+                             */
+                            float[] newData = data;
+
+                            newData[3] *= 0.8;
+
+                            super.put(element, newData);
+                        }
+                        break;
+                        case POSITION: {
+                            /*
+                             * 0 is x (positive to east)
+                             * 1 is y (positive to up)
+                             * 2 is z (positive to south)
+                             * 3 is idk
+                             */
+                            float[] newData = data;
+
+                            newData[1] += 1f;
+
+                            super.put(element, newData);
+                            break;
+                        }
+
+                        default: {
+                            super.put(element, data);
+                            break;
+                        }
+                    }
+                }
+            };
+            quad.pipe(consumer);
+            return builder.build();
+        }
 
 
         @Override
@@ -200,7 +233,13 @@ public class CopyBlockItemModel implements IBakedModel{
         {
             if (type == ItemCameraTransforms.TransformType.GUI)
             {
-                return selectors.get(1).second().handlePerspective(type);
+                Matrix4f matrix4f = new Matrix4f();
+                matrix4f.setIdentity();
+                if(selectors.get(1).second() != null) {
+                    matrix4f.setTranslation(new Vector3f(0, -.25f, 0));
+                    matrix4f.setScale(0.5f);
+                }
+                return org.apache.commons.lang3.tuple.Pair.of(this,matrix4f);
             }
             return this.selectors.get(0).second().handlePerspective(type);
         }
@@ -217,7 +256,7 @@ public class CopyBlockItemModel implements IBakedModel{
 
         public boolean isBuiltInRenderer()
         {
-            return false;
+            return selectors.get(1).second()!=null && selectors.get(1).second().isBuiltInRenderer();
         }
 
         public TextureAtlasSprite getParticleTexture()
@@ -227,7 +266,7 @@ public class CopyBlockItemModel implements IBakedModel{
 
         public ItemOverrideList getOverrides()
         {
-            return ItemOverrideList.NONE;
+            return selectors.get(1).second().getOverrides();
         }
 
         @SideOnly(Side.CLIENT)

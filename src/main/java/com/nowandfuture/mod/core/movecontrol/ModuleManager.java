@@ -30,29 +30,4 @@ public enum ModuleManager {
         return renderModules;
     }
 
-    public void spawnModule(World world,BlockPos pos){
-        renderModules.addFirst(modules.get(pos));
-        TileEntityTimelineEditor module = (TileEntityTimelineEditor) renderModules.getFirst();
-        module.setModulePos(pos);
-
-        //world.setTileEntity(pos,module);
-
-         Minecraft.getMinecraft().world.addTileEntity(module);
-
-
-
-        //TileEntitySpecialRenderer build = TileEntityRendererDispatcher.instance.getRenderer(ModuleBase.class);
-        module.setPos(pos);
-
-    }
-
-    public void spawnModule(EntityPlayerSP player){
-        spawnModule(player.world,player.getPosition());
-    }
-
-
-
-    public void spawnTest(EntityPlayerSP player){
-        spawnModule(player);
-    }
 }

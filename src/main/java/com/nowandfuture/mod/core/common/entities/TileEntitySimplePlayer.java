@@ -13,6 +13,7 @@ import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import joptsimple.internal.Strings;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -281,7 +282,9 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
                     NetworkHandler.syncToTrackingClients(world,this,getUpdatePacket());
 
             }else{
-                //do nothing
+                if(Minecraft.getMinecraft().isGamePaused()){
+                    simplePlayer.pause();
+                }
             }
         }
     }
@@ -418,5 +421,11 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
     @Override
     public AxisAlignedBB getClickBox() {
         return getScreenAABB().offset(getPos());
+    }
+
+    @Override
+    public IBox getExtentBox() {
+        //not used
+        return null;
     }
 }

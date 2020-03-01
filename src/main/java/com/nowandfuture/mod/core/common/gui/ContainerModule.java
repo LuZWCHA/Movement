@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.gui;
 
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
-import com.nowandfuture.mod.core.common.entities.TileEntityShowModule;
+import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.gui.slots.PrefabOnlySlot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -11,10 +11,10 @@ import net.minecraft.item.ItemStack;
 
 public class ContainerModule extends Container {
 
-    private TileEntityShowModule tileEntityModule;
+    private TileEntityCoreModule tileEntityModule;
     private PrefabOnlySlot slot;
 
-    public ContainerModule(InventoryPlayer playerInventory, TileEntityShowModule tileEntityModule){
+    public ContainerModule(InventoryPlayer playerInventory, TileEntityCoreModule tileEntityModule){
         super();
         this.tileEntityModule = tileEntityModule;
 

@@ -1,10 +1,11 @@
 package com.nowandfuture.mod.core.common.entities;
 
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.EmptyPrefab;
+import com.nowandfuture.mod.core.prefab.AnchorList;
+import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -20,7 +21,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-public class TileEntityShowModule extends TileEntityModule {
+public class TileEntityCoreModule extends TileEntityModule {
 
     private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
@@ -38,6 +39,8 @@ public class TileEntityShowModule extends TileEntityModule {
 
     private boolean showBlock = true;
 
+    AnchorList anchorList;
+
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
         return super.getRenderBoundingBox();
@@ -46,11 +49,6 @@ public class TileEntityShowModule extends TileEntityModule {
     @Override
     public double getMaxRenderDistanceSquared() {
         return super.getMaxRenderDistanceSquared();
-    }
-
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
-        return (oldState.getBlock() != newSate.getBlock());
     }
 
     @Override
@@ -118,7 +116,7 @@ public class TileEntityShowModule extends TileEntityModule {
             if(getStackInSlot(index).isEmpty()){
                 this.setEmptyPrefab();
             }else{
-                AbstractPrefab prefab = new EmptyPrefab();
+                AbstractPrefab prefab = new NormalPrefab();
                 NBTTagCompound compound = getStackInSlot(0).getTagCompound();
                 if(compound != null) {
                     prefab.readFromNBT(compound,world);
@@ -129,7 +127,6 @@ public class TileEntityShowModule extends TileEntityModule {
         }else if(index == 1){//timeline changed
             if(getStackInSlot(index).isEmpty()){
                 this.getLine().reset();
-                this.getLine().resetTick();
             }else{
                 NBTTagCompound compound = getStackInSlot(1).getTagCompound();
                 if(compound != null) {

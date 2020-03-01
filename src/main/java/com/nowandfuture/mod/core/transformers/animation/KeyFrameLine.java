@@ -191,6 +191,11 @@ public class KeyFrameLine extends TimeLine {
         init();
     }
 
+    @Override
+    public void resetTick() {
+        super.resetTick();
+    }
+
     private void fixKeyFrame(KeyFrame keyFrame){
         if(keyFrame.getBeginTick() < 0 ) keyFrame.setBeginTick(0);
         if(keyFrame.getBeginTick() > getTotalTick()) keyFrame.setBeginTick(getTotalTick());
@@ -284,14 +289,13 @@ public class KeyFrameLine extends TimeLine {
         return false;
     }
 
-    public boolean update(long tick) {
-
+    @Override
+    public TimeLine setTick(long tick) {
         if(tick != getTick()) {
-            setTick(tick);
+            super.setTick(tick);
             updateSections(false);
-            return true;
         }
-        return false;
+        return this;
     }
 
     private void updateSections(boolean force){ ;
