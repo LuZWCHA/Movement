@@ -4,6 +4,7 @@ import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
 import com.nowandfuture.mod.core.common.gui.GuiModule;
+import com.nowandfuture.mod.core.common.gui.IDynamicInventory;
 import com.nowandfuture.mod.network.NetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
@@ -43,6 +44,7 @@ public class ModuleCoreBlock extends BlockDirectional {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if(tileEntity instanceof TileEntityCoreModule){
             InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityCoreModule)tileEntity);
+            IDynamicInventory.dropInventoryItems(worldIn,pos,((TileEntityCoreModule) tileEntity).getDynamicInventory());
             worldIn.updateComparatorOutputLevel(pos, this);
         }
         super.breakBlock(worldIn, pos, state);
