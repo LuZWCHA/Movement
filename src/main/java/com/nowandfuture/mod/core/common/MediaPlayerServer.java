@@ -2,7 +2,6 @@ package com.nowandfuture.mod.core.common;
 
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
-import com.nowandfuture.ffmpeg.player.PlayHandler;
 
 import java.util.Map;
 

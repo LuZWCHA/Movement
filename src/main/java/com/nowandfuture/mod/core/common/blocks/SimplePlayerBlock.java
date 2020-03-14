@@ -27,13 +27,13 @@ import javax.annotation.Nullable;
 public class SimplePlayerBlock extends BlockDirectional {
     public SimplePlayerBlock(){
         this(Material.SAND);
-        setUnlocalizedName("SimplePlayerBlock");
+        setTranslationKey("SimplePlayerBlock");
     }
 
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.getFront(meta & 7));
+        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
     }
 
     @Override

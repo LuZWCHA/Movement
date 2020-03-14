@@ -91,9 +91,9 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         nameTexField.setEnableBackgroundDrawing(false);
         nameTexField.setMaxStringLength(40);
 
-        xLengthLab.setCentered();
-        yLengthLab.setCentered();
-        zLengthLab.setCentered();
+        xLengthLab.setCentered(true);
+        yLengthLab.setCentered(true);
+        zLengthLab.setCentered(true);
 
         addGuiCompoundsRelative(
                 lockBtn,

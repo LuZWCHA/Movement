@@ -45,7 +45,7 @@ public class TransformedBlock extends Block {
     public TransformedBlock(){
         this(Material.WEB);
 
-        setUnlocalizedName("TransformedBlock");
+        setTranslationKey("TransformedBlock");
     }
 
     public TransformedBlock(Material materialIn) {
@@ -378,12 +378,6 @@ public class TransformedBlock extends Block {
         else
             return block.removedByPlayer(transformedBlock.getLocalBlock().blockState, world, pos, player, willHarvest);
 
-    }
-
-    @Override
-    public void onBlockDestroyedByPlayer(World worldIn, BlockPos pos, IBlockState state) {
-
-        super.onBlockDestroyedByPlayer(worldIn, pos, state);
     }
 
     @Override

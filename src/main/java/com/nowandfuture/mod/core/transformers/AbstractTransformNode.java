@@ -82,7 +82,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     }
 
     public void readParametersFromNBT(NBTTagCompound compound){
-        if(compound.hasNoTags()) return;
+        if(compound.isEmpty()) return;
         typeId = compound.getLong(NBT_TYPE);
 
         if (compound.hasKey(NBT_INTERPOLATION_TYPE)) {

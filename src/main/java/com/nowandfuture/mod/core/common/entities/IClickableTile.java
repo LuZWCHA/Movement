@@ -9,8 +9,11 @@ public interface IClickableTile {
     boolean onLeftClick(Vec3d hit);
     //set (0,0,0) disable this option
     Vec3d getClickableFaceNormal();
+    //the distance the entities can reach this tileEntity
     float getReachedDistance();
+    //AABB
     AxisAlignedBB getClickBox();
+    //other box may used
     IBox getExtentBox();
 
 

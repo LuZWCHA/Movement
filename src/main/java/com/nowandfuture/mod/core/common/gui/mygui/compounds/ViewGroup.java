@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -16,6 +17,7 @@ import java.nio.Buffer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
@@ -32,9 +34,13 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     private boolean isFocused;
     private boolean visible = true;
+    private boolean isHover = false;
+    private boolean isClickable = true;
     private int[] pads = new int[4];
 
     private AbstractGuiContainer.ActionClick actionClick;
+
+    protected boolean isScissor = false;
 
     protected ViewGroup(){
 
@@ -56,6 +62,14 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     public RootView getRoot() {
         return root;
+    }
+
+    public boolean isClickable() {
+        return isClickable;
+    }
+
+    public void setClickable(boolean clickable) {
+        isClickable = clickable;
     }
 
     @Override
@@ -181,21 +195,72 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
-        onDraw(mouseX, mouseY, partialTicks);
 
-        int tempX, tempY;
-        for (ViewGroup view :
-                children) {
-            if(view.isVisible()) {
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(view.getX(), view.getY(), 0);
-                tempX = mouseX - view.getX();
-                tempY = mouseY - view.getY();
-                view.draw(tempX, tempY, partialTicks);
-                GlStateManager.popMatrix();
+        if(isScissor) {
+            final ScaledResolution res = new ScaledResolution(getRoot().context);
+            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
+            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
+            final int ax = getAbsoluteX();
+            final int ay = getAbsoluteY();
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
+                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
+            onDraw(mouseX, mouseY, partialTicks);
+
+            int tempX, tempY;
+            for (ViewGroup view :
+                    children) {
+                if (view.isVisible()) {
+                    GlStateManager.pushMatrix();
+                    GlStateManager.translate(view.getX(), view.getY(), 0);
+                    tempX = mouseX - view.getX();
+                    tempY = mouseY - view.getY();
+                    view.draw(tempX, tempY, partialTicks);
+                    GlStateManager.popMatrix();
+                }
+            }
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }else{
+            onDraw(mouseX, mouseY, partialTicks);
+
+            int tempX, tempY;
+            for (ViewGroup view :
+                    children) {
+                if (view.isVisible()) {
+                    GlStateManager.pushMatrix();
+                    GlStateManager.translate(view.getX(), view.getY(), 0);
+                    tempX = mouseX - view.getX();
+                    tempY = mouseY - view.getY();
+                    view.draw(tempX, tempY, partialTicks);
+                    GlStateManager.popMatrix();
+                }
             }
         }
 
+    }
+
+    public ViewGroup checkHover(int mouseX, int mouseY){
+        ViewGroup vg;
+        int tempX,tempY;
+        if(isVisible() &&
+                checkParentHover() && RootView.isInside(this,mouseX,mouseY) ||
+                !checkParentHover()) {
+            for (int i = children.size(); i > 0; i--) {
+                vg = children.get(i - 1);
+                tempX = mouseX - vg.getX();
+                tempY = mouseY - vg.getY();
+                ViewGroup v = vg.checkHover(tempX,tempY);
+                if(v != null){
+                    return v;
+                }
+            }
+            return this;
+        }
+        return null;
+    }
+
+    protected boolean checkParentHover(){
+        return true;
     }
 
     /**
@@ -206,14 +271,38 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
-        onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
 
-        for (ViewGroup view :
-                children) {
-            if(view.isVisible()) {
-                view.draw2(mouseX, mouseY, partialTicks);
+        if(isScissor) {
+            final ScaledResolution res = new ScaledResolution(getRoot().context);
+            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
+            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
+            final int ax = getAbsoluteX();
+            final int ay = getAbsoluteY();
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
+                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
+
+            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
+
+            for (ViewGroup view :
+                    children) {
+                if(view.isVisible()) {
+                    view.draw2(mouseX, mouseY, partialTicks);
+                }
+            }
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }else{
+            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
+
+            for (ViewGroup view :
+                    children) {
+                if(view.isVisible()) {
+                    view.draw2(mouseX, mouseY, partialTicks);
+                }
             }
         }
+
+
     }
 
     /**
@@ -236,7 +325,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if(actionClick != null) actionClick.clicked(this,mouseButton);
+        if(actionClick != null && visible) actionClick.clicked(this,mouseButton);
 
         return visible && onClicked(mouseX, mouseY, mouseButton);
     }
@@ -281,11 +370,12 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
 
         int tempX,tempY;
-        for (ViewGroup vg :
-                children) {
+        ViewGroup vg;
+        for (int i = children.size();i > 0;i--) {
+            vg = children.get(i - 1);
             tempX = mouseX - vg.getX();
             tempY = mouseY - vg.getY();
-            if(!RootView.isInside(vg,tempX,tempY)) continue;
+            if(!RootView.isInside(vg,tempX,tempY) || !vg.isClickable()) continue;
 
             flag = vg.mousePressed(tempX, tempY,state);
             if (flag) {
@@ -327,9 +417,9 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     public boolean handleMouseInput(int mouseX, int mouseY) {
         int tempX,tempY;
         boolean flag;
-
-        for (ViewGroup vg :
-                children) {
+        ViewGroup vg;
+        for (int i = children.size();i > 0;i--) {
+            vg = children.get(i - 1);
 
             tempX = mouseX - vg.getX();
             tempY = mouseY - vg.getY();
@@ -358,8 +448,9 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     }
 
     public boolean handleKeyType(char typedChar, int keyCode){
-        for (ViewGroup vg:
-                children){
+        ViewGroup vg;
+        for (int i = children.size();i > 0;i--) {
+            vg = children.get(i - 1);
             if(vg.handleKeyType(typedChar, keyCode)){
                 return true;
             }
@@ -379,7 +470,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         return lastPressTime;
     }
 
-    public void setLastPressTime(long lastPressTime) {
+    public final void setLastPressTime(long lastPressTime) {
         this.lastPressTime = lastPressTime;
     }
 
@@ -403,10 +494,23 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         children.remove(index);
     }
 
+    public void removeAllChildren(){children.clear();}
+
     public void addAll(Collection<ViewGroup> viewGroups){
         children.addAll(viewGroups);
     }
 
+    public void forEach(Consumer<? super ViewGroup> consumer) {
+        children.forEach(consumer);
+    }
+
+    public ViewGroup getChild(int index){
+        return children.get(index);
+    }
+
+    public int getChildrenSize(){
+        return children.size();
+    }
 
     /**
      * when GUI close
@@ -456,6 +560,20 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
     }
 
+    public boolean isHover() {
+        return isHover;
+    }
+
+    public void setHover(boolean hover) {
+        isHover = hover;
+    }
+
+    /**
+     * @param scissor whether it's children will be scissored by it
+     */
+    public void setScissor(boolean scissor) {
+        isScissor = scissor;
+    }
 
     public static class Builder{
         ViewGroup viewGroup;

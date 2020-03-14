@@ -29,7 +29,7 @@ public class ConstructorBlock extends Block {
     public ConstructorBlock() {
         super(Material.SAND);
         setHardness(2);
-        setUnlocalizedName("ConstructorBlock");
+        setTranslationKey("ConstructorBlock");
     }
 
     @Override

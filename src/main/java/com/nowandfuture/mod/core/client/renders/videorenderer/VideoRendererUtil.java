@@ -25,7 +25,7 @@ public class VideoRendererUtil {
         final double distance = VideoRenderer.MAX_DISTANCE;
         final Vec3d start = entity.getPositionEyes(p);
         final Vec3d look = entity.getLook(p);
-        final Vec3d end = start.addVector(look.x * distance,
+        final Vec3d end = start.add(look.x * distance,
                 look.y * distance, look.z * distance);
         List<ScreenFocusInfo> list = new LinkedList<>();
         final float[] sum = {0};

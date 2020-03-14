@@ -10,7 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -23,7 +22,7 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.client.model.pipeline.IVertexConsumer;
 import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
-import net.minecraftforge.client.model.pipeline.VertexTransformer;
+import net.minecraftforge.common.model.TRSRTransformation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -61,24 +60,6 @@ public class CopyBlockItemModel implements IBakedModel{
         return false;
     }
 
-    //if no way to render chest and the other tileitem,render before
-    /**do render here,because stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack) don't render
-     * if (model.isBuiltInRenderer())
-     {
-     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-     GlStateManager.enableRescaleNormal();
-     stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack);
-     }
-     else
-     {
-     this.renderModel(model, stack);
-
-     if (stack.hasEffect())
-     {
-     this.renderEffect(model);
-     }
-     }*/
-    // TODO: 2020/2/22 render here
     @Override
     public boolean isBuiltInRenderer() {
         return false;
@@ -180,49 +161,24 @@ public class CopyBlockItemModel implements IBakedModel{
             return list;
         }
 
+
         private BakedQuad transform(BakedQuad quad) {
-            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(DefaultVertexFormats.BLOCK);
-            final IVertexConsumer consumer = new VertexTransformer(builder) {
-                @Override
-                public void put(int element, float... data) {
-                    VertexFormatElement formatElement = DefaultVertexFormats.BLOCK.getElement(element);
-                    switch(formatElement.getUsage()) {
-                        case COLOR: {
-                            /*
-                             * 0 is x (positive to east)
-                             * 1 is y (positive to up)
-                             * 2 is z (positive to south)
-                             * 3 is idk
-                             */
-                            float[] newData = data;
+            UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(quad.getFormat());
 
-                            newData[3] *= 0.8;
+            Matrix4f matrix4f = new Matrix4f();
+            matrix4f.setIdentity();
+            matrix4f.setScale(.4f);
+            matrix4f.setTranslation(new Vector3f(.5f,.36f,1));
+            final TRSRTransformation trsrTransformation = new TRSRTransformation(matrix4f);
 
-                            super.put(element, newData);
+            final IVertexConsumer consumer = new BakedQuadVertexTransformer(builder,
+                    new BakedQuadVertexTransformer.ColorTransformation() {
+                        @Override
+                        public void transform(float[] colors) {
+                            colors[3] *= 0.6;
                         }
-                        break;
-                        case POSITION: {
-                            /*
-                             * 0 is x (positive to east)
-                             * 1 is y (positive to up)
-                             * 2 is z (positive to south)
-                             * 3 is idk
-                             */
-                            float[] newData = data;
+                    }, trsrTransformation);
 
-                            newData[1] += 1f;
-
-                            super.put(element, newData);
-                            break;
-                        }
-
-                        default: {
-                            super.put(element, data);
-                            break;
-                        }
-                    }
-                }
-            };
             quad.pipe(consumer);
             return builder.build();
         }
@@ -233,13 +189,7 @@ public class CopyBlockItemModel implements IBakedModel{
         {
             if (type == ItemCameraTransforms.TransformType.GUI)
             {
-                Matrix4f matrix4f = new Matrix4f();
-                matrix4f.setIdentity();
-                if(selectors.get(1).second() != null) {
-                    matrix4f.setTranslation(new Vector3f(0, -.25f, 0));
-                    matrix4f.setScale(0.5f);
-                }
-                return org.apache.commons.lang3.tuple.Pair.of(this,matrix4f);
+                return org.apache.commons.lang3.tuple.Pair.of(this,TRSRTransformation.identity().getMatrix());
             }
             return this.selectors.get(0).second().handlePerspective(type);
         }

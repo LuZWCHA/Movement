@@ -20,7 +20,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
-import net.minecraftforge.fml.client.FMLClientHandler;
 
 import java.util.*;
 import java.util.function.BiConsumer;

@@ -39,7 +39,7 @@ public class SliderView extends View {
         setProgress(DEFAULT_PROGRESS);
     }
 
-    public void setRange(float Max,float Min,float defaultValue){
+    public SliderView setRange(float Max,float Min,float defaultValue){
         MIN_VALUE = Min;
         MAX_VALUE = Max;
         if(defaultValue <= Max && defaultValue >= Min)
@@ -48,9 +48,10 @@ public class SliderView extends View {
             DEFAULT_PROGRESS = MIN_VALUE;
         }
         progress = DEFAULT_PROGRESS;
+        return this;
     }
 
-    public void setProgress(float progress) {
+    public SliderView setProgress(float progress) {
         this.progress = progress;
         final float range = MAX_VALUE - MIN_VALUE;
         progress -= MIN_VALUE;
@@ -63,6 +64,7 @@ public class SliderView extends View {
             sliderX = (int) (length * progress / range + sliderHalfWidth);
             sliderY = getHeight() >> 1;
         }
+        return this;
     }
 
     public boolean isDrag() {

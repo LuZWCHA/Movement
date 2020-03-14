@@ -12,7 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public class TileEntityModuleShowerRenderer extends TileEntityModuleRenderer<TileEntityCoreModule>{
+public class TileEntityCoreModuleRenderer extends TileEntityModuleRenderer<TileEntityCoreModule>{
 
     @Override
     public void render(TileEntityCoreModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {

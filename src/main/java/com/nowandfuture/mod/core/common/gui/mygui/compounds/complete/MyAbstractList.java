@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
@@ -12,29 +13,46 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
 
-public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extends View {
+public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extends ViewGroup {
 
     private Adapter<T> adapter;
 
-    // TODO: 2019/7/20 add cache to store viewholder
+    private Color itemBackground,hoverBackground;
+
     private List<T> cache;
 
     private float scrollDistance = 0;
     private float spiltDistance = 1;
 
+    @Override
+    protected boolean onPressed(int mouseX, int mouseY, int state) {
+        return true;
+    }
+
+    @Override
+    protected void onReleased(int mouseX, int mouseY, int state) {
+
+    }
+
     public MyAbstractList(@Nonnull RootView rootView) {
         super(rootView);
         cache = new ArrayList<>();
+        setScissor(true);
+        setClickable(true);
     }
 
     public MyAbstractList(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
+        cache = new ArrayList<>();
+        setScissor(true);
+        setClickable(true);
     }
 
-    public void bind(Adapter adapter){
+    public void bind(@Nonnull Adapter adapter){
         this.adapter = adapter;
     }
 
@@ -54,48 +72,52 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        Minecraft client = Minecraft.getMinecraft();
-        ScaledResolution res = new ScaledResolution(client);
-        final double scaleW = client.displayWidth / res.getScaledWidth_double();
-        final double scaleH = client.displayHeight / res.getScaledHeight_double();
-        final int ax = getAbsoluteX();
-        final int ay = getAbsoluteY();
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor((int)(ax * scaleW), (int)(client.displayHeight - (ay + getHeight()) * scaleH),
-                (int)(getWidth() * scaleW), (int)(getHeight() * scaleH));
         drawBackground();
-        drawItems(mouseX, mouseY, partialTicks);
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        final float ceilLength = getAdapter().getHeight() + spiltDistance;
+        final int startIndex = getDrawFirst();
+        for (int index = startIndex; index < Math.min(startIndex + computeItemNum(),getAdapter().getSize());index++) {
+
+            float scrollItemLength = index * ceilLength;
+            float offsetY = scrollItemLength - scrollDistance;
+
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(0,getAdapter().getHeight() + offsetY,0);
+            drawSplitLine();
+            GlStateManager.popMatrix();
+        }
+    }
+
+    @Override
+    public void onLayout(int parentWidth, int parentHeight) {
+        layoutItems();
     }
 
     private void drawBackground(){
         Gui.drawRect(0,0,getWidth(),getHeight(),DrawHelper.colorInt(0,0,0,130));
     }
 
-    private void drawItems(int mouseX, int mouseY, float partialTicks){
+    private void layoutItems(){
         final float ceilLength = getAdapter().getHeight() + spiltDistance;
         final int startIndex = getDrawFirst();
+        removeAllChildren();
         for (int index = startIndex; index < Math.min(startIndex + computeItemNum(),getAdapter().getSize());index++) {
-            T viewHolder = getAdapter().createHolder();
-            getAdapter().handle(viewHolder, index);
+            T viewHolder;
+            while (cache.size() <= index - startIndex){
+                viewHolder = getAdapter().createHolder(getRoot());
+                cache.add(viewHolder);
+            }
+            viewHolder = cache.get(index - startIndex);
+
+            getAdapter().handle(this,viewHolder, index);
 
             float scrollItemLength = index * ceilLength;
             float offsetY = scrollItemLength - scrollDistance;
 
-            final float actY = mouseY + scrollDistance;
-
-            boolean isHover = false;
-
-            if(actY > index * ceilLength && actY < ceilLength * index + getAdapter().getHeight() &&
-                    mouseX > 0 && mouseX < getWidth() && mouseY <= getHeight() && mouseY >= 0){
-                isHover = true;
-            }
-
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(0,offsetY,0);
-            viewHolder.draw(this,mouseX, mouseY, partialTicks,isHover);
-            drawSplitLine();
-            GlStateManager.popMatrix();
+            viewHolder.setY((int) offsetY);
+            viewHolder.setX(0);
+            viewHolder.setWidth(getWidth());
+            viewHolder.setHeight(getAdapter().getHeight());
+            addChild(viewHolder);
         }
     }
 
@@ -109,15 +131,27 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
         float actY = mouseY + scrollDistance;
         int index = (int) (actY / ceilLength);
+        if(index >= 0 && index < getAdapter().getSize()) {
+            if (actY > index * ceilLength && actY < ceilLength * index + getAdapter().getHeight()) {
+                mouseY = (int) (actY - index * ceilLength);
+                onItemClicked(index, mouseX, mouseY);
 
-        if(actY > index * ceilLength && actY < ceilLength * index + getAdapter().getHeight()){
-            onItemClicked(index);
-            return true;
+                T viewHolder;
+                int startIndex = getDrawFirst();
+                while (cache.size() <= index - startIndex) {
+                    viewHolder = getAdapter().createHolder(getRoot());
+                    cache.add(viewHolder);
+                }
+                viewHolder = cache.get(index - startIndex);
+
+                getAdapter().handle(this,viewHolder, index);
+                viewHolder.onClicked(mouseX, mouseY, mouseButton);
+            }
         }
-        return false;
+        return true;
     }
 
-    protected void onItemClicked(int index){
+    protected void onItemClicked(int index,int mouseX,int mouseY){
 
     }
 
@@ -165,14 +199,56 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         return adapter;
     }
 
+    @Override
+    public void destroy() {
+        super.destroy();
+        cache.clear();
+    }
+
     public static abstract class Adapter<T extends ViewHolder>{
         public abstract int getSize();
         public abstract int getHeight();
-        public abstract T createHolder();
-        public abstract void handle(T viewHolder,int index);
+        public abstract T createHolder(RootView rootView);
+        public abstract void handle(MyAbstractList parent,T viewHolder,int index);
     }
 
-    public static class ViewHolder{
-        public void draw(MyAbstractList list,int mouseX, int mouseY, float partialTicks,boolean isHover){}
+    public static class ViewHolder extends AbstractLayout {
+
+        public ViewHolder(@Nonnull RootView rootView) {
+            super(rootView);
+        }
+
+        public ViewHolder(@Nonnull RootView rootView, ViewGroup parent) {
+            super(rootView, parent);
+        }
+
+        public ViewHolder(@Nonnull RootView rootView, ViewGroup parent, @Nonnull List list) {
+            super(rootView, parent, list);
+        }
+
+        @Override
+        protected void onDraw(int mouseX, int mouseY, float partialTicks) {
+            drawBackground();
+        }
+
+        @Override
+        protected boolean onClicked(int mouseX, int mouseY, int mouseButton) {
+            return false;
+        }
+
+        @Override
+        protected boolean onLongClicked(int mouseX, int mouseY, int mouseButton) {
+            return false;
+        }
+
+        @Override
+        protected void onReleased(int mouseX, int mouseY, int state) {
+
+        }
+
+        @Override
+        protected boolean onPressed(int mouseX, int mouseY, int state) {
+            return true;
+        }
     }
 }

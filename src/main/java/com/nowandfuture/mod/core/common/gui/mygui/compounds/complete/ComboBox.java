@@ -40,7 +40,6 @@ public class ComboBox extends ViewGroup {
         addChild(simpleStringList);
 
         contents = new ArrayList<>();
-        label.addLine("");
 
         simpleStringList.bind(stringAdapter);
         simpleStringList.setVisible(false);
@@ -55,6 +54,7 @@ public class ComboBox extends ViewGroup {
                 }
             }
         });
+        setScissor(false);
     }
 
     public void setContents(List<String> contents) {
@@ -72,10 +72,10 @@ public class ComboBox extends ViewGroup {
         label.setX(0);
         label.setY(0);
         label.setHeight(labelHeight);
-        label.setCentered();
         label.setBackColor(DrawHelper.colorInt(20,20,20,200));
         label.setBorderWidth(2);
         label.setBorderColor(DrawHelper.colorInt(80,80,80,255));
+        label.setCentered(true);
 
         setHeight(labelHeight + listHeight);
         super.onLoad();
@@ -118,7 +118,7 @@ public class ComboBox extends ViewGroup {
 
     @Override
     protected boolean onClicked(int mouseX, int mouseY, int mouseButton) {
-        if(isClickedLabel(mouseX,mouseY)){
+        if(isLabelClicked(mouseX,mouseY)){
             if(!simpleStringList.isVisible())
                 this.showList();
             else
@@ -128,7 +128,7 @@ public class ComboBox extends ViewGroup {
         return false;
     }
 
-    private boolean isClickedLabel(int mouseX, int mouseY){
+    private boolean isLabelClicked(int mouseX, int mouseY){
         return mouseY <= labelHeight;
     }
 
@@ -144,7 +144,7 @@ public class ComboBox extends ViewGroup {
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
-        return isClickedLabel(mouseX, mouseY);
+        return isLabelClicked(mouseX, mouseY);
     }
 
     //don't use it as far as possible

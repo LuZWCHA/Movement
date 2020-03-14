@@ -1,13 +1,19 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
+import com.nowandfuture.mod.core.common.gui.mygui.MCGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 
 public class RootView implements MyGui{
     public Minecraft context = Minecraft.getMinecraft();
+    private Container container;
+    private MCGuiContainer guiContainer;
 
     protected long longClickThreshold = 1000;//ms
 
@@ -15,6 +21,7 @@ public class RootView implements MyGui{
 
     private final ViewGroup topView;
     private ViewGroup focusedView;
+    private ViewGroup hoverView;
 
     ViewGroup getTopView() {
         return topView;
@@ -24,12 +31,26 @@ public class RootView implements MyGui{
         return mouseX >= 0 && mouseY >= 0 && mouseX <= gui.getWidth() && mouseY <= gui.getHeight();
     }
 
+    public static boolean isInside2(MyGui gui, int mouseXAtParent, int mouseYAtParent){
+        mouseXAtParent -= gui.getX();
+        mouseYAtParent -= gui.getY();
+        return mouseXAtParent >= 0 && mouseYAtParent >= 0 && mouseXAtParent <= gui.getWidth() && mouseYAtParent <= gui.getHeight();
+    }
+
     public FontRenderer getFontRenderer(){
         return context.fontRenderer;
     }
 
     final public ViewGroup getFocusedView(){
         return focusedView;
+    }
+
+    public void setContainer(Container container) {
+        this.container = container;
+    }
+
+    public Container getContainer() {
+        return container;
     }
 
     final void setFocusedView(ViewGroup viewGroup){
@@ -131,6 +152,10 @@ public class RootView implements MyGui{
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(topView.getX(),topView.getY(),0);
+        ViewGroup hover = topView.checkHover(mouseX - topView.getX(), mouseY - topView.getY());
+        if(hoverView != null) hoverView.setHover(false);
+        if(hover != null) hover.setHover(true);
+        hoverView = hover;
         topView.draw(mouseX - topView.getX(), mouseY - topView.getY(), partialTicks);
         GlStateManager.popMatrix();
 
@@ -229,5 +254,21 @@ public class RootView implements MyGui{
             e.printStackTrace();
             return null;
         }
+    }
+
+    public MCGuiContainer getGuiContainer() {
+        return guiContainer;
+    }
+
+    public void setGuiContainer(MCGuiContainer guiContainer) {
+        this.guiContainer = guiContainer;
+    }
+
+    public Slot getSlotFromInventory(IInventory inventory,int index){
+        return getGuiContainer().inventorySlots.getSlotFromInventory(inventory,index);
+    }
+
+    public ViewGroup getHoverView() {
+        return hoverView;
     }
 }

@@ -15,6 +15,7 @@ import static org.lwjgl.opengl.GL12.GL_BGR;
 
 public class PBOFrameTexture extends FrameTexture {
     private PixelBufferObject pbo;
+    private static int BYTE_PER_PIXEL = 4;
 
     public PBOFrameTexture(BufferedImage p_i1270_1_) {
         super(p_i1270_1_);
@@ -46,7 +47,7 @@ public class PBOFrameTexture extends FrameTexture {
         pbo.bindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
         pbo.pboByteData(GL21.GL_PIXEL_UNPACK_BUFFER,
-                image.getWidth() * image.getHeight() * 4, GL15.GL_STREAM_DRAW);
+                image.getWidth() * image.getHeight() * BYTE_PER_PIXEL, GL15.GL_STREAM_DRAW);
         ByteBuffer b = pbo.mapPBO(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, null);
         if (b != null && b.hasRemaining()) {
             b.put(buffer.getData());

@@ -58,7 +58,8 @@ public class CopyItemStackRenderer extends TileEntityItemStackRenderer {
     @Override
     public void renderByItem(ItemStack p_192838_1_, float partialTicks) {
         GlStateManager.pushMatrix();
-        GlStateManager.translate(0,1f,0);
+        GlStateManager.translate(.5f,.36f,0);
+        GlStateManager.scale(.4f,.4f,.4f);
         super.renderByItem(p_192838_1_, partialTicks);
         GlStateManager.popMatrix();
     }

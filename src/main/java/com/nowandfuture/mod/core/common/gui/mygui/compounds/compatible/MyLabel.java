@@ -2,6 +2,7 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
 import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -21,7 +22,7 @@ public class MyLabel extends Gui implements MyGui {
     private boolean centered;
     public boolean visible = true;
     private boolean labelBgEnabled;
-    private final int textColor;
+    private int textColor;
     private int backColor;
     private int ulColor;
     private int brColor;
@@ -54,6 +55,9 @@ public class MyLabel extends Gui implements MyGui {
 
     public MyLabel setLine(int index,String line)
     {
+        while (labels.size() <= index){
+            labels.add(Strings.EMPTY);
+        }
         this.labels.set(index,I18n.format(line));
         return this;
     }
@@ -83,9 +87,9 @@ public class MyLabel extends Gui implements MyGui {
     /**
      * Sets the Label to be centered
      */
-    public MyLabel setCentered()
+    public MyLabel setCentered(boolean centered)
     {
-        this.centered = true;
+        this.centered = centered;
         return this;
     }
 
@@ -103,6 +107,10 @@ public class MyLabel extends Gui implements MyGui {
     public MyLabel setBorderWidth(int width){
         border = width;
         return this;
+    }
+
+    public void setTextColor(int textColor) {
+        this.textColor = textColor;
     }
 
     public MyLabel enableBackDraw(boolean labelBgEnabled){

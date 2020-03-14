@@ -136,13 +136,13 @@ public class TransformedBlockWorld extends World {
     }
 
     @Override
-    public Chunk getChunkFromBlockCoords(BlockPos pos) {
-        return realWorld.getChunkFromBlockCoords(pos);
+    public Chunk getChunk(BlockPos pos) {
+        return realWorld.getChunk(pos);
     }
 
     @Override
-    public Chunk getChunkFromChunkCoords(int chunkX, int chunkZ) {
-        return realWorld.getChunkFromChunkCoords(chunkX, chunkZ);
+    public Chunk getChunk(int chunkX, int chunkZ) {
+        return realWorld.getChunk(chunkX, chunkZ);
     }
 
     @Override

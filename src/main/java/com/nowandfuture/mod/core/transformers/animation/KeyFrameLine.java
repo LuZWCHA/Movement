@@ -257,14 +257,14 @@ public class KeyFrameLine extends TimeLine {
         init();
         NBTTagCompound map = compound.getCompoundTag(NBT_KEY_FRAMES);
 
-        if(!map.hasNoTags()){
+        if(!map.isEmpty()){
             for (KeyFrame.KeyFrameType kt :
                     KeyFrame.KeyFrameType.values()) {
 
                 NBTTagList nbtTagList =
                         map.getTagList(NBT_KEY_TYPE.concat(kt.name()),10);
 
-                if(!nbtTagList.hasNoTags())
+                if(!nbtTagList.isEmpty())
                     for(int i = 0;i < nbtTagList.tagCount();i++) {
                         NBTTagCompound tagCompound = nbtTagList.getCompoundTagAt(i);
                         KeyFrame keyFrame = KeyFrame.Factory.create(kt,tagCompound);

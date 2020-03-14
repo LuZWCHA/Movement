@@ -31,7 +31,7 @@ public class ModuleTimelineEditorBlock extends BlockDirectional {
     public ModuleTimelineEditorBlock(){
         super(Material.SAND);
         setHardness(2);
-        setUnlocalizedName("ModuleTimelineEditorBlock");
+        setTranslationKey("ModuleTimelineEditorBlock");
     }
 
     public ModuleTimelineEditorBlock(Material materialIn) {
@@ -59,7 +59,7 @@ public class ModuleTimelineEditorBlock extends BlockDirectional {
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.getFront(meta & 7));
+        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
     }
 
     @Override

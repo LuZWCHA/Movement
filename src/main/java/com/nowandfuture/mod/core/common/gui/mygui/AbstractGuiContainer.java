@@ -4,23 +4,23 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.*;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
-import mezz.jei.api.gui.IAdvancedGuiHandler;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SlotView;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class AbstractGuiContainer extends GuiContainer{
+public abstract class AbstractGuiContainer extends MCGuiContainer {
 
     private HashMap<Integer,MyGuiWrapper> actions;
     private List<MyGui> guiList;
@@ -87,6 +87,8 @@ public abstract class AbstractGuiContainer extends GuiContainer{
         guiList = new ArrayList<>();
 
         rootView = new RootView(this.guiLeft,this.guiTop,this.xSize,this.ySize);
+        rootView.setContainer(inventorySlotsIn);
+        rootView.setGuiContainer(this);
         GuiManager.INSTANCE.register(this,getId());
     }
 
@@ -118,7 +120,6 @@ public abstract class AbstractGuiContainer extends GuiContainer{
         this.itemRender = mc.getRenderItem();
         this.fontRenderer = mc.fontRenderer;
 
-        int oldW = this.width,oldH = this.height;
         this.width = w;
         this.height = h;
 
@@ -149,6 +150,8 @@ public abstract class AbstractGuiContainer extends GuiContainer{
     public long genChildId(){
         return GuiManager.INSTANCE.getSuggestId(this);
     }
+
+    //Compatible with mc gui, tools to create button,textfield,label
 
     public MyButton createMyButton(int x, int y, int width, int height, String string){
         return new MyButton((int) genChildId(),x,y,width,height,string);
@@ -249,11 +252,10 @@ public abstract class AbstractGuiContainer extends GuiContainer{
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         pressTime = 0;
         lastPressTime = Minecraft.getSystemTime();
-        super.mouseClicked(mouseX, mouseY, mouseButton);
 
         //in ViewGroup clicked means btn's down-up(it only happened after release button)
-        //pressed means btn's down
-        //released means btn's up
+        //pressed means button's down
+        //released means button's up
         if(!rootView.mousePressed(mouseX, mouseY,mouseButton)) {
             MyGuiWrapper myGuiWrapper;
             if (mouseButton == 0) {
@@ -274,6 +276,7 @@ public abstract class AbstractGuiContainer extends GuiContainer{
             setFocusGui(null);
         }
 
+        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
@@ -290,6 +293,7 @@ public abstract class AbstractGuiContainer extends GuiContainer{
         }
     }
 
+    //set Visible of all kind of gui once
     protected void setVisible(boolean value,MyGui... guis){
         for (MyGui gui :
                 guis) {
@@ -373,6 +377,19 @@ public abstract class AbstractGuiContainer extends GuiContainer{
     }
 
     @Override
+    protected Slot getSlotAtPosition(int x, int y) {
+        Slot slot = super.getSlotAtPosition(x, y);
+        if(slot == null){
+            if(rootView.getHoverView() instanceof SlotView){
+                Slot ps = ((SlotView) rootView.getHoverView()).getSlot();
+                ps.slotNumber = ps.getSlotIndex() + inventorySlots.inventorySlots.size();
+                return ps;
+            }
+        }
+        return slot;
+    }
+
+    @Override
     public final void onGuiClosed() {
         onDestroy();
         super.onGuiClosed();
@@ -397,4 +414,53 @@ public abstract class AbstractGuiContainer extends GuiContainer{
     }
 
     protected JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler(){return null;}
+
+    public static class GuiBuilder<T extends ViewGroup>{
+        private int x,y,w,h;
+        private T v;
+
+        public static <T extends ViewGroup,R extends GuiBuilder<T>>R wrap(T viewGroup){
+            return newBuilder(viewGroup);
+        }
+
+        public GuiBuilder(T viewGroup){
+            v = viewGroup;
+            x = v.getX();
+            y = v.getY();
+            w = v.getWidth();
+            h = v.getHeight();
+        }
+
+        private static <T extends ViewGroup,R extends GuiBuilder<T>> R newBuilder(T v){
+            return (R) new GuiBuilder<>(v);
+        }
+
+        public <R extends GuiBuilder<T>> R setWidth(int w) {
+            this.w = w;
+            return (R) this;
+        }
+
+        public <R extends GuiBuilder<T>> R setHeight(int h) {
+            this.h = h;
+            return (R) this;
+        }
+
+        public T build(){
+            v.setX(x);
+            v.setY(y);
+            v.setWidth(w);
+            v.setHeight(h);
+            return v;
+        }
+
+        public <R extends GuiBuilder<T>> R setX(int x) {
+            this.x = x;
+            return (R) this;
+        }
+
+        public <R extends GuiBuilder<T>> R setY(int y) {
+            this.y = y;
+            return (R) this;
+        }
+    }
 }

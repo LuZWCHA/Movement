@@ -2,6 +2,7 @@ package com.nowandfuture.mod.core.common.gui;
 
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
 import com.nowandfuture.mod.core.common.gui.slots.PrefabOnlySlot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -9,7 +10,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-public class ContainerModule extends Container {
+public class ContainerModule extends AbstractContainer {
 
     private TileEntityCoreModule tileEntityModule;
     private PrefabOnlySlot slot;
@@ -17,9 +18,11 @@ public class ContainerModule extends Container {
     public ContainerModule(InventoryPlayer playerInventory, TileEntityCoreModule tileEntityModule){
         super();
         this.tileEntityModule = tileEntityModule;
+        dynamicInventory = tileEntityModule.getDynamicInventory();
 
         slot = new PrefabOnlySlot(playerInventory.player,tileEntityModule,
                 0,14,57);
+
         this.addSlotToContainer(slot);
 
         this.addSlotToContainer(new Slot(tileEntityModule,1,81,57){
@@ -29,6 +32,8 @@ public class ContainerModule extends Container {
             }
         });
 
+
+        //-----------------------------------------------player inventory-------------------------------------------
         int i;
         for (i = 0; i < 3; ++i)
         {
@@ -83,4 +88,5 @@ public class ContainerModule extends Container {
 
         return itemstack;
     }
+
 }

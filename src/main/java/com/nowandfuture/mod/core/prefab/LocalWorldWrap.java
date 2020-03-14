@@ -563,13 +563,13 @@ public class LocalWorldWrap extends World {
     }
 
     @Override
-    public Chunk getChunkFromBlockCoords(BlockPos pos) {
-        return getParentWorld().getChunkFromBlockCoords(pos);
+    public Chunk getChunk(BlockPos pos) {
+        return getParentWorld().getChunk(pos);
     }
 
     @Override
-    public Chunk getChunkFromChunkCoords(int chunkX, int chunkZ) {
-        return getParentWorld().getChunkFromChunkCoords(chunkX, chunkZ);
+    public Chunk getChunk(int chunkX, int chunkZ) {
+        return getParentWorld().getChunk(chunkX, chunkZ);
     }
 
     @Override
@@ -804,9 +804,10 @@ public class LocalWorldWrap extends World {
     }
 
     @Override
-    public int isBlockIndirectlyGettingPowered(BlockPos pos) {
-        return getParentWorld().isBlockIndirectlyGettingPowered(pos);
+    public int getRedstonePowerFromNeighbors(BlockPos pos) {
+        return getParentWorld().getRedstonePowerFromNeighbors(pos);
     }
+
 
     @Override
     @Nullable

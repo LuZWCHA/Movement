@@ -307,7 +307,7 @@ public class LocalWorld implements IBlockAccess {
             }
             else
             {
-                Chunk chunk = parentWorld.getChunkFromBlockCoords(pos.add(parentWorldPos));
+                Chunk chunk = parentWorld.getChunk(pos.add(parentWorldPos));
                 if(type == EnumSkyBlock.SKY)
                     return chunk.getLightFor(type,pos.add(parentWorldPos));
 
@@ -325,7 +325,7 @@ public class LocalWorld implements IBlockAccess {
         }
         else
         {
-            Chunk chunk = parentWorld.getChunkFromBlockCoords(pos.add(parentWorldPos));
+            Chunk chunk = parentWorld.getChunk(pos.add(parentWorldPos));
             if(type == EnumSkyBlock.SKY)
                 return chunk.getLightFor(type,pos.add(parentWorldPos));
 

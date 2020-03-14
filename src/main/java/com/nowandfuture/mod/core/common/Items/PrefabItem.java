@@ -35,11 +35,12 @@ public class PrefabItem extends Item {
         });
     }
 
-    public String getUnlocalizedName(ItemStack stack) {
+    @Override
+    public String getTranslationKey(ItemStack stack) {
         NBTTagCompound nbt = stack.getTagCompound();
 
         boolean isReady = isReady(nbt);
-        return super.getUnlocalizedName() + (isReady ? ".complete":".empty");
+        return super.getTranslationKey() + (isReady ? ".complete":".empty");
     }
 
     public boolean isReady(NBTTagCompound nbt){

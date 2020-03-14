@@ -30,7 +30,7 @@ public class ModuleCoreBlock extends BlockDirectional {
     public ModuleCoreBlock() {
         super(Material.ROCK);
         setHardness(2);
-        setUnlocalizedName("ModuleCoreBlock");
+        setTranslationKey("ModuleCoreBlock");
         setDefaultState(this.getDefaultState().withProperty(POWERED,false));
     }
 
@@ -76,7 +76,7 @@ public class ModuleCoreBlock extends BlockDirectional {
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.getFront(meta & 7));
+        return this.getDefaultState().withProperty(FACING, EnumFacing.byIndex(meta & 7));
     }
 
     @Override

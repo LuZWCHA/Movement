@@ -22,7 +22,7 @@ public class ClientProxy extends DefaultClientProxy {
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityConstructor.class,new SelectAreaRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTimelineEditor.class,new TileEntityTimeLineEditorRenderer());
-        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCoreModule.class,new TileEntityModuleShowerRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCoreModule.class,new TileEntityCoreModuleRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTransformedBlock.class,new TileEntityTransformedBlockRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySimplePlayer.class,new VideoRenderer());
     }

@@ -8,8 +8,6 @@ import javax.annotation.Nonnull;
 
 public abstract class View extends ViewGroup {
 
-    private boolean isScissor = true;
-
     public View(@Nonnull RootView rootView) {
         super(rootView);
     }
@@ -68,6 +66,24 @@ public abstract class View extends ViewGroup {
     }
 
     @Override
+    public final void draw2(int mouseX, int mouseY, float partialTicks) {
+        if(isScissor) {
+            final ScaledResolution res = new ScaledResolution(getRoot().context);
+            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
+            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
+            final int ax = getAbsoluteX();
+            final int ay = getAbsoluteY();
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
+                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
+            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }else{
+            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
+        }
+    }
+
+    @Override
     public final void draw(int mouseX, int mouseY, float partialTicks) {
         if(isScissor) {
             final ScaledResolution res = new ScaledResolution(getRoot().context);
@@ -84,16 +100,6 @@ public abstract class View extends ViewGroup {
             onDraw(mouseX, mouseY, partialTicks);
         }
     }
-
-    /**
-     * @param scissor whether it will be scissored by parent
-     *                if it set true,this view may scissor by its parents/parent(if this view is out of this parents)
-     *                else not be scissored
-     */
-    public void setScissor(boolean scissor) {
-        isScissor = scissor;
-    }
-
 
     interface ClickListener{
         void onClicked(View v);

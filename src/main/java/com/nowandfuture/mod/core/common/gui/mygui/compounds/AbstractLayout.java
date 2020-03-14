@@ -42,7 +42,7 @@ public abstract class AbstractLayout<T extends LayoutParameter> extends ViewGrou
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
-        return false;
+        return true;
     }
 
     @Override

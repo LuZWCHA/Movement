@@ -17,7 +17,7 @@ public class MovementCreativeTab extends CreativeTabs {
     }
 
     @Override
-    public ItemStack getTabIconItem() {
+    public ItemStack createIcon() {
         return new ItemStack(RegisterHandler.constructorBlock);
     }
 }

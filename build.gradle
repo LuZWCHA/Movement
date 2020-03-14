@@ -21,10 +21,9 @@ compileJava {
 
 minecraft {
 
-    version = "1.12.2-14.23.5.2768"
+    version = "1.12.2-14.23.5.2836"
     runDir = "run"
     clientJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
-
 //    serverJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
 
     // the mappings can be changed at any time, and must be in the following format.
@@ -32,7 +31,7 @@ minecraft {
     // stable_#            stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "snapshot_20171003"
+    mappings = "stable_39"
 //    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
@@ -79,6 +78,12 @@ processResources {
     // copy everything else except the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
     }
 }
 

@@ -1,5 +1,6 @@
 package com.nowandfuture.asm;
 
+import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import org.objectweb.asm.*;
 
@@ -7,6 +8,7 @@ public abstract class TransPacket implements Opcodes {
     protected String TARGET_CLASS = "";
     protected ClassWriter classWriter;
     protected ClassVisitor visitor;
+    protected boolean deobfuscatedEnvironment = (Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment");
 
     public abstract String[] getTargetClassName();
 

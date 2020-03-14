@@ -322,23 +322,23 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
                 break;
             case EAST:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
             case WEST:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
             case SOUTH:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
         }
@@ -383,17 +383,9 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
         return simplePlayer.getHeight();
     }
 
-    //double click will be ignore
-    //when right click triggered by FML EVENT BUS,InteractEvent (by block/entity) will be executed
-    //twice rapidly,to prevent this situation,filter these double click event
-    long lastClickTime = -100;
+
     @Override
     public boolean onRightClick(Vec3d hit) {
-
-        long diff = System.currentTimeMillis() - lastClickTime;
-        lastClickTime = System.currentTimeMillis();
-        if(diff < 100) return false;
-
         if(simplePlayer.getSyncInfo().isPause()){
             simplePlayer.resume();
         }else{
@@ -406,7 +398,6 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
     public boolean onLeftClick(Vec3d hit) {
         return false;
     }
-
     @Override
     public Vec3d getClickableFaceNormal() {
         Vec3i vec3i = getFacing().getDirectionVec();

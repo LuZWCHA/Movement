@@ -3,10 +3,7 @@ package com.nowandfuture.ffmpeg.player;
 import com.nowandfuture.ffmpeg.Frame;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacpp.Pointer;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL10;
-import sun.misc.Cleaner;
-import sun.nio.ch.DirectBuffer;
 
 import javax.annotation.Nonnull;
 import javax.sound.sampled.*;
@@ -21,8 +18,6 @@ public class SoundUtils {
                     frame.image) {
                 if(b.isDirect()){
                     b.clear();
-                    Cleaner c = ((DirectBuffer)b).cleaner();
-                    if(c != null) c.clean();
                 }
             }
         }
@@ -32,8 +27,6 @@ public class SoundUtils {
                     frame.samples) {
                 if(b.isDirect()){
                     b.clear();
-                    Cleaner c = ((DirectBuffer)b).cleaner();
-                    if(c != null) c.clean();
                 }
             }
         }

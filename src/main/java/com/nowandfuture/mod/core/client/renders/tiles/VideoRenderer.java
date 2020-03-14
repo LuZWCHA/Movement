@@ -310,23 +310,23 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                 break;
             case EAST:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
             case WEST:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
             case SOUTH:
                 for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].addVector(-0.5,0,-0.5);
+                    panel[i] = panel[i].add(-0.5,0,-0.5);
                     panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
-                    panel[i] = panel[i].addVector(0.5,0,0.5);
+                    panel[i] = panel[i].add(0.5,0,0.5);
                 }
                 break;
         }

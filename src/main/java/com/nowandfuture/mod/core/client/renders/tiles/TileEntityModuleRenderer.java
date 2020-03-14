@@ -7,13 +7,16 @@ import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.handler.RenderHandler;
 import com.nowandfuture.mod.utils.DrawHelper;
-import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.model.TRSRTransformation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
 
 @SideOnly(Side.CLIENT)
 public class TileEntityModuleRenderer<T extends TileEntityModule> extends TileEntitySpecialRenderer<T> {

@@ -18,15 +18,18 @@ public class Button extends View {
     public Button(@Nonnull RootView rootView) {
         super(rootView);
         button = new MyButton(0,0,0,"");
+        button.setAsMyGui(true);
     }
 
     public Button(@Nonnull RootView rootView, ViewGroup parent) {
         super(rootView, parent);
         button = new MyButton(0,0,0,"");
+        button.setAsMyGui(true);
     }
 
-    public void setText(String text){
+    public Button setText(String text){
         button.displayString = text;
+        return this;
     }
 
     public String getText(){
@@ -69,6 +72,7 @@ public class Button extends View {
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
+        button.setHovered(isHover());
         button.draw(mouseX, mouseY, partialTicks);
     }
 

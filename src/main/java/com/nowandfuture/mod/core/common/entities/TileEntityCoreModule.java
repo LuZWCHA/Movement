@@ -1,11 +1,15 @@
 package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
+import com.nowandfuture.mod.core.common.gui.DynamicInventory;
+import com.nowandfuture.mod.core.common.gui.IDynamicInventory;
+import com.nowandfuture.mod.core.common.gui.ItemStackMapHelper;
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.AnchorList;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
+import com.nowandfuture.mod.handler.RegisterHandler;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -26,8 +30,11 @@ public class TileEntityCoreModule extends TileEntityModule {
     private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
 
+    private DynamicInventory dynamicInventory = new DynamicInventory();
+
     public final static int BLOCK_VISIBLE_PACKET = 0x14;
     public final static int RENDER_OFFSET_PACKET = 0x15;
+    public final static int INVENTORY_CHANGED_PACKET = 0x16;
 
     public final static String NBT_SHOW_BLOCK = "ShowBlock";
     public final static String NBT_OFFSET_X = "OffsetX";
@@ -40,6 +47,30 @@ public class TileEntityCoreModule extends TileEntityModule {
     private boolean showBlock = true;
 
     AnchorList anchorList;
+
+    public TileEntityCoreModule(){
+        super();
+        dynamicInventory.setCreator(new IDynamicInventory.SlotCreator() {
+            @Override
+            public AbstractContainer.ProxySlot create(IDynamicInventory inventory, long index, int type) {
+                if(type == 0) {
+                    return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
+                        @Override
+                        public boolean isItemValid(ItemStack stack) {
+                            return true;
+                        }
+                    };
+                } else{
+                    return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
+                        @Override
+                        public boolean isItemValid(ItemStack stack) {
+                            return true;
+                        }
+                    };
+                }
+            }
+        });
+    }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
@@ -59,6 +90,8 @@ public class TileEntityCoreModule extends TileEntityModule {
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         ItemStackHelper.loadAllItems(compound, moduleItemStacks);
+        dynamicInventory.clear();
+        dynamicInventory.readFromNBT(compound);
         readNBT(compound);
         super.readFromNBT(compound);
     }
@@ -66,6 +99,7 @@ public class TileEntityCoreModule extends TileEntityModule {
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         ItemStackHelper.saveAllItems(compound, moduleItemStacks);
+        dynamicInventory.writeToNBT(compound);
         writeNBT(compound);
         return super.writeToNBT(compound);
     }
@@ -87,8 +121,26 @@ public class TileEntityCoreModule extends TileEntityModule {
         offset = new BlockPos(x,y,z);
     }
 
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+        return (oldState.getBlock() != newSate.getBlock());
+    }
+
     public SPacketUpdateTileEntity getShowBlockPacket(){
         return new SPacketUpdateTileEntity(getPos(),BLOCK_VISIBLE_PACKET,writeToNBT(new NBTTagCompound()));
+    }
+
+    public NBTTagCompound getInventoryTag(){
+        return dynamicInventory.writeToNBT(new NBTTagCompound());
+    }
+
+    public void handleInventoryTag(NBTTagCompound nbtTagCompound){
+        dynamicInventory.clear();
+        dynamicInventory.readFromNBT(nbtTagCompound);
+    }
+
+    public SPacketUpdateTileEntity getInventoryPacket(){
+        return new SPacketUpdateTileEntity(getPos(),BLOCK_VISIBLE_PACKET,dynamicInventory.writeToNBT(new NBTTagCompound()));
     }
 
     @Override
@@ -97,6 +149,9 @@ public class TileEntityCoreModule extends TileEntityModule {
         if(pkt.getTileEntityType() == BLOCK_VISIBLE_PACKET){
             NBTTagCompound nbtTagCompound = pkt.getNbtCompound();
             readNBT(nbtTagCompound);
+        }else if(pkt.getTileEntityType() == INVENTORY_CHANGED_PACKET){
+            NBTTagCompound nbtTagCompound = pkt.getNbtCompound();
+            handleInventoryTag(nbtTagCompound);
         }
     }
 
@@ -162,5 +217,9 @@ public class TileEntityCoreModule extends TileEntityModule {
 
     public void setShowBlock(boolean showBlock) {
         this.showBlock = showBlock;
+    }
+
+    public DynamicInventory getDynamicInventory() {
+        return dynamicInventory;
     }
 }

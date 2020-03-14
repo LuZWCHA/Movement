@@ -101,6 +101,8 @@ public abstract class LMessage implements IMessage {
 
         public static final short GUI_APPLY_TIMELINE_FLAG = 0x0000;
         public static final short TRANSFORMED_BLOCK_FLAG = 0x0001;
+        public static final short GUI_CHANGE_INVENTORY = 0x0002;
+
 
         public NBTTagCompound nbt;
 
@@ -166,6 +168,17 @@ public abstract class LMessage implements IMessage {
                                     if(nbtTagCompound != null){
                                         tileEntity.readFromNBT(nbtTagCompound);
                                         NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+                                    }
+                                }
+                                break;
+                            case GUI_CHANGE_INVENTORY:
+                                if(tileEntity instanceof TileEntityCoreModule){
+                                    NBTTagCompound nbtTagCompound = message.nbt;
+                                    if(nbtTagCompound != null) {
+                                        ((TileEntityCoreModule) tileEntity).handleInventoryTag(nbtTagCompound);
+                                        NetworkHandler.syncToTrackingClients(ctx, tileEntity,
+                                                ((TileEntityCoreModule) tileEntity).getInventoryPacket()
+                                        );
                                     }
                                 }
                                 break;
@@ -300,10 +313,11 @@ public abstract class LMessage implements IMessage {
                             case GUI_VIDEO_PLAYER_STATE_FLAG:
                                 if(tileEntity instanceof TileEntitySimplePlayer){
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity,
-                                            ((TileEntitySimplePlayer) tileEntity).getUpdatePacket()
+                                            tileEntity.getUpdatePacket()
                                     );
                                 }
                                 break;
+
 
                         }
                     }

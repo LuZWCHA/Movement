@@ -18,8 +18,6 @@ public class ContainerConstructor extends Container {
     private final IInventory tileConstructor;
     private PrefabOnlySlot slot;
 
-    private float progress;
-
     public ContainerConstructor(InventoryPlayer playerInventory, IInventory tileConstructor) {
         this.tileConstructor = tileConstructor;
 

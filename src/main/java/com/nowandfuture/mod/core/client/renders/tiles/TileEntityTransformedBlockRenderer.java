@@ -76,7 +76,7 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
             if(blockRender == null || te.isUpdateVBO()) {
 
                 BlockRenderLayer blockRenderLayer =
-                        te.getLocalBlock().blockState.getBlock().getBlockLayer();
+                        te.getLocalBlock().blockState.getBlock().getRenderLayer();
 
                 blockRender = TransformedBlockRenderMap.TransformedBlockRender
                         .newBlockRender(blockRenderLayer);

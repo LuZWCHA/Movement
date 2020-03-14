@@ -121,21 +121,21 @@ public final class RegisterHandler {
 
         registry.register(
                 prefabItem.setRegistryName(new ResourceLocation(MODID,"item_prefab"))
-                        .setUnlocalizedName("prefab")
+                        .setTranslationKey("prefab")
                         .setCreativeTab(creativeTab)
 
         );
 
         registry.register(
                 timelineItem.setRegistryName(new ResourceLocation(MODID,"item_timeline"))
-                        .setUnlocalizedName("timeline")
+                        .setTranslationKey("timeline")
                         .setCreativeTab(creativeTab)
 
         );
 
         registry.register(
                 copyItem.setRegistryName(new ResourceLocation(MODID,"item_blockcopier"))
-                        .setUnlocalizedName("blockCopier")
+                        .setTranslationKey("blockCopier")
                         .setCreativeTab(creativeTab)
 
         );

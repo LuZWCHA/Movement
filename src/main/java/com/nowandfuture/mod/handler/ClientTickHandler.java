@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -46,7 +47,7 @@ public class ClientTickHandler {
     @SubscribeEvent
     public void handleClickBlock(PlayerInteractEvent.RightClickBlock rightClickBlock){
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickBlock,false);
-        if(rayResult != null){
+        if(rayResult != null && rightClickBlock.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
             rightClickBlock.setCanceled(true);
         }
@@ -56,7 +57,7 @@ public class ClientTickHandler {
     @SubscribeEvent
     public void handleClickEmpty(PlayerInteractEvent.RightClickEmpty rightClickBlock){
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickBlock,true);
-        if(rayResult != null){
+        if(rayResult != null && rightClickBlock.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
         }
     }
@@ -70,7 +71,7 @@ public class ClientTickHandler {
     @SubscribeEvent
     public void handleClickEntity(PlayerInteractEvent.EntityInteract entityInteract){
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(entityInteract,false);
-        if(rayResult != null){
+        if(rayResult != null && entityInteract.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
             entityInteract.setCanceled(true);
         }
@@ -97,7 +98,7 @@ public class ClientTickHandler {
             public void accept(TileEntity tileEntity) {
                 if(tileEntity instanceof IClickableTile){
                     Vec3d vec3d = look.scale(((IClickableTile) tileEntity).getReachedDistance());
-                    final Vec3d end = start.addVector(vec3d.x,vec3d.y,vec3d.z);
+                    final Vec3d end = start.add(vec3d.x,vec3d.y,vec3d.z);
                     RayTraceResult rayTraceResult =
                             ((IClickableTile) tileEntity).getClickBox().calculateIntercept(start,end);
                     Vec3d d = ((IClickableTile) tileEntity).getClickableFaceNormal();
