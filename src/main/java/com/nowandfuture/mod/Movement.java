@@ -3,6 +3,7 @@ package com.nowandfuture.mod;
 import com.nowandfuture.mod.core.common.gui.GuiTimelineEditor;
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.GuiHandler;
+import com.nowandfuture.mod.handler.PlayerActionHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.setup.IProxy;
 import mezz.jei.api.IModPlugin;
@@ -41,7 +42,11 @@ public class Movement implements IModPlugin {
     {
         logger = event.getModLog();
         proxy.preInit(event);
+        MinecraftForge.EVENT_BUS.register(new PlayerActionHandler());
+
         NetworkHandler.INSTANCE.init();
+        com.nowandfuture.mod.core.common.gui.mygui.network.NetworkHandler
+                .INSTANCE.init();
         MinecraftForge.EVENT_BUS.register(new CollisionHandler());
     }
 

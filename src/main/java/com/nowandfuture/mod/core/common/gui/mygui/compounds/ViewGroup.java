@@ -2,18 +2,18 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
 import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.ISizeChanged;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.ISizeChanged;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.Color;
 import org.lwjgl.util.vector.Vector3f;
 
 import javax.annotation.Nonnull;
-import java.nio.Buffer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +41,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     private AbstractGuiContainer.ActionClick actionClick;
 
     protected boolean isScissor = false;
+    private boolean isInside;
 
     protected ViewGroup(){
 
@@ -195,6 +196,8 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
+        isInside = RootView.isInside(this,mouseX,mouseY);
+        drawDebugHoverBackground();
 
         if(isScissor) {
             final ScaledResolution res = new ScaledResolution(getRoot().context);
@@ -552,7 +555,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
             if(root.getFocusedView() == this){
                 root.setFocusedView(null);
             }
-            this.loseFocus();
+            setFocused(false);
         }
         for (ViewGroup vg :
                 children) {
@@ -568,6 +571,14 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         isHover = hover;
     }
 
+    public boolean isMouseover(boolean isInsideParents){
+        if(isInsideParents && getParent() != null){
+            return isInside && getParent().isMouseover(true);
+        }else{
+            return isInside;
+        }
+    }
+
     /**
      * @param scissor whether it's children will be scissored by it
      */
@@ -577,14 +588,6 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     public static class Builder{
         ViewGroup viewGroup;
-
-        private Builder(RootView rootView,Class<? extends ViewGroup> clazz){
-            viewGroup = rootView.createInstance(clazz);
-        }
-
-        public static Builder newBuilder(RootView rootView,Class<? extends ViewGroup> clazz){
-            return new Builder(rootView,clazz);
-        }
 
         public Builder setX(int x){
             viewGroup.setX(x);
@@ -629,7 +632,24 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
     }
 
+    protected void drawDebugHoverBackground(){
+        if(getRoot().isShowDebugInfo() && isMouseover(true))
+            drawRect(0,0,getWidth(),getHeight(),colorInt(100,100,0,100));
+    }
+
     //--------------------------------------tools----------------------------------------------------
+
+    public int colorInt(int r,int g,int b,int a){
+        a = (a & 255) << 24;
+        r = (r & 255) << 16;
+        g = (g & 255) << 8;
+        b &= 255;
+        return a | r | g | b;
+    }
+
+    public int colorInt(Color color){
+        return colorInt(color.getRed(),color.getGreen(),color.getBlue(),color.getAlpha());
+    }
 
     public void drawString3D(String s, float x, float y, float z, int r, int g, int b, int a, com.nowandfuture.mod.utils.math.Vector3f vector3f){
         drawString3D(s, x, y, z, r, g, b, a,new Vector3f(0,0,1));

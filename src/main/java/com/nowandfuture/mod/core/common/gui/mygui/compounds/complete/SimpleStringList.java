@@ -2,9 +2,6 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
-import com.nowandfuture.mod.utils.DrawHelper;
-import net.minecraft.client.Minecraft;
-import org.lwjgl.util.Color;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -36,24 +33,17 @@ public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> 
 
     @Override
     protected void drawSplitLine() {
-//        drawHorizontalLine(0,getWidth(),0, DrawHelper.colorInt(255,0,0,255));
     }
 
     public static class StringViewHolder extends ViewHolder{
-        private String string;
         private TextView textView;
 
-        public StringViewHolder(@Nonnull RootView rootView) {
-            super(rootView);
-            init();
-        }
-
-        public StringViewHolder(@Nonnull RootView rootView, ViewGroup parent) {
+        public StringViewHolder(@Nonnull RootView rootView, MyAbstractList parent) {
             super(rootView, parent);
             init();
         }
 
-        public StringViewHolder(@Nonnull RootView rootView, ViewGroup parent, @Nonnull List list) {
+        public StringViewHolder(@Nonnull RootView rootView, MyAbstractList parent, @Nonnull List list) {
             super(rootView, parent, list);
             init();
         }
@@ -70,25 +60,6 @@ public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> 
 
         public void setString(String string) {
             textView.setText(string);
-            this.string = string;
-        }
-
-        @Override
-        protected boolean onPressed(int mouseX, int mouseY, int state) {
-            return false;
-        }
-
-        @Override
-        protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-            drawBackground();
-            int frontColor = DrawHelper.colorInt(200,200,200,255);
-            int backColor = DrawHelper.colorInt(0,0,0,200);
-            if(textView.isHover()) {
-                frontColor = DrawHelper.colorInt(255, 255, 255, 255);
-                backColor = DrawHelper.colorInt(60, 60, 60, 255);
-            }
-            textView.setBackgroundColor(backColor);
-            textView.setTextColor(frontColor);
         }
     }
 
@@ -115,8 +86,8 @@ public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> 
         }
 
         @Override
-        public StringViewHolder createHolder(RootView rootView) {
-            return new StringViewHolder(rootView);
+        public StringViewHolder createHolder(RootView rootView,MyAbstractList parent) {
+            return new StringViewHolder(rootView,parent);
         }
 
         @Override

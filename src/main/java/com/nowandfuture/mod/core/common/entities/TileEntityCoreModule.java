@@ -1,10 +1,12 @@
 package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
-import com.nowandfuture.mod.core.common.gui.DynamicInventory;
-import com.nowandfuture.mod.core.common.gui.IDynamicInventory;
-import com.nowandfuture.mod.core.common.gui.ItemStackMapHelper;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynInventoryHolder;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IInventorySlotChangedListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.SerializeWrapper;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.AnchorList;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
@@ -13,6 +15,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -23,9 +26,10 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
-public class TileEntityCoreModule extends TileEntityModule {
+public class TileEntityCoreModule extends TileEntityModule implements IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap>, IInventorySlotChangedListener {
 
     private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
@@ -57,19 +61,21 @@ public class TileEntityCoreModule extends TileEntityModule {
                     return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
                         @Override
                         public boolean isItemValid(ItemStack stack) {
-                            return true;
+                            return stack.getItem() == RegisterHandler.prefabItem;
                         }
                     };
-                } else{
+                } else {
                     return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
                         @Override
                         public boolean isItemValid(ItemStack stack) {
-                            return true;
+                            return stack.getItem() == RegisterHandler.timelineItem;
                         }
                     };
                 }
             }
         });
+
+        dynamicInventory.addInventoryChangeListener(this);
     }
 
     @Override
@@ -90,8 +96,9 @@ public class TileEntityCoreModule extends TileEntityModule {
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         ItemStackHelper.loadAllItems(compound, moduleItemStacks);
-        dynamicInventory.clear();
-        dynamicInventory.readFromNBT(compound);
+        //if client receive nbt from server,these changes should not back to server
+        //else server should send the changes to its clients
+        dynamicInventory.readFromNBT(compound,world != null && !world.isRemote);
         readNBT(compound);
         super.readFromNBT(compound);
     }
@@ -135,8 +142,7 @@ public class TileEntityCoreModule extends TileEntityModule {
     }
 
     public void handleInventoryTag(NBTTagCompound nbtTagCompound){
-        dynamicInventory.clear();
-        dynamicInventory.readFromNBT(nbtTagCompound);
+        dynamicInventory.readFromNBT(nbtTagCompound,false);
     }
 
     public SPacketUpdateTileEntity getInventoryPacket(){
@@ -219,7 +225,41 @@ public class TileEntityCoreModule extends TileEntityModule {
         this.showBlock = showBlock;
     }
 
-    public DynamicInventory getDynamicInventory() {
+    @Nonnull
+    @Override
+    public DynamicInventory getDynInventory() {
         return dynamicInventory;
+    }
+
+    @Override
+    public SerializeWrapper.BlockPosWrap getHolderId() {
+        return new SerializeWrapper.BlockPosWrap(getPos());
+    }
+
+
+    @Override
+    public void slotRemoved(long id, ItemStack itemStack,boolean forced) {
+        if(forced){
+            if(world != null && world.isRemote)
+                dynamicInventory.sync(this);
+
+            if(world != null && !world.isRemote && !itemStack.isEmpty()) {
+                IDynamicInventory.spawnItemStack(world, getPos().getX(),
+                        getPos().getY(), getPos().getZ(), itemStack.copy());
+            }
+        }
+    }
+
+    @Override
+    public void slotAdded(long id, ItemStack itemStack,boolean forced) {
+        if(forced) {
+            if (world != null && world.isRemote)
+                dynamicInventory.sync(this);
+        }
+    }
+
+    @Override
+    public void onInventoryChanged(IInventory invBasic) {
+
     }
 }

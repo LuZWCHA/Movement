@@ -1,17 +1,24 @@
-package com.nowandfuture.mod.core.common.gui;
+package com.nowandfuture.mod.core.common.gui.mygui;
 
 import com.google.common.collect.Lists;
-import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.IInventorySlotChangedListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynInventoryHolder;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IInventorySlotChangedListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.SerializeWrapper;
+import com.nowandfuture.mod.core.common.gui.mygui.network.InventoryCMessage;
+import com.nowandfuture.mod.core.common.gui.mygui.network.NetworkHandler;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class DynamicInventory implements IDynamicInventory {
     private Map<Long, ItemStack> map;
@@ -71,17 +78,18 @@ public class DynamicInventory implements IDynamicInventory {
                 return false;
             }
         }
-
         return true;
     }
 
     @Override
     @Nonnull
     public ItemStack getStackInSlot(int index) {
-        return map.get((long)index);
+        ItemStack stack = map.get((long)index);
+        return stack == null ? ItemStack.EMPTY : stack;
     }
 
     @Override
+    @Nonnull
     public ItemStack decrStackSize(int index, int count) {
         if(map.containsKey((long)index)) {
             ItemStack itemstack = ItemStackMapHelper.getAndSplit(this.map, index, count);
@@ -92,10 +100,11 @@ public class DynamicInventory implements IDynamicInventory {
 
             return itemstack;
         }
-        return null;
+        return ItemStack.EMPTY;
     }
 
     @Override
+    @Nonnull
     public ItemStack removeStackFromSlot(int index) {
         ItemStack itemstack = this.map.get((long)index);
 
@@ -111,8 +120,8 @@ public class DynamicInventory implements IDynamicInventory {
     }
 
     @Override
-    public void setInventorySlotContents(int index, ItemStack stack) {
-        this.map.replace((long) index, stack);
+    public void setInventorySlotContents(int index,@Nonnull ItemStack stack) {
+        this.map.put((long) index, stack);
 
         if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
         {
@@ -131,43 +140,41 @@ public class DynamicInventory implements IDynamicInventory {
     public void markDirty() {
         if (this.changeListeners != null)
         {
-            for (int i = 0; i < this.changeListeners.size(); ++i)
-            {
-                this.changeListeners.get(i).onInventoryChanged(this);
+            for (IInventorySlotChangedListener changeListener : this.changeListeners) {
+                changeListener.onInventoryChanged(this);
             }
         }
     }
 
-    public void markDirty2(boolean remove,ItemStack itemStack) {
+    public void markDirty2(boolean remove,long id,ItemStack itemStack,boolean forced) {
         if (this.changeListeners != null)
         {
-            for (int i = 0; i < this.changeListeners.size(); ++i)
-            {
-                if(remove)
-                    this.changeListeners.get(i).slotRemoved(itemStack);
+            for (IInventorySlotChangedListener changeListener : this.changeListeners) {
+                if (remove)
+                    changeListener.slotRemoved(id,itemStack,forced);
                 else
-                    this.changeListeners.get(i).slotAdded(itemStack);
+                    changeListener.slotAdded(id,itemStack,forced);
             }
         }
     }
 
     @Override
-    public boolean isUsableByPlayer(EntityPlayer player) {
+    public boolean isUsableByPlayer(@Nonnull EntityPlayer player) {
         return true;
     }
 
     @Override
-    public void openInventory(EntityPlayer player) {
+    public void openInventory(@Nonnull EntityPlayer player) {
         
     }
 
     @Override
-    public void closeInventory(EntityPlayer player) {
+    public void closeInventory(@Nonnull EntityPlayer player) {
 
     }
 
     @Override
-    public boolean isItemValidForSlot(int index, ItemStack stack) {
+    public boolean isItemValidForSlot(int index, @Nonnull ItemStack stack) {
         return true;
     }
 
@@ -193,6 +200,7 @@ public class DynamicInventory implements IDynamicInventory {
     }
 
     @Override
+    @Nonnull
     public String getName() {
         return title;
     }
@@ -204,70 +212,103 @@ public class DynamicInventory implements IDynamicInventory {
     }
 
     @Override
+    public boolean syncAs(Map<Long, ItemStack> toSync,boolean forced) {
+        List<Long> removeList = new LinkedList<>();
+        for (Map.Entry<Long, ItemStack> entry:
+                map.entrySet()){
+            if(!toSync.containsKey(entry.getKey())){
+                removeList.add(entry.getKey());
+            }
+        }
+
+        for (Long key :
+                removeList) {
+            removeSlot(key,forced);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean hasCustomName() {
         return this.hasCustomName;
     }
 
     @Override
+    @Nonnull
     public ITextComponent getDisplayName() {
         return this.hasCustomName() ? new TextComponentString(this.getName()) : new TextComponentTranslation(this.getName(), new Object[0]);
     }
 
     @Override
-    public void removeSlot(long id){
+    public void removeSlot(long id,boolean forced){
         ItemStack stack = map.remove(id);
-        if(stack != null) markDirty2(true,stack);
         slots.remove(id);
+        if(stack != null) {
+            markDirty2(true,id,stack,forced);
+        }
     }
 
-    public void createSlot(AbstractContainer.ProxySlot slot){
+    public void createSlot(AbstractContainer.ProxySlot slot,boolean forced){
         long max = 0;
         for(Long id : map.keySet()){
             if(id > max){
                 max = id;
             }
         }
-        createSlot(max + 1,slot);
+        createSlot(max + 1,slot,forced);
     }
 
-    public void createSlot(ItemStack stack, int type){
+    public void createSlot(ItemStack stack, int type,boolean forced){
         long max = 0;
         for(Long id : map.keySet()){
             if(id > max){
                 max = id;
             }
         }
-        createSlot(max + 1,stack,getCreator(),type);
+        createSlot(max + 1,stack,getCreator(),type,forced);
     }
 
-    public void createSlot(ItemStack stack, SlotCreator creator,int type){
+    public void createSlot(ItemStack stack, SlotCreator creator,int type,boolean forced){
         long max = 0;
         for(Long id : map.keySet()){
             if(id > max){
                 max = id;
             }
         }
-        createSlot(max + 1,stack,creator,type);
+        createSlot(max + 1,stack,creator,type,forced);
     }
 
     @Override
-    public void createSlot(long id, AbstractContainer.ProxySlot slot){
-        map.put(id,slot.getStack());
-        slots.put(id,slot);
-        markDirty2(false,slot.getStack());
+    public void createSlot(long id, AbstractContainer.ProxySlot slot,boolean forced){
+        if(isExistedOf(id)) {
+            if(!slots.containsKey(id)) {
+                slots.put(id, slot);
+                markDirty2(false, id, slot.getStack(),forced);
+            }
+        }
     }
 
     @Override
-    public void createSlot(long id, ItemStack stack, SlotCreator creator,int type) {
-        map.put(id,stack);
-        AbstractContainer.ProxySlot slot = creator.create(this,id,type);
-        slots.put(id,slot);
-        markDirty2(false,stack);
+    public void createSlot(long id, ItemStack stack, SlotCreator creator,int type,boolean forced) {
+        if(!isExistedOf(id)){
+            map.put(id,stack);
+            if(type != IDynamicInventory.NULL_SLOT) {
+                AbstractContainer.ProxySlot slot = creator.create(this, id, type);
+                slots.put(id, slot);
+            }
+            markDirty2(false,id,stack,forced);
+        }
     }
 
     @Override
     public Map<Long, AbstractContainer.ProxySlot> getSlots() {
         return slots;
+    }
+
+    @Override
+    public boolean isExistedOf(long id) {
+        return map.containsKey(id);
     }
 
     @Override
@@ -283,6 +324,22 @@ public class DynamicInventory implements IDynamicInventory {
         return null;
     }
 
+    @Override
+    public void foreach(Consumer<Packet> consumer) {
+        Iterator<Map.Entry<Long,ItemStack>> stacks = map.entrySet().iterator();
+        Packet packet = new Packet();
+
+        while (stacks.hasNext()){
+            Map.Entry<Long,ItemStack> stack = stacks.next();
+            packet.id = stack.getKey();
+            packet.itemStack = stack.getValue();
+            AbstractContainer.ProxySlot slot = slots.get(packet.id);
+            packet.slotType = slot == null ? NULL_SLOT : slot.type;
+
+            consumer.accept(packet);
+        }
+    }
+
     public SlotCreator getCreator() {
         return creator;
     }
@@ -291,14 +348,23 @@ public class DynamicInventory implements IDynamicInventory {
         this.creator = creator;
     }
 
+    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         ItemStackMapHelper.saveAllItems(compound,map);
         IDynamicInventory.saveSlots(compound,this);
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
-        ItemStackMapHelper.loadAllItems(compound, map);
-        IDynamicInventory.loadAllSlots(compound,this);
+    @Override
+    public void readFromNBT(NBTTagCompound compound,boolean forced) {
+        ItemStackMapHelper.loadAllItems(compound, this,forced);
+        IDynamicInventory.loadAllSlots(compound,this,forced);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void sync(IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap> holder){
+        NetworkHandler.INSTANCE.sendMessageToServer(
+                new InventoryCMessage((short) 0,holder.getHolderId(),holder.getDynInventory().writeToNBT(new NBTTagCompound()))
+        );
     }
 }

@@ -4,8 +4,8 @@ import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
@@ -24,6 +24,8 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+
+import java.util.List;
 
 public class GuiConstructor extends AbstractGuiContainer implements IContainerListener{
     public static final int GUI_ID = 0x102;
@@ -262,21 +264,21 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        tileConstructor.setLockChanged(new ChangeListener.ChangeEvent() {
+        tileConstructor.setLockChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed() {
                 updateBtn();
             }
         });
 
-        tileConstructor.setConstructChanged(new ChangeListener.ChangeEvent() {
+        tileConstructor.setConstructChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed() {
                 updateBtn();
             }
         });
 
-        tileConstructor.setAreaSizeChanged(new ChangeListener.ChangeEvent() {
+        tileConstructor.setAreaSizeChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed() {
                 xLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
@@ -285,7 +287,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        tileConstructor.setSlotChanged(new ChangeListener.ChangeEvent() {
+        tileConstructor.setSlotChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed() {
                 GuiConstructor.this.slotChanged();
@@ -360,6 +362,11 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
 
             );
         }
+    }
+
+    @Override
+    protected List<GuiRegion> getExtraRegion() {
+        return null;
     }
 
     @Override

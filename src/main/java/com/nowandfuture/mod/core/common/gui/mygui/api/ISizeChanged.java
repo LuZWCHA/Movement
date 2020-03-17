@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.common.gui.mygui;
+package com.nowandfuture.mod.core.common.gui.mygui.api;
 
 public interface ISizeChanged {
     void onWidthChanged(int old ,int cur);

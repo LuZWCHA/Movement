@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
-import com.nowandfuture.mod.core.common.gui.mygui.IUpdate;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.IType;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IUpdate;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IType;
 import net.minecraft.client.gui.FontRenderer;
 
 import java.util.function.Function;

@@ -2,16 +2,17 @@ package com.nowandfuture.mod.core.common.gui.mygui;
 
 
 import com.google.common.collect.Sets;
-import com.nowandfuture.mod.core.common.gui.DynamicInventory;
-import com.nowandfuture.mod.core.common.gui.IDynamicInventory;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.*;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ public abstract class AbstractContainer extends Container{
     }
 
     public void addExtSlot(long id, ProxySlot slot, EntityPlayer player){
-        dynamicInventory.createSlot(id,slot);
+        dynamicInventory.createSlot(id,slot,false);
     }
 
     public void addExtSlot(long id, EntityPlayer player, DynamicInventory.SlotCreator creator,int type){
@@ -53,7 +54,7 @@ public abstract class AbstractContainer extends Container{
         if(itemStack != null && !itemStack.isEmpty()){
             InventoryHelper.spawnItemStack(player.world,player.posX,player.posY,player.posZ, itemStack);
         }
-        dynamicInventory.removeSlot(id);
+        dynamicInventory.removeSlot(id,false);
     }
 
     @Nullable
@@ -72,32 +73,25 @@ public abstract class AbstractContainer extends Container{
     }
 
     @Override
-    public NonNullList<ItemStack> getInventory()
-    {
+    public NonNullList<ItemStack> getInventory(){
         NonNullList<ItemStack> list = super.getInventory();
-        for (Slot is :
-                dynamicInventory.getSlots().values()) {
-            if(is != null && is.getHasStack()){
-                list.add(is.getStack());
-            }
-        }
         return list;
     }
 
+    public IDynamicInventory getDynamicInventory(){
+        return dynamicInventory;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void setAllForDymInventory(NBTTagCompound nbtTagCompound){
+        this.dynamicInventory.readFromNBT(nbtTagCompound,false);
+    }
+
+    @SideOnly(Side.CLIENT)
     @Override
     public void setAll(List<ItemStack> allItemStacks) {
         for(int i = 0;i < inventorySlots.size();i++){
             getSlot(i).putStack(allItemStacks.get(i));
-        }
-
-        if(allItemStacks.size() > inventorySlots.size()){
-            int i = inventorySlots.size();
-            for (ProxySlot s :
-                    dynamicInventory.getSlots().values()) {
-                if(i >= allItemStacks.size()) break;
-                s.putStack(allItemStacks.get(i));
-                i++;
-            }
         }
     }
 
@@ -690,8 +684,18 @@ public abstract class AbstractContainer extends Container{
         }
 
         @Override
-        public void putStack(ItemStack stack) {
+        @Nonnull
+        public ItemStack getStack() {
+            return super.getStack();
+        }
+
+        @Override
+        public void putStack(@Nonnull ItemStack stack) {
             super.putStack(stack);
+        }
+
+        public IDynamicInventory getInventory(){
+            return (IDynamicInventory) inventory;
         }
 
         @Override

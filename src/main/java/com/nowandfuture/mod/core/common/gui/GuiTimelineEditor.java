@@ -6,9 +6,9 @@ import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
 import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
@@ -120,7 +120,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         resetBtn = new Button(getRootView(),rightLayout);
         recoverBtn = new Button(getRootView(),rightLayout);
 
-        tileMovementModule.setSlotChanged(new ChangeListener.ChangeEvent() {
+        tileMovementModule.setSlotChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed(int index) {
                 GuiTimelineEditor.this.slotChange(index);
@@ -621,6 +621,11 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     public void onDestroy() {
         tileMovementModule.setSlotChanged(null);
         comboBox.setOnItemClicked(null);
+    }
+
+    @Override
+    protected List<GuiRegion> getExtraRegion() {
+        return null;
     }
 
     @Override

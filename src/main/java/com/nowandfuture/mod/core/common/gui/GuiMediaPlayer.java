@@ -4,7 +4,7 @@ import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
@@ -18,6 +18,7 @@ import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -228,6 +229,11 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         if(gui == urlTextField){
             urlTextField.setFocused(true);
         }
+    }
+
+    @Override
+    protected List<GuiRegion> getExtraRegion() {
+        return null;
     }
 
     @Override

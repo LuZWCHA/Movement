@@ -1,9 +1,7 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.GuiUtils;
 

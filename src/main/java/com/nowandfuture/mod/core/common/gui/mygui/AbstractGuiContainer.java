@@ -1,14 +1,16 @@
 package com.nowandfuture.mod.core.common.gui.mygui;
 
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.*;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IType;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IUpdate;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SlotView;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Container;
@@ -413,6 +415,25 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         }
     }
 
+    @Override
+    protected boolean hasClickedOutside(int mouseX, int mouseY, int left, int top) {
+        return super.hasClickedOutside(mouseX, mouseY, left, top) &&
+                !isInside(getExtraRegion(),mouseX,mouseY);
+    }
+
+    private boolean isInside(List<GuiRegion> regions,int x,int y){
+        if(regions == null) return false;
+        for (GuiRegion v :
+                regions) {
+            if(x > v.left && x < v.right && y > v.bottom && y < v.top){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected abstract List<GuiRegion> getExtraRegion();
+
     protected JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler(){return null;}
 
     public static class GuiBuilder<T extends ViewGroup>{
@@ -461,6 +482,29 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         public <R extends GuiBuilder<T>> R setY(int y) {
             this.y = y;
             return (R) this;
+        }
+    }
+
+    public static class GuiRegion{
+        public int left,top,right,bottom;
+
+        private GuiRegion(){
+
+        }
+
+        private GuiRegion(int left, int top, int right, int bottom) {
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+        }
+
+        public static GuiRegion of(int left, int top, int right, int bottom){
+            return new GuiRegion(left,top,right,bottom);
+        }
+
+        public static GuiRegion of(MyGui gui){
+            return new GuiRegion(gui.getX(),gui.getY(),gui.getX() + gui.getWidth(),gui.getY() + gui.getHeight());
         }
     }
 }

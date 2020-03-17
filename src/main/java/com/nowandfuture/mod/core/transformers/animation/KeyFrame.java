@@ -1,9 +1,10 @@
 package com.nowandfuture.mod.core.transformers.animation;
 
-import com.nowandfuture.mod.core.transformers.*;
+import com.nowandfuture.mod.core.transformers.LinearTransformNode;
+import com.nowandfuture.mod.core.transformers.RotationTransformNode;
+import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import net.minecraft.nbt.NBTTagCompound;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Comparable<KeyFrame> {

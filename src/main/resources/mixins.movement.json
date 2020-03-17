@@ -1,0 +1,9 @@
+{
+  "package": "com.nowandfuture.mixins",
+  "mixins": ["MixinEntityPlayerMP"],
+  "client": [],
+  "server": [],
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.6.11",
+  "refmap": "mixins.movement.refmap.json"
+}

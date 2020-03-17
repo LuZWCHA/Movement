@@ -1,11 +1,11 @@
-package com.nowandfuture.mod.core.common.gui.mygui;
+package com.nowandfuture.mod.core.common.gui.mygui.api;
 
-public interface ChangeListener{
+public interface IChangeListener {
     void changed();
     void changed(int index);
     void changed(String id);
 
-    abstract class ChangeEvent implements ChangeListener{
+    abstract class IChangeEvent implements IChangeListener {
         public void changed(){}
         public void changed(int index){}
         public void changed(String id){}

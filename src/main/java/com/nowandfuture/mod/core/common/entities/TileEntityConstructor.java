@@ -3,7 +3,7 @@ package com.nowandfuture.mod.core.common.entities;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.gui.ContainerConstructor;
-import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import com.nowandfuture.mod.core.prefab.MultiThreadPrefabWrapper;
@@ -54,14 +54,14 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
     private final MultiThreadPrefabWrapper wrapper;
     private BigNBTTagSplitPacketTool bigNBTTagSplitPacket;
 
-    public void setAreaSizeChanged(ChangeListener areaSizeChanged) {
+    public void setAreaSizeChanged(IChangeListener areaSizeChanged) {
         this.areaSizeChanged = areaSizeChanged;
     }
 
-    private ChangeListener lockChanged;
-    private ChangeListener constructChanged;
-    private ChangeListener areaSizeChanged;
-    private ChangeListener slotChanged;
+    private IChangeListener lockChanged;
+    private IChangeListener constructChanged;
+    private IChangeListener areaSizeChanged;
+    private IChangeListener slotChanged;
 
     //--------------only for server-------------------------
     private int lastRevIndex = -1;
@@ -565,15 +565,15 @@ public class TileEntityConstructor extends TileEntityLockable implements ITickab
         return isLock;
     }
 
-    public void setLockChanged(ChangeListener lockChanged) {
+    public void setLockChanged(IChangeListener lockChanged) {
         this.lockChanged = lockChanged;
     }
 
-    public void setConstructChanged(ChangeListener constructChanged) {
+    public void setConstructChanged(IChangeListener constructChanged) {
         this.constructChanged = constructChanged;
     }
 
-    public void setSlotChanged(ChangeListener slotChanged) {
+    public void setSlotChanged(IChangeListener slotChanged) {
         this.slotChanged = slotChanged;
     }
 }

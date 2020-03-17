@@ -1,8 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.mygui;
 
-import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import mezz.jei.api.gui.IAdvancedGuiHandler;
-import net.minecraft.client.gui.inventory.GuiContainer;
 
 import javax.annotation.Nullable;
 import java.awt.*;

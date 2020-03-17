@@ -2,7 +2,7 @@ package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.gui.ContainerAnmEditor;
-import com.nowandfuture.mod.core.common.gui.mygui.ChangeListener;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class TileEntityTimelineEditor extends TileEntityModule {
-    private ChangeListener slotChanged;
+    private IChangeListener slotChanged;
 
     private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
@@ -124,7 +124,7 @@ public class TileEntityTimelineEditor extends TileEntityModule {
         return "module_gui";
     }
 
-    public void setSlotChanged(ChangeListener.ChangeEvent slotChanged) {
+    public void setSlotChanged(IChangeListener.IChangeEvent slotChanged) {
         this.slotChanged = slotChanged;
     }
 }

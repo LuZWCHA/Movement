@@ -1,11 +1,12 @@
 package com.nowandfuture.mod.core.common.gui;
 
 import api.java.yalter.mousetweaks.api.MouseTweaksIgnore;
+import com.google.common.collect.Lists;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
-import com.nowandfuture.mod.core.common.gui.custom.SlotsListVew;
-import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
+import com.nowandfuture.mod.core.common.gui.custom.PairSlotsListVew;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
@@ -13,14 +14,13 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
-import com.nowandfuture.mod.network.message.LMessageHandler;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
-import java.util.Calendar;
+import java.util.List;
 import java.util.function.Consumer;
 
 @MouseTweaksIgnore
@@ -34,12 +34,12 @@ public class GuiModule extends AbstractGuiContainer {
     //just as an example
     private MyLabel tickLabel;
     private TextView tipLabel;
-    private Button addBtn;
+    private Button addBtn,removeBtn;
     private Button startBtn;
     private Button hideBlockBtn;
     private Button useClientCollisionBtn;//not finished
 
-    private SlotsListVew slotsListVew;
+    private PairSlotsListVew pairSlotsListVew;
 
     public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityCoreModule tileEntityModule) {
         super(new ContainerModule(inventorySlotsIn,tileEntityModule));
@@ -62,7 +62,6 @@ public class GuiModule extends AbstractGuiContainer {
                         new LMessage.LongDataMessage(LMessage.LongDataMessage.GUI_TICK_SLIDE,tick);
                 message.setPos(tileEntityCoreModule.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
-//                tileEntityShowModule.getLine().setTick(tick);
             }
         });
         view.setProgressChanging(new Consumer<Float>() {
@@ -103,18 +102,38 @@ public class GuiModule extends AbstractGuiContainer {
         useClientCollisionBtn.setText(R.name(R.id.text_module_btn_collision_enable_id));
 
         addBtn = GuiBuilder.wrap(new Button(getRootView()))
-                .setX(134).setY(8).setWidth(80).setHeight(16).build();
+                .setX(134).setY(8).setWidth(16).setHeight(16).build();
+        removeBtn = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(150).setY(8).setWidth(16).setHeight(16).build();
+
+        removeBtn.setText("-");
         addBtn.setText("+");
+
+        removeBtn.setActionListener(new View.ActionListener() {
+            @Override
+            public void onClicked(View v) {
+                DynamicInventory dynamicInventory = tileEntityCoreModule.getDynInventory();
+                if(dynamicInventory.getSizeInventory() > 1) {
+                    long id = dynamicInventory
+                            .getEntryByIndex(dynamicInventory.getSizeInventory() - 1)
+                            .getKey();
+
+                    dynamicInventory.removeSlot(id,false);
+
+                    id = dynamicInventory
+                            .getEntryByIndex(dynamicInventory.getSizeInventory() - 1)
+                            .getKey();
+
+                    dynamicInventory.removeSlot(id,true);
+                }
+            }
+        });
 
         addBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
-                tileEntityCoreModule.getDynamicInventory().createSlot(ItemStack.EMPTY, 0);
-                tileEntityCoreModule.getDynamicInventory().createSlot(ItemStack.EMPTY, 1);
-                LMessage.NBTMessage voidMessage = new LMessage.NBTMessage(LMessage.NBTMessage.GUI_CHANGE_INVENTORY,
-                        tileEntityCoreModule.getInventoryTag());
-                voidMessage.setPos(tileEntityCoreModule.getPos());
-                NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+                tileEntityCoreModule.getDynInventory().createSlot(ItemStack.EMPTY, 0,false);
+                tileEntityCoreModule.getDynInventory().createSlot(ItemStack.EMPTY, 1,true);
             }
         });
 
@@ -157,26 +176,27 @@ public class GuiModule extends AbstractGuiContainer {
             setVisible(true,tickLabel,view);
         }
 
-        slotsListVew = new SlotsListVew(getRootView());
-        SlotsListVew.SlotsAdapter adapter = new SlotsListVew.SlotsAdapter();
-        adapter.setInventory(tileEntityCoreModule.getDynamicInventory());
-        slotsListVew.bind(adapter);
+        pairSlotsListVew = new PairSlotsListVew(getRootView());
+        PairSlotsListVew.SlotsAdapter adapter = new PairSlotsListVew.SlotsAdapter();
+        adapter.setInventory(tileEntityCoreModule.getDynInventory());
+        pairSlotsListVew.bind(adapter);
 
-        slotsListVew.setX(20);
-        slotsListVew.setY(0);
-        slotsListVew.setWidth(90);
-        slotsListVew.setHeight(60);
+        pairSlotsListVew.setX(getXSize() + 4);
+        pairSlotsListVew.setY(4);
+        pairSlotsListVew.setWidth(100);
+        pairSlotsListVew.setHeight(120);
 
         updateShowOrHideBtn();
 
         addGuiCompoundsRelative(
                 addBtn,
+                removeBtn,
                 useClientCollisionBtn,
                 hideBlockBtn,
                 tickLabel,
                 tipLabel,
                 startBtn,
-                slotsListVew);
+                pairSlotsListVew);
     }
 
     private void updateCollisionEnableBtn(){
@@ -263,6 +283,13 @@ public class GuiModule extends AbstractGuiContainer {
         this.mc.renderEngine.bindTexture(MODULE_GUI_TEXTURE);
 
         DrawHelper.drawTexturedModalRect(this.guiLeft, this.guiTop,this.zLevel, 0, 0, this.xSize, this.ySize,177,166);
+    }
+
+    @Override
+    protected List<GuiRegion> getExtraRegion() {
+        List<GuiRegion> list = Lists.newArrayList();
+        list.add(GuiRegion.of(xSize + 4,ySize + 4,xSize + pairSlotsListVew.getWidth(),ySize + pairSlotsListVew.getHeight()));
+        return list;
     }
 
     @Override

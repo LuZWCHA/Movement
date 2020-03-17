@@ -1,14 +1,13 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
 import com.google.common.collect.Lists;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class MyLabel extends Gui implements MyGui {

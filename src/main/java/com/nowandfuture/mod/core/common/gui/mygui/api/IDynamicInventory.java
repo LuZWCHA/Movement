@@ -1,6 +1,7 @@
-package com.nowandfuture.mod.core.common.gui;
+package com.nowandfuture.mod.core.common.gui.mygui.api;
 
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.inventory.IInventory;
@@ -10,26 +11,43 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.LinkedHashMap;
+import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public interface IDynamicInventory extends IInventory {
-    void removeSlot(long id);
-    void createSlot(long id, AbstractContainer.ProxySlot stack);
-    void createSlot(long id, ItemStack stack, SlotCreator creator,int type);
+    int NULL_SLOT = Integer.MIN_VALUE;
+
+    void removeSlot(long id,boolean canBeListened);
+    void createSlot(long id, AbstractContainer.ProxySlot stack,boolean canBeListened);
+    void createSlot(long id, ItemStack stack, SlotCreator creator,int type,boolean canBeListened);
     Map<Long, AbstractContainer.ProxySlot> getSlots();
     Map.Entry<Long,ItemStack> getEntryByIndex(int index);
+    void foreach(Consumer<Packet> packetConsumer);
+    boolean syncAs(Map<Long,ItemStack> itemStackMap,boolean canBeListened);
+    boolean isExistedOf(long id);
+    SlotCreator getCreator();
+
+    NBTTagCompound writeToNBT(NBTTagCompound compound);
+
+    void readFromNBT(NBTTagCompound compound,boolean canBeListened);
+
+    class Packet{
+        public long id;
+        public int slotType;
+        public ItemStack itemStack;
+    }
 
     abstract class SlotCreator{
         public abstract AbstractContainer.ProxySlot create(IDynamicInventory inventory, long index,int type);
     }
 
-    static void createSlots(IDynamicInventory inventory,Map<Long,ItemStack> map,Map<Long,Integer> types,SlotCreator creator){
+    static void createSlots(IDynamicInventory inventory,Map<Long,ItemStack> map,Map<Long,Integer> types,SlotCreator creator,boolean canBeListened){
         for (Map.Entry<Long,ItemStack> entry:
              map.entrySet()) {
-            inventory.createSlot(entry.getKey(),entry.getValue(),creator,types.get(entry.getKey()));
+            inventory.createSlot(entry.getKey(),entry.getValue(),creator,types.get(entry.getKey()),canBeListened);
         }
     }
 
@@ -53,12 +71,12 @@ public interface IDynamicInventory extends IInventory {
         return tag;
     }
 
-    static void loadAllSlots(NBTTagCompound tag, DynamicInventory inventory)
+    static void loadAllSlots(NBTTagCompound tag, DynamicInventory inventory,boolean canBeListened)
     {
-        loadAllSlots(tag, inventory,inventory.getCreator());
+        loadAllSlots(tag, inventory,inventory.getCreator(),canBeListened);
     }
 
-    static void loadAllSlots(NBTTagCompound tag, IDynamicInventory inventory,SlotCreator creator)
+    static void loadAllSlots(NBTTagCompound tag, IDynamicInventory inventory,SlotCreator creator,boolean canBeListened)
     {
         NBTTagList nbttaglist = tag.getTagList("SlotMap", 10);
 
@@ -67,7 +85,10 @@ public interface IDynamicInventory extends IInventory {
             NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
             long j = nbttagcompound.getLong("SlotId");
             int type = nbttagcompound.getInteger("SlotType");
-            inventory.getSlots().put(j, creator.create(inventory,j,type));
+            if(!inventory.getSlots().containsKey(j)) {
+                AbstractContainer.ProxySlot slot = creator.create(inventory, j, type);
+                inventory.createSlot(j, slot,canBeListened);
+            }
         }
     }
 
@@ -114,5 +135,20 @@ public interface IDynamicInventory extends IInventory {
             entityitem.motionZ = RANDOM.nextGaussian() * 0.05000000074505806D;
             worldIn.spawnEntity(entityitem);
         }
+    }
+
+    static IDynamicInventory copy(@Nonnull IDynamicInventory source, @Nonnull IDynamicInventory dest){
+        dest.clear();
+        source.foreach(new Consumer<Packet>() {
+            @Override
+            public void accept(Packet packet) {
+                dest.createSlot(packet.id,
+                        packet.itemStack,
+                        dest.getCreator(),
+                        packet.slotType,
+                        false);
+            }
+        });
+        return dest;
     }
 }

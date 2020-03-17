@@ -1,12 +1,13 @@
-package com.nowandfuture.mod.core.common.gui;
+package com.nowandfuture.mod.core.common.gui.mygui.network;
 
-import com.nowandfuture.mod.core.common.gui.mygui.SlotMessage;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.server.management.PlayerChunkMapEntry;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -14,52 +15,60 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public enum NetworkHandler {
     INSTANCE;
-    private SimpleNetworkWrapper wrapper;
-    private static String channelName;
-    
-    static {
-        channelName = "_slot_channel";
-    }
-    
+    private SimpleNetworkWrapper channel;
+
     NetworkHandler(){
-        
+
     }
-    
-    public void init(String modId){
-        wrapper = NetworkRegistry.INSTANCE.newSimpleChannel(modId + channelName);
-        wrapper.registerMessage(SlotMessage.class,SlotMessage.class,0, Side.SERVER);
+
+    public void init(){
+        channel = NetworkRegistry.INSTANCE.newSimpleChannel("MYGUI_LIB");
+        int baseId = 0;
+        channel.registerMessage(InventoryCMessageHandler.class, InventoryCMessage.class, baseId++, Side.SERVER);
+        channel.registerMessage(InventorySMessageHandler.class,InventorySMessage.class,baseId++,Side.CLIENT);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void sendClientCommandMessage(String message){
+        Minecraft.getMinecraft().player.sendMessage(new TextComponentString(message));
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void sendClientChatMessage(String message){
+        Minecraft.getMinecraft().player.sendChatMessage(message);
     }
 
     public void sendMessageToDim(IMessage msg, int dim) {
-        wrapper.sendToDimension(msg, dim);
+        channel.sendToDimension(msg, dim);
     }
 
     public void sendMessageAroundPos(IMessage msg, int dim, BlockPos pos) {
 
-        wrapper.sendToAllAround(msg, new NetworkRegistry.TargetPoint(dim, pos.getX(), pos.getY(), pos.getZ(), 2.0D));
+        channel.sendToAllAround(msg, new NetworkRegistry.TargetPoint(dim, pos.getX(), pos.getY(), pos.getZ(), 2.0D));
     }
 
     public void sendMessageToPlayer(IMessage msg, EntityPlayerMP player) {
-        wrapper.sendTo(msg, player);
+        channel.sendTo(msg, player);
     }
 
     public void sendMessageToAll(IMessage msg) {
-        wrapper.sendToAll(msg);
+        channel.sendToAll(msg);
     }
 
     public void sendMessageToServer(IMessage msg) {
-        wrapper.sendToServer(msg);
+        channel.sendToServer(msg);
     }
 
     public void sendMessageToAllTracking(IMessage msg, Entity entity) {
-        wrapper.sendToAllTracking(msg, entity);
+        channel.sendToAllTracking(msg, entity);
     }
 
     public void sendMessageToAllTracking(IMessage msg,NetworkRegistry.TargetPoint point) {
-        wrapper.sendToAllTracking(msg,point);
+        channel.sendToAllTracking(msg,point);
     }
 
     public static World getServerWorld(MessageContext context) {

@@ -6,7 +6,6 @@ import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
 import com.nowandfuture.mod.core.common.gui.slots.PrefabOnlySlot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
@@ -18,7 +17,7 @@ public class ContainerModule extends AbstractContainer {
     public ContainerModule(InventoryPlayer playerInventory, TileEntityCoreModule tileEntityModule){
         super();
         this.tileEntityModule = tileEntityModule;
-        dynamicInventory = tileEntityModule.getDynamicInventory();
+        dynamicInventory = tileEntityModule.getDynInventory();
 
         slot = new PrefabOnlySlot(playerInventory.player,tileEntityModule,
                 0,14,57);

@@ -1,33 +1,23 @@
 package com.nowandfuture.mod.handler;
 
-import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
-import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.IClickableTile;
 import com.nowandfuture.mod.core.common.entities.TileEntityRayResult;
-import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
-import com.nowandfuture.mod.core.selection.OBBox;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.function.Consumer;
 
-@SideOnly(Side.CLIENT)
-public class ClientTickHandler {
+public class PlayerActionHandler {
 
-    public ClientTickHandler(){
+    public PlayerActionHandler(){
     }
 
     @SubscribeEvent

@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
 import com.nowandfuture.mod.core.common.gui.mygui.MCGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -35,6 +35,12 @@ public class RootView implements MyGui{
         mouseXAtParent -= gui.getX();
         mouseYAtParent -= gui.getY();
         return mouseXAtParent >= 0 && mouseYAtParent >= 0 && mouseXAtParent <= gui.getWidth() && mouseYAtParent <= gui.getHeight();
+    }
+
+    public static boolean isInside(MyGui parent,MyGui gui, int mouseX, int mouseY){
+        mouseX += gui.getX();
+        mouseY += gui.getY();
+        return mouseX >= 0 && mouseY >= 0 && mouseX <= parent.getWidth() && mouseY <= parent.getHeight();
     }
 
     public FontRenderer getFontRenderer(){
@@ -245,15 +251,6 @@ public class RootView implements MyGui{
 
     public boolean isShowDebugInfo(){
         return context.gameSettings.showDebugInfo;
-    }
-
-    public <T extends ViewGroup> T createInstance(Class<T> clazz){
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     public MCGuiContainer getGuiContainer() {
