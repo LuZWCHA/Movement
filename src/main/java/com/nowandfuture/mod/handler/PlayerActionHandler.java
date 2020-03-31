@@ -4,6 +4,7 @@ import com.nowandfuture.mod.core.common.entities.IClickableTile;
 import com.nowandfuture.mod.core.common.entities.TileEntityRayResult;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
@@ -39,6 +40,7 @@ public class PlayerActionHandler {
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickBlock,false);
         if(rayResult != null && rightClickBlock.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
+            rightClickBlock.setCancellationResult(EnumActionResult.SUCCESS);
             rightClickBlock.setCanceled(true);
         }
     }
@@ -63,6 +65,7 @@ public class PlayerActionHandler {
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(entityInteract,false);
         if(rayResult != null && entityInteract.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
+            entityInteract.setCancellationResult(EnumActionResult.PASS);
             entityInteract.setCanceled(true);
         }
     }

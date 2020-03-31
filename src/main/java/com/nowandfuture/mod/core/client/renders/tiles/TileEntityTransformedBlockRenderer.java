@@ -144,7 +144,7 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
                     }
                     catch (Exception var8)
                     {
-                        ;
+
                     }
                 }
 
@@ -154,10 +154,9 @@ public class TileEntityTransformedBlockRenderer extends FastTESR<TileEntityTrans
                         IBakedModel model = dispatcher.getModelForState(state);
                         state = state.getBlock().getExtendedState(state, blockAccess, pos);
                         return dispatcher.getBlockModelRenderer().renderModel(blockAccess, model, state, pos, bufferBuilderIn, false);
-                    case ENTITYBLOCK_ANIMATED:
-                        return false;
                     case LIQUID:
                         return dispatcher.renderBlock(state, pos, blockAccess, bufferBuilderIn);
+                    case ENTITYBLOCK_ANIMATED:
                     default:
                         return false;
                 }

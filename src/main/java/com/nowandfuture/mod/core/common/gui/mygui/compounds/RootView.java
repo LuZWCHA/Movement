@@ -1,6 +1,6 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
-import com.nowandfuture.mod.core.common.gui.mygui.MCGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import net.minecraft.client.Minecraft;
@@ -13,7 +13,7 @@ import net.minecraft.inventory.Slot;
 public class RootView implements MyGui{
     public Minecraft context = Minecraft.getMinecraft();
     private Container container;
-    private MCGuiContainer guiContainer;
+    private AbstractGuiContainer guiContainer;
 
     protected long longClickThreshold = 1000;//ms
 
@@ -22,6 +22,9 @@ public class RootView implements MyGui{
     private final ViewGroup topView;
     private ViewGroup focusedView;
     private ViewGroup hoverView;
+
+    private Dialog dialogView;
+    private final ViewGroup notifyView;
 
     ViewGroup getTopView() {
         return topView;
@@ -83,12 +86,77 @@ public class RootView implements MyGui{
         this.y = y;
         this.w = w;
         this.h = h;
-        topView = new FrameLayout(this,null);
+        topView = new TopView(this);
+        topView.setScissor(false);
 
         topView.setX(x);
         topView.setY(y);
         topView.setWidth(w);
         topView.setHeight(h);
+
+        dialogView = new Dialog();
+
+        //not finished
+        notifyView = new FrameLayout(this);
+        notifyView.setX(x);
+        notifyView.setY(y);
+        notifyView.setWidth(w);
+        notifyView.setHeight(h);
+    }
+
+    public static class DialogBuilder{
+        RootView rootView;
+        ViewGroup content;
+
+        private DialogBuilder(RootView rootView,ViewGroup content){
+            this.rootView = rootView;
+            this.content = content;
+        }
+
+        static DialogBuilder newDialogBuilder(RootView rootView,ViewGroup content){
+            return new DialogBuilder(rootView,content);
+        }
+
+        public DialogBuilder buildDialog(ViewGroup view){
+            content = view;
+            content.setX(rootView.x);
+            content.setY(rootView.y);
+            content.setWidth(rootView.w);
+            content.setHeight(rootView.h);
+
+            content.setVisible(false);
+            return this;
+        }
+
+
+        public DialogBuilder showDialog(){
+            if(content != null){
+                content.setVisible(true);
+            }
+            return this;
+        }
+
+        public DialogBuilder hideDialog(){
+            if(content != null){
+                content.setVisible(false);
+            }
+            return this;
+        }
+
+        public Dialog build(){
+            Dialog dialog = new Dialog(content);
+            dialog.setPosAndSize(0,0,content.getWidth(),content.getHeight());
+            rootView.setDialogView(dialog);
+            return dialog;
+        }
+    }
+
+    public DialogBuilder createDialogBuilder(ViewGroup content){
+        return new DialogBuilder(this,content);
+    }
+
+    void setDialogView(Dialog view){
+        this.dialogView = view;
     }
 
     public void onLoad(){
@@ -97,10 +165,7 @@ public class RootView implements MyGui{
 
     @Deprecated
     public void onSizeChanged(int oldW,int oldH,int w,int h){
-//        if(oldW != w)
-//            topView.onWidthChanged(oldW,w);
-//        if(oldH != h)
-//            topView.onHeightChanged(oldH,h);
+
     }
 
     @Override
@@ -152,24 +217,60 @@ public class RootView implements MyGui{
         topView.setHeight(height);
     }
 
+    public void initGui(){
+        //update dialog's position
+        if(dialogView.isShowing())
+            dialogView.setCenter();
+    }
+
     @Override
     public final void draw(int mouseX, int mouseY, float partialTicks) {
         topView.layout(this.getWidth(),this.getHeight());
+        if(dialogView.isShowing()) topView.setReachable(false);
+        else topView.setReachable(true);
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(topView.getX(),topView.getY(),0);
-        ViewGroup hover = topView.checkHover(mouseX - topView.getX(), mouseY - topView.getY());
-        if(hoverView != null) hoverView.setHover(false);
-        if(hover != null) hover.setHover(true);
-        hoverView = hover;
+        updateHoveringView(topView,mouseX,mouseY);
         topView.draw(mouseX - topView.getX(), mouseY - topView.getY(), partialTicks);
         GlStateManager.popMatrix();
+    }
 
+    private boolean updateHoveringView(ViewGroup root,int mouseX, int mouseY){
+        ViewGroup hover = root.checkHover(mouseX - root.getX(), mouseY - root.getY());
+        if(hoverView != null) hoverView.setHovering(false);
+        if(hover != null) hover.setHovering(true);
+        hoverView = hover;
+        return hoverView != null;
+    }
+
+    public final void drawDialog(int mouseX, int mouseY, float partialTicks) {
+        if(!dialogView.isShowing()) return;
+        ViewGroup content = dialogView.getView();
+        content.layout(this.getWidth(),this.getHeight());
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(content.getX(),content.getY(),0);
+        ViewGroup hover = content.checkHover(mouseX - content.getX(), mouseY - content.getY());
+        if(hoverView != null) hoverView.setHovering(false);
+        if(hover != null) hover.setHovering(true);
+        hoverView = hover;
+        content.draw(mouseX - content.getX(), mouseY - content.getY(), partialTicks);
+        GlStateManager.popMatrix();
+    }
+
+    public boolean isDialogShowing(){
+        return dialogView.isShowing();
     }
 
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
         topView.draw2(mouseX, mouseY, partialTicks);
+    }
+
+    public void drawDialog2(int mouseX, int mouseY, float partialTicks) {
+        if(dialogView.isShowing())
+            dialogView.getView().draw2(mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -186,20 +287,41 @@ public class RootView implements MyGui{
 
     @Override
     public void mouseReleased(int mouseX, int mouseY, int state) {
-        topView.mouseReleased(mouseX - getX(), mouseY - getY(), state);
+        if(dialogView.isShowing()){
+            ViewGroup content = dialogView.getView();
+            content.mouseReleased(mouseX - content.getX(), mouseY - content.getY(), state);
+        }else
+            topView.mouseReleased(mouseX - getX(), mouseY - getY(), state);
     }
 
     public void mousePressedMove(int mouseX, int mouseY,int state){
-        topView.mousePressedMove(mouseX - getX(), mouseY - getY(), state);
+        if(dialogView.isShowing()){
+            ViewGroup content = dialogView.getView();
+            content.mousePressedMove(mouseX - content.getX(), mouseY - content.getY(), state);
+        }else
+            topView.mousePressedMove(mouseX - getX(), mouseY - getY(), state);
     }
 
     @Override
     public boolean mousePressed(int mouseX, int mouseY,int state) {
-        mouseX -= getX();
-        mouseY -= getY();
-        boolean flag = false;
-        if(RootView.isInside(this,mouseX,mouseY))
+
+        boolean flag;
+        if(dialogView.isShowing()) {
+            ViewGroup content = dialogView.getView();
+            mouseX -= content.getX();
+            mouseY -= content.getY();
+            if(isInside(content,mouseX,mouseY))
+                content.mousePressed(mouseX, mouseY, state);
+            else{
+                setFocusedView(null);
+                dialogView.dispose();
+            }
+            flag = true;
+        } else {
+            mouseX -= getX();
+            mouseY -= getY();
             flag = topView.mousePressed(mouseX, mouseY, state);
+        }
 
         if(!flag) setFocusedView(null);
 
@@ -208,20 +330,30 @@ public class RootView implements MyGui{
 
     @Override
     public boolean handleMouseInput(int mouseX, int mouseY) {
+
+        if(dialogView.isShowing()) {
+            ViewGroup content = dialogView.getView();
+            mouseX -= content.getX();
+            mouseY -= content.getY();
+            return content.handleMouseInput(mouseX, mouseY);
+        }
         mouseX -= getX();
         mouseY -= getY();
-        if(RootView.isInside(topView,mouseX,mouseY))
-            return topView.handleMouseInput(mouseX, mouseY);
-        return true;
+        return topView.handleMouseInput(mouseX, mouseY);
     }
 
     public boolean handleKeyType(char typedChar, int keyCode){
+        if(dialogView.isShowing()) {
+            return dialogView.getView().handleKeyType(typedChar, keyCode);
+        }
         return topView.handleKeyType(typedChar, keyCode);
     }
 
     //gametick update
     public void update(){
         topView.onUpdate();
+        if(dialogView.isShowing())
+            dialogView.getView().onUpdate();
     }
 
     public void add(ViewGroup viewGroup){
@@ -253,11 +385,11 @@ public class RootView implements MyGui{
         return context.gameSettings.showDebugInfo;
     }
 
-    public MCGuiContainer getGuiContainer() {
+    public AbstractGuiContainer getGuiContainer() {
         return guiContainer;
     }
 
-    public void setGuiContainer(MCGuiContainer guiContainer) {
+    public void setGuiContainer(AbstractGuiContainer guiContainer) {
         this.guiContainer = guiContainer;
     }
 

@@ -209,7 +209,7 @@ public class PreviewView extends View {
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
         GlStateManager.disableAlpha();
-        drawRect(0,0, getWidth(), getHeight(),DrawHelper.colorInt(128,128,128,0));
+        drawRect(0,0, getWidth(), getHeight(),colorInt(128,128,128,0));
     }
 
     @Override

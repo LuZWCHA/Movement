@@ -31,7 +31,6 @@ public enum NetworkHandler {
     public void init(){
         channel = NetworkRegistry.INSTANCE.newSimpleChannel(Movement.MODID);
         int baseId = 0;
-        channel.registerMessage(LMessage.RenamePrefabMessage.class, LMessage.RenamePrefabMessage.class, baseId++,Side.SERVER);
         channel.registerMessage(DivBytesMessage.class,DivBytesMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(LMessage.FloatDataSyncMessage.class, LMessage.FloatDataSyncMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(LMessage.StringDataSyncMessage.class, LMessage.StringDataSyncMessage.class,baseId++,Side.SERVER);

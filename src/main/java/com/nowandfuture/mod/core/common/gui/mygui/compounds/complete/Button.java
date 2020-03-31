@@ -5,13 +5,13 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.ResourceLocation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class Button extends View {
-    MyButton button;
+    private MyButton button;
 
     private ActionListener actionListener;
 
@@ -72,12 +72,13 @@ public class Button extends View {
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        button.setHovered(isHover());
+        button.setHovered(isHovering());
         button.draw(mouseX, mouseY, partialTicks);
     }
 
     @Override
     protected boolean onClicked(int mouseX, int mouseY, int mouseButton) {
+        button.playPressSound(Minecraft.getMinecraft().getSoundHandler());
         if (actionListener != null)
             actionListener.onClicked(this);
         return true;
@@ -92,8 +93,11 @@ public class Button extends View {
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
-        button.playPressSound(Minecraft.getMinecraft().getSoundHandler());
-        return super.onPressed(mouseX, mouseY, state);
+        return true;
+    }
+
+    public void setImageLocation(@Nullable ResourceLocation location){
+        button.setImageLocation(location);
     }
 
     public void setActionListener(ActionListener actionListener) {

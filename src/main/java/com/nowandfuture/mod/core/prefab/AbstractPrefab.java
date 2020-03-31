@@ -13,8 +13,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
@@ -93,7 +91,9 @@ public abstract class AbstractPrefab implements ITickable {
     }
 
     public BlockPos getBasePos() {
-        return localWorld.getParentWorldPos();
+        if(isLocalWorldInit())
+            return localWorld.getParentWorldPos();
+        return BlockPos.ORIGIN;
     }
 
     public int getPrefabMaxNum(){
@@ -105,7 +105,8 @@ public abstract class AbstractPrefab implements ITickable {
     }
 
     public void setBaseLocation(@Nonnull BlockPos baseLocation) {
-        localWorld.setParentWorldPos(baseLocation);
+        if(isLocalWorldInit())
+            localWorld.setParentWorldPos(baseLocation);
     }
 
     public Vec3i getSize() {
@@ -222,7 +223,7 @@ public abstract class AbstractPrefab implements ITickable {
     }
 
     public void useFixSkyLight(boolean fixedLight){
-        localWorld.setUseFixSkyLight(fixedLight);
+        localWorld.setUseFixedSkyLight(fixedLight);
     }
 
     public AxisAlignedBB getMinAABB() {
@@ -358,7 +359,7 @@ public abstract class AbstractPrefab implements ITickable {
                     final IBlockState state = Block.getStateById(blockId);
                     BlockPos blockPos = new BlockPos(x, y, z);
                     localWorld.addBlockState(blockPos, state);
-                    localWorld.setLightForCoord(light,blockPos);
+                    localWorld.setLightFor(light,blockPos);
 
                     if (nbt.hasKey(NBT_TITLE_ENTITY + "." + x + "." + y + "." + z)) {
                         TileEntity tileEntity = state.getBlock().createTileEntity(getActrualWorld(), state);

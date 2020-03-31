@@ -7,8 +7,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.nowandfuture.asm.IRender;
-import com.nowandfuture.asm.Utils;
-import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
 import com.nowandfuture.mod.core.prefab.LocalWorldWrap;
@@ -16,7 +14,6 @@ import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -36,7 +33,6 @@ import org.lwjgl.opengl.GL11;
 import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SideOnly(Side.CLIENT)
@@ -78,10 +74,6 @@ public class CubesRenderer implements IRender{
                 EnumFacing.values()) {
             eachFaceCubes.put(facing,new HashSet<>());
         }
-    }
-
-    public void setModelMatrix(Matrix4f modelMatrix) {
-        this.modelMatrix = modelMatrix;
     }
 
     public void build(){
@@ -193,39 +185,39 @@ public class CubesRenderer implements IRender{
 
 //        dispatcher.preDrawBatch();
 
-        localWorld.getTileEntitySet()
-                .forEach(tileEntry -> {
-                    TileEntity tileEntity = tileEntry.getValue();
+        for (Map.Entry<BlockPos, TileEntity> tileEntry :
+                localWorld.getTileEntitySet()) {
+            TileEntity tileEntity = tileEntry.getValue();
 
-                    if (tileEntity == null || localWorld.isBaned(tileEntity)) return;
+            if (tileEntity == null || localWorld.isBaned(tileEntity)) return;
 
-                    tileEntity.setPos(tileEntry.getKey());
-                    tileEntity.setWorld(worldWrap);
+            tileEntity.setPos(tileEntry.getKey());
+            tileEntity.setWorld(worldWrap);
 
-                    BlockPos blockPos = tileEntity.getPos();
+            BlockPos blockPos = tileEntity.getPos();
 
-                    int i = localWorld.getActCombinedLight(blockPos, 0,false);
-                    int j = i % 65536;int k = i / 65536;
-                    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
-                    GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            int i = localWorld.getActCombinedLight(blockPos, 0, getModelMatrix(),false);
+            int j = i % 65536;int k = i / 65536;
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
-                    TileEntitySpecialRenderer renderer = dispatcher.getRenderer(tileEntity.getClass());
-                    boolean isGlobal = (renderer != null && renderer.isGlobalRenderer(tileEntity));
+            TileEntitySpecialRenderer renderer = dispatcher.getRenderer(tileEntity.getClass());
+            boolean isGlobal = (renderer != null && renderer.isGlobalRenderer(tileEntity));
 
-                    if (isGlobal) {
-                        Minecraft.getMinecraft().entityRenderer.disableLightmap();
-                    }
+            if (isGlobal) {
+                Minecraft.getMinecraft().entityRenderer.disableLightmap();
+            }
 
-                    dispatcher.render(tileEntry.getValue(),
-                            tileEntry.getKey().getX(),
-                            tileEntry.getKey().getY(),
-                            tileEntry.getKey().getZ(),
-                            (float) p, -1, 1);
+            dispatcher.render(tileEntry.getValue(),
+                    tileEntry.getKey().getX(),
+                    tileEntry.getKey().getY(),
+                    tileEntry.getKey().getZ(),
+                    (float) p, -1, 1);
 
-                    if (isGlobal) {
-                        Minecraft.getMinecraft().entityRenderer.enableLightmap();
-                    }
-                });
+            if (isGlobal) {
+                Minecraft.getMinecraft().entityRenderer.enableLightmap();
+            }
+        }
 
         //enableStandardItemLighting in drawBatch(int pass);
 //        dispatcher.drawBatch(ForgeHooksClient.getWorldRenderPass());
@@ -255,7 +247,7 @@ public class CubesRenderer implements IRender{
 
                     BlockPos blockPos = tileEntity.getPos();
 
-                    int i = localWorld.getActCombinedLight(blockPos, 0,false);
+                    int i = localWorld.getActCombinedLight(blockPos, 0,getModelMatrix(),false);
                     int j = i % 65536;int k = i / 65536;
                     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
                     GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -361,12 +353,10 @@ public class CubesRenderer implements IRender{
                     visibleCubes.addAll(CubesBuilder.getVisibleRenderCubesFromCube(lookVec,cubes,inCube,frustumFilter,frameCounter));
                 }
             }else {//outside
-                set.forEach(new Consumer<EnumFacing>() {
-                    @Override
-                    public void accept(EnumFacing facing) {
-                        visibleCubes.addAll(CubesBuilder.getVisibleRenderCubesFromFacing(cubes, eachFaceCubes, facing, frustumFilter,frameCounter));
-                    }
-                });
+                for (EnumFacing facing :
+                        set) {
+                    visibleCubes.addAll(CubesBuilder.getVisibleRenderCubesFromFacing(cubes, eachFaceCubes, facing, frustumFilter,frameCounter));
+                }
             }
 
             frameCounter ++;

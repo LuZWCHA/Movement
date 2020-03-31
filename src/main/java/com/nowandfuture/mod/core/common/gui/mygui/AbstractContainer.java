@@ -2,13 +2,16 @@ package com.nowandfuture.mod.core.common.gui.mygui;
 
 
 import com.google.common.collect.Sets;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IDynInventoryHolder;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.*;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.NonNullList;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -18,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+//to use the dyn-inventory,use this container
 public abstract class AbstractContainer extends Container{
-    protected IDynamicInventory dynamicInventory;
+    protected IDynInventoryHolder holder;
 
     protected int dragMode = -1;
     protected int dragEvent;
@@ -27,35 +31,33 @@ public abstract class AbstractContainer extends Container{
 
     public AbstractContainer(){
         super();
-        dynamicInventory = new DynamicInventory();
     }
-
-    public void addExtSlot(long id, ProxySlot slot, EntityPlayer player){
-        dynamicInventory.createSlot(id,slot,false);
-    }
-
-    public void addExtSlot(long id, EntityPlayer player, DynamicInventory.SlotCreator creator,int type){
-        addExtSlot(id,creator.create(dynamicInventory,id,type),player);
-    }
-
-    public void addExtSlots(Map<Long,ItemStack> slots, EntityPlayer player, DynamicInventory.SlotCreator creator,int type){
-        for (Map.Entry<Long, ItemStack> e :
-                slots.entrySet()) {
-            addExtSlot(e.getKey(), player, creator,type);
-        }
-    }
-
-    public void addExtSlots(Map<Long,ItemStack> slots,EntityPlayer player){
-        addExtSlots(slots, player,CREATOR.defaultCreator(),0);
-    }
-
-    public void removeExtSlot(int id, EntityPlayer player){
-        ItemStack itemStack = dynamicInventory.getStackInSlot(id);
-        if(itemStack != null && !itemStack.isEmpty()){
-            InventoryHelper.spawnItemStack(player.world,player.posX,player.posY,player.posZ, itemStack);
-        }
-        dynamicInventory.removeSlot(id,false);
-    }
+//    public void addExtSlot(long id, ProxySlot slot, EntityPlayer player){
+//        dynamicInventory.createSlot(id,slot,false);
+//    }
+//
+//    public void addExtSlot(long id, EntityPlayer player, DynamicInventory.SlotCreator creator,int type){
+//        addExtSlot(id,creator.create(dynamicInventory,id,type),player);
+//    }
+//
+//    public void addExtSlots(Map<Long,ItemStack> slots, EntityPlayer player, DynamicInventory.SlotCreator creator,int type){
+//        for (Map.Entry<Long, ItemStack> e :
+//                slots.entrySet()) {
+//            addExtSlot(e.getKey(), player, creator,type);
+//        }
+//    }
+//
+//    public void addExtSlots(Map<Long,ItemStack> slots,EntityPlayer player){
+//        addExtSlots(slots, player,CREATOR.defaultCreator(),0);
+//    }
+//
+//    public void removeExtSlot(int id, EntityPlayer player){
+//        ItemStack itemStack = dynamicInventory.getStackInSlot(id);
+//        if(itemStack != null && !itemStack.isEmpty()){
+//            InventoryHelper.spawnItemStack(player.world,player.posX,player.posY,player.posZ, itemStack);
+//        }
+//        dynamicInventory.removeSlot(id,false);
+//    }
 
     @Nullable
     @Override
@@ -72,20 +74,24 @@ public abstract class AbstractContainer extends Container{
         return super.getSlotFromInventory(inv, slotIn);
     }
 
-    @Override
-    public NonNullList<ItemStack> getInventory(){
-        NonNullList<ItemStack> list = super.getInventory();
-        return list;
+    public IDynamicInventory getDynamicInventory(){
+        return holder.getDynInventory();
     }
 
-    public IDynamicInventory getDynamicInventory(){
-        return dynamicInventory;
+    public String getDynInventoryId(){
+        return holder.getInventoryId();
+    }
+
+    public NBTTagCompound getAllInventoryTag(){
+        return holder.getFullUpdateTag();
     }
 
     @SideOnly(Side.CLIENT)
-    public void setAllForDymInventory(NBTTagCompound nbtTagCompound){
-        this.dynamicInventory.readFromNBT(nbtTagCompound,false);
+    public void setAllForDymInventory(String id,NBTTagCompound nbtTagCompound){
+        syncDynInventory(id, nbtTagCompound);
     }
+
+    protected abstract void syncDynInventory(String id, NBTTagCompound nbtTagCompound);
 
     @SideOnly(Side.CLIENT)
     @Override
@@ -219,26 +225,30 @@ public abstract class AbstractContainer extends Container{
         super.putStackInSlot(slotID, stack);
     }
 
+
+    /**
+     * @param slotId if slotId >= slots' size,this slotId will be considered as a dynInventory
+     * @param button click button
+     * @param clickTypeIn click type {@link ClickType}
+     * @param player the player at its side {@link SideOnly}
+     * @return the itemStack returned by the slotClick function which to verify the action's legality
+     */
     @Override
     public ItemStack slotClick(int slotId, int button, ClickType clickTypeIn, EntityPlayer player) {
-        int offset = inventorySlots.size();
-
-        SlotProvider provider = new OriginalSlotProvider(inventorySlots);
-
-        if(slotId >= offset){
-            slotId -= offset;
-            provider = new ProxySlotProvider(dynamicInventory.getSlots());
-        }
-
-        return slotClickInExtSlot(provider, slotId, button, clickTypeIn, player);
+        return slotClickInExtSlot(new OriginalSlotProvider(inventorySlots),slotId, button, clickTypeIn, player);
     }
 
-    //retain vanilla slotCLick
+    //retain vanilla's slotClick(int, int, ClickType, EntityPlayer)
     public ItemStack slotClick1(int slotId, int button, ClickType clickTypeIn, EntityPlayer player) {
         return super.slotClick(slotId, button, clickTypeIn, player);
     }
 
-    protected ItemStack slotClickInExtSlot(SlotProvider inventorySlots,int slotId, int button, ClickType clickTypeIn, EntityPlayer player){
+    public ItemStack slotClickInExtSlot(int slotId, int button, ClickType clickTypeIn, EntityPlayer player){
+        SlotProvider provider = new ProxySlotProvider(holder.getDynInventory().getSlots());
+        return slotClickInExtSlot(provider,slotId,button,clickTypeIn,player);
+    }
+
+    private ItemStack slotClickInExtSlot(SlotProvider inventorySlots,int slotId, int button, ClickType clickTypeIn, EntityPlayer player){
 
         ItemStack itemstack = ItemStack.EMPTY;
         InventoryPlayer inventoryplayer = player.inventory;
@@ -677,6 +687,7 @@ public abstract class AbstractContainer extends Container{
 
         int type;
         boolean enable;
+        boolean isHover;
 
         public ProxySlot(IDynamicInventory inventoryIn, int index, int type) {
             super(inventoryIn, index,0,0);
@@ -709,6 +720,14 @@ public abstract class AbstractContainer extends Container{
 
         public int getType() {
             return type;
+        }
+
+        public void setHover(boolean hover) {
+            isHover = hover;
+        }
+
+        public boolean isHover() {
+            return isHover;
         }
     }
 }

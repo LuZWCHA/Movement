@@ -13,7 +13,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResource;
@@ -39,36 +38,29 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     //improve performance ,value 0~100 is valid
     public static int DRAW_FRAME_NUMBER = 0;
     public static double MAX_DISTANCE = 12;
-    private static Map<BlockPos,FrameTexture> frameCache = new HashMap<>();
     private static Map<BlockPos,PBOFrameTexture> frameCache2 = new HashMap<>();
     private Random r = new Random();
 
-    private static FrameTexture loadingTexture,backgroundTexture;
+    private static FrameTexture loadingTexture,backgroundTexture,pausedTexture;
     private static final ResourceLocation LOADING_GUI_TEXTURE =
             new ResourceLocation(Movement.MODID,"textures/gui/loading.png");
+    private static final ResourceLocation PAUSE_GUI_TEXTURE =
+            new ResourceLocation(Movement.MODID,"textures/gui/play.png");
     private static final ResourceLocation BACKGROUND_GUI_TEXTURE =
             new ResourceLocation(Movement.MODID,"textures/gui/background.png");
-
-    private static int GC_COUNTER;
 
     public VideoRenderer(){
     }
 
 
     public static void clear(){
-        frameCache.forEach(new BiConsumer<BlockPos, FrameTexture>() {
-            @Override
-            public void accept(BlockPos pos, FrameTexture texture) {
-                texture.deleteGlTexture();
-            }
-        });
         frameCache2.forEach(new BiConsumer<BlockPos, PBOFrameTexture>() {
             @Override
             public void accept(BlockPos pos, PBOFrameTexture texture) {
                 texture.deleteGlTexture();
             }
         });
-        frameCache.clear();
+
         frameCache2.clear();
         if(loadingTexture != null){
             loadingTexture.deleteGlTexture();
@@ -78,19 +70,13 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             backgroundTexture.deleteGlTexture();
             backgroundTexture = null;
         }
+        if(pausedTexture != null){
+            pausedTexture.deleteGlTexture();
+            pausedTexture = null;
+        }
     }
 
     public void clear(TileEntitySimplePlayer player){
-        frameCache.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, FrameTexture>>() {
-            @Override
-            public boolean test(Map.Entry<BlockPos, FrameTexture> blockPosFrameTextureEntry) {
-                if(blockPosFrameTextureEntry.getKey().equals(player.getPos())){
-                    blockPosFrameTextureEntry.getValue().deleteGlTexture();
-                    return true;
-                }
-                return true;
-            }
-        });
 
         frameCache2.entrySet().removeIf(new Predicate<Map.Entry<BlockPos, PBOFrameTexture>>() {
             @Override
@@ -123,7 +109,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         MinecraftOpenGLDisplayHandler.ImageFrame frame = (MinecraftOpenGLDisplayHandler.ImageFrame) simplePlayer.getCurImageObj();
 
         BufferedImage image = (frame == null ? null : frame.getCloneImage());
-
+        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
         if(image == null){
             try {
                 if(simplePlayer.getGrabber() != null && simplePlayer.getGrabber().getFormatContext() != null)
@@ -136,7 +122,10 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                         loadingTexture.updateBufferedImage(bufferedimage,0);
                         bufferedimage.getGraphics().dispose();
                     }
-                    drawFrame(loadingTexture,te,x,y,z);
+
+                    ResourceLocation location =
+                            textureManager.getDynamicTextureLocation("loading",loadingTexture);
+                    drawFrameWithAutoScale(location,te,x,y,z);
                 }else{
                     if(backgroundTexture == null){
                         IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(BACKGROUND_GUI_TEXTURE);
@@ -146,7 +135,9 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                         backgroundTexture.updateBufferedImage(bufferedimage,0);
                         bufferedimage.getGraphics().dispose();
                     }
-                    drawFrame(backgroundTexture,te,x,y,z);
+                    ResourceLocation location =
+                            textureManager.getDynamicTextureLocation("background",backgroundTexture);
+                    drawFrameWithAutoScale(location,te,x,y,z);
                 }
 
             } catch (IOException e) {
@@ -163,10 +154,31 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             }
 
             PBOFrameTexture pixelBuffer = frameCache2.get(te.getPos());
-            if(pixelBuffer != null)
-                drawFrame(pixelBuffer,te,x,y,z);
+            if(pixelBuffer != null) {
+                ResourceLocation location =
+                        textureManager.getDynamicTextureLocation("staticVideo",pixelBuffer);
+                drawFrameWithAutoScale(location,te,x,y,z);
+            }
             image.getGraphics().dispose();
+
+            if(simplePlayer.getSyncInfo().isPause()){
+                double size;
+                if(image.getWidth() > image.getHeight()){
+                    size = te.getHeight();
+
+                }else{
+                    size = te.getWidth();
+                }
+
+                GlStateManager.pushMatrix();
+                Vec3i vec3i = te.getFacing().getDirectionVec();
+                GlStateManager.translate(vec3i.getX() * 0.01,vec3i.getY() * 0.01,vec3i.getZ() * 0.01);
+                drawFrameAtCenter(PAUSE_GUI_TEXTURE,size * 2,size * 2,te,x,y,z);
+                GlStateManager.popMatrix();
+            }
         }
+
+
     }
 
     private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame, BufferedImage image){
@@ -214,51 +226,51 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
     }
 
-    @Deprecated
-    private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
+//    @Deprecated
+//    private void uploadTexture(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame,BufferedImage image){
+//
+//        final float videoWidth = image.getWidth();
+//        final float videoHeight = image.getHeight();
+//        final float w = te.getWidth(),h = te.getHeight();
+//
+//        float newW = w,newH = h;
+//
+//        float scale;
+//        if(videoHeight / videoWidth > h / w){
+//            newW = videoWidth * h / videoHeight;
+//            scale = videoHeight / h;
+//        }else{
+//            newH = videoHeight * w / videoWidth;
+//            scale = videoWidth / w;
+//        }
+//
+//        int offsetY = (int) ((h - newH) * scale / 2);
+//        int offsetX = (int) ((w - newW) * scale / 2);
+//
+//        FrameTexture texture = frameCache.get(te.getPos());
+//        if(texture!=null){
+//            //need update texture size
+//            if(texture.getRealHeight() != videoHeight || texture.getRealWidth() != videoWidth){
+//                texture.deleteGlTexture();
+//                frameCache.remove(te.getPos());
+//            }
+//        }
+//
+//        if(!frameCache.containsKey(te.getPos())) {
+//            BufferedImage bufferedimage;
+//            bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
+//            FrameTexture imageTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
+//            bufferedimage.getGraphics().dispose();
+//            imageTexture.updateBufferedImage(bufferedimage,frame.timestamp);
+//            imageTexture.setRealHeight(image.getHeight());
+//            imageTexture.setRealWidth(image.getWidth());
+//            frameCache.put(te.getPos(),imageTexture);
+//        }else {
+//            frameCache.get(te.getPos()).subBufferedImage(image, offsetX, offsetY, frame.timestamp);
+//        }
+//    }
 
-        final float videoWidth = image.getWidth();
-        final float videoHeight = image.getHeight();
-        final float w = te.getWidth(),h = te.getHeight();
-
-        float newW = w,newH = h;
-
-        float scale;
-        if(videoHeight / videoWidth > h / w){
-            newW = videoWidth * h / videoHeight;
-            scale = videoHeight / h;
-        }else{
-            newH = videoHeight * w / videoWidth;
-            scale = videoWidth / w;
-        }
-
-        int offsetY = (int) ((h - newH) * scale / 2);
-        int offsetX = (int) ((w - newW) * scale / 2);
-
-        FrameTexture texture = frameCache.get(te.getPos());
-        if(texture!=null){
-            //need update texture size
-            if(texture.getRealHeight() != videoHeight || texture.getRealWidth() != videoWidth){
-                texture.deleteGlTexture();
-                frameCache.remove(te.getPos());
-            }
-        }
-
-        if(!frameCache.containsKey(te.getPos())) {
-            BufferedImage bufferedimage;
-            bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
-            FrameTexture imageTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
-            bufferedimage.getGraphics().dispose();
-            imageTexture.updateBufferedImage(bufferedimage,frame.timestamp);
-            imageTexture.setRealHeight(image.getHeight());
-            imageTexture.setRealWidth(image.getWidth());
-            frameCache.put(te.getPos(),imageTexture);
-        }else {
-            frameCache.get(te.getPos()).subBufferedImage(image, offsetX, offsetY, frame.timestamp);
-        }
-    }
-
-    private void drawFrame(FrameTexture texture, TileEntitySimplePlayer te, double x, double y, double z){
+    private void drawFrameWithAutoScale(ResourceLocation location, TileEntitySimplePlayer te, double x, double y, double z){
 
         Vec3d[] panel = new Vec3d[4];
         panel[0] = new Vec3d(0,0,0);
@@ -269,8 +281,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         transformPanel(panel,te.getFacing());
 
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-        ResourceLocation location =
-                textureManager.getDynamicTextureLocation("staticVideo",texture);
 
         this.setLightmapDisabled(false);
         textureManager.bindTexture(location);
@@ -279,10 +289,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         BufferBuilder var2 = Tessellator.getInstance().getBuffer();
         Tessellator tessellator = Tessellator.getInstance();
         GlStateManager.resetColor();
-
-        GlStateManager.disableAlpha();
-
-        glPushMatrix();
+//        GlStateManager.disableAlpha();
+        GlStateManager.pushMatrix();
         //-w/2,-h * scale/2
         GlStateManager.translate(x,y + 1,z);
         var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
@@ -295,10 +303,55 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
 
         tessellator.draw();
-        glPopMatrix();
+        GlStateManager.popMatrix();
         RenderHelper.enableStandardItemLighting();
 
-        GlStateManager.enableAlpha();
+//        GlStateManager.enableAlpha();
+        this.setLightmapDisabled(true);
+    }
+
+    private void drawFrameAtCenter(ResourceLocation location,double width,double height, TileEntitySimplePlayer te, double x, double y, double z){
+
+        Vec3d[] panel = new Vec3d[4];
+        width/=16;
+        height/=16;
+
+        double ox = (te.getWidth() - width) / 2,oy = (te.getHeight() - height)/2;
+
+        panel[0] = new Vec3d(ox,oy,0);
+        panel[1] = new Vec3d(ox,height + oy,0);
+        panel[2] = new Vec3d(width + ox,height + oy,0);
+        panel[3] = new Vec3d(width + ox,0 + oy,0);
+
+        transformPanel(panel,te.getFacing());
+
+        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+
+        this.setLightmapDisabled(false);
+        textureManager.bindTexture(location);
+        RenderHelper.disableStandardItemLighting();
+
+        BufferBuilder var2 = Tessellator.getInstance().getBuffer();
+        Tessellator tessellator = Tessellator.getInstance();
+        GlStateManager.resetColor();
+//        GlStateManager.disableAlpha();
+        GlStateManager.pushMatrix();
+        //-w/2,-h * scale/2
+        GlStateManager.translate(x,y + 1,z);
+        var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+
+        var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
+        var2.pos(panel[1].x,panel[1].y,panel[1].z).tex(1,0).endVertex();
+        var2.pos(panel[2].x,panel[2].y,panel[2].z).tex(0,0).endVertex();
+        var2.pos(panel[3].x,panel[3].y,panel[3].z).tex(0,1).endVertex();
+        var2.pos(panel[0].x,panel[0].y,panel[0].z).tex(1,1).endVertex();
+
+        tessellator.draw();
+        GlStateManager.popMatrix();
+        RenderHelper.enableStandardItemLighting();
+
+//        GlStateManager.enableAlpha();
         this.setLightmapDisabled(true);
     }
 
@@ -335,9 +388,5 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     @Override
     public boolean isGlobalRenderer(TileEntitySimplePlayer te) {
         return true;
-    }
-
-    public void renderFrame(){
-
     }
 }

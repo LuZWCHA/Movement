@@ -158,6 +158,8 @@ public class RenderCube {
     }
 
     public boolean build(){
+        world.getMatrix4f().load(cubesRenderer.getModelMatrix());
+
         boolean[] success = new boolean[BlockRenderLayer.values().length];
         Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
         if(entity == null) return false;
@@ -168,7 +170,7 @@ public class RenderCube {
 
         BlockPos worldPos = new BlockPos(pos.getX() * CUBE_SIZE,pos.getY() * CUBE_SIZE,pos.getZ() * CUBE_SIZE);
 
-        BlockPos.MutableBlockPos.getAllInBoxMutable(worldPos,worldPos.add(CUBE_SIZE - 1,CUBE_SIZE - 1,CUBE_SIZE - 1))
+        BlockPos.MutableBlockPos.getAllInBoxMutable(worldPos,worldPos.add(CUBE_SIZE ,CUBE_SIZE ,CUBE_SIZE ))
                 .forEach(new Consumer<BlockPos.MutableBlockPos>() {
                     @Override
                     public void accept(BlockPos.MutableBlockPos mutableBlockPos) {
@@ -188,8 +190,10 @@ public class RenderCube {
 
                                 if(OptifineHelper.isActive() && OptifineHelper.isShaders())
                                     SVertexBuilder.pushEntity(blockState,worldPos,world,bufferBuilder);
+
                                 success[blockRenderLayer.ordinal()] |=
                                         dispatcher.renderBlock(blockState,mutableBlockPos,world,bufferBuilder);
+
                                 if(OptifineHelper.isActive() && OptifineHelper.isShaders())
                                     SVertexBuilder.popEntity(bufferBuilder);
                             }

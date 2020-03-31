@@ -9,8 +9,6 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.tileentity.TileEntity;
@@ -18,9 +16,6 @@ import net.minecraft.util.ReportedException;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Color;
-
-import java.nio.ByteBuffer;
-import java.util.List;
 
 public class DrawHelper {
 
@@ -418,10 +413,10 @@ public class DrawHelper {
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         bufferBuilder.begin(GL11.GL_QUADS,DefaultVertexFormats.POSITION_TEX);
-        bufferBuilder.pos(x, (double)(y + maxV), (double)zLevel).tex(u*f, maxV*f1).endVertex();
-        bufferBuilder.pos((double)(x + maxU), (double)(y + maxV), (double)zLevel).tex(maxU*f, maxV*f1).endVertex();
-        bufferBuilder.pos((double)(x + maxU), (double)y, (double)zLevel).tex(maxU*f, v*f1).endVertex();
-        bufferBuilder.pos((double)x, (double)y, (double)zLevel).tex(u*f, v*f1).endVertex();
+        bufferBuilder.pos(x, y + maxV, zLevel).tex(u*f, maxV*f1).endVertex();
+        bufferBuilder.pos(x + maxU, y + maxV, zLevel).tex(maxU*f, maxV*f1).endVertex();
+        bufferBuilder.pos(x + maxU, y, zLevel).tex(maxU*f, v*f1).endVertex();
+        bufferBuilder.pos(x, y, zLevel).tex(u*f, v*f1).endVertex();
         tessellator.draw();
     }
 

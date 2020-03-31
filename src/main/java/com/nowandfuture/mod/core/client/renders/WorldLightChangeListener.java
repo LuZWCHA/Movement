@@ -47,7 +47,7 @@ public class WorldLightChangeListener implements IWorldEventListener {
 
                         int light = actWorld.getLightFor(EnumSkyBlock.BLOCK,pos);
                         Vector3f actLocalPos = CubesBuilder.getLocalPos(localPos, cubesRenderer);
-                        world.setLightForCoord(light,actLocalPos.getX(),actLocalPos.getY(),actLocalPos.getZ());
+                        world.setLightFor(light,actLocalPos.getX(),actLocalPos.getY(),actLocalPos.getZ());
                         renderCube.markUpdate(true);
                     }
                 });

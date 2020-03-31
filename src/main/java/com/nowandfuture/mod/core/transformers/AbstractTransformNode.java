@@ -3,7 +3,6 @@ package com.nowandfuture.mod.core.transformers;
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
-import com.nowandfuture.mod.core.transformers.animation.TimeLine;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -19,15 +18,12 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     private String name;
 
     //time line
-
     private TimeInterpolation.Type type =
             TimeInterpolation.Type.LINEAR;
     private TimeInterpolation interpolation =
             TimeInterpolation.Factory.build(type);
-//    private TimeLine line;
 
     private AbstractTransformNode next;
-    //private AbstractTransformNode child;
 
     protected AbstractTransformNode(){
 

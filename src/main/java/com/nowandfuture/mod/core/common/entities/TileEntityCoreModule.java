@@ -1,21 +1,15 @@
 package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
-import com.nowandfuture.mod.core.common.gui.mygui.AbstractContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
-import com.nowandfuture.mod.core.common.gui.mygui.api.IDynInventoryHolder;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
-import com.nowandfuture.mod.core.common.gui.mygui.api.IInventorySlotChangedListener;
-import com.nowandfuture.mod.core.common.gui.mygui.api.SerializeWrapper;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.AnchorList;
-import com.nowandfuture.mod.core.prefab.NormalPrefab;
-import com.nowandfuture.mod.handler.RegisterHandler;
+import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.prefab.ModuleUtils;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,55 +21,25 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.*;
 
-public class TileEntityCoreModule extends TileEntityModule implements IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap>, IInventorySlotChangedListener {
+public class TileEntityCoreModule extends ModuleNode {
 
-    private NonNullList<ItemStack> moduleItemStacks =
+    protected NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
 
-    private DynamicInventory dynamicInventory = new DynamicInventory();
-
-    public final static int BLOCK_VISIBLE_PACKET = 0x14;
-    public final static int RENDER_OFFSET_PACKET = 0x15;
-    public final static int INVENTORY_CHANGED_PACKET = 0x16;
-
     public final static String NBT_SHOW_BLOCK = "ShowBlock";
-    public final static String NBT_OFFSET_X = "OffsetX";
-    public final static String NBT_OFFSET_Y = "OffsetY";
-    public final static String NBT_OFFSET_Z = "OffsetZ";
-
-    //not finished
-    private BlockPos offset = new BlockPos(0,0,0);
+    public final static int BLOCK_VISIBLE_PACKET = 0x14;
+    private final static int NODE_NUMBER_LIMIT = 16;
 
     private boolean showBlock = true;
 
-    AnchorList anchorList;
+    private Stack<ModuleNode> nodeStack;
 
     public TileEntityCoreModule(){
         super();
-        dynamicInventory.setCreator(new IDynamicInventory.SlotCreator() {
-            @Override
-            public AbstractContainer.ProxySlot create(IDynamicInventory inventory, long index, int type) {
-                if(type == 0) {
-                    return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
-                        @Override
-                        public boolean isItemValid(ItemStack stack) {
-                            return stack.getItem() == RegisterHandler.prefabItem;
-                        }
-                    };
-                } else {
-                    return new AbstractContainer.ProxySlot(inventory, (int) index,type) {
-                        @Override
-                        public boolean isItemValid(ItemStack stack) {
-                            return stack.getItem() == RegisterHandler.timelineItem;
-                        }
-                    };
-                }
-            }
-        });
-
-        dynamicInventory.addInventoryChangeListener(this);
+        nodeStack = new Stack<>();
+        nodeStack.push(this);
     }
 
     @Override
@@ -96,37 +60,81 @@ public class TileEntityCoreModule extends TileEntityModule implements IDynInvent
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         ItemStackHelper.loadAllItems(compound, moduleItemStacks);
-        //if client receive nbt from server,these changes should not back to server
-        //else server should send the changes to its clients
-        dynamicInventory.readFromNBT(compound,world != null && !world.isRemote);
         readNBT(compound);
         super.readFromNBT(compound);
+        restoreNodeStack(compound);
+
+        setDepth(0);
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         ItemStackHelper.saveAllItems(compound, moduleItemStacks);
-        dynamicInventory.writeToNBT(compound);
         writeNBT(compound);
-        return super.writeToNBT(compound);
+        super.writeToNBT(compound);
+
+        return saveNodeStack(compound);
     }
 
     public NBTTagCompound writeNBT(NBTTagCompound compound){
         compound.setBoolean(NBT_SHOW_BLOCK,showBlock);
-        compound.setInteger(NBT_OFFSET_X,offset.getX());
-        compound.setInteger(NBT_OFFSET_Y,offset.getY());
-        compound.setInteger(NBT_OFFSET_Z,offset.getZ());
-
         return compound;
     }
 
     public void readNBT(NBTTagCompound compound){
         showBlock = compound.getBoolean(NBT_SHOW_BLOCK);
-        int x = compound.getInteger(NBT_OFFSET_X);
-        int y = compound.getInteger(NBT_OFFSET_Y);
-        int z = compound.getInteger(NBT_OFFSET_Z);
-        offset = new BlockPos(x,y,z);
     }
+
+    private final static String NBT_PATH = "Path";
+
+    public NBTTagCompound saveNodeStack(NBTTagCompound compound){
+        ModuleNode node = nodeStack.peek();
+        compound.setString(NBT_PATH,node.getId());
+
+        return compound;
+    }
+
+    //before restore NodeMap should be restored
+    public void restoreNodeStack(NBTTagCompound compound){
+        String pathString = compound.getString(NBT_PATH);
+        Stack<ModuleNode> stack = new Stack<>();
+        updateStackByPathString(pathString,stack);
+        nodeStack = stack;
+    }
+
+    public boolean updateStackByPathString(String pathString,Stack<ModuleNode> newStack){
+        if(newStack == null) newStack = new Stack<>();
+        List<Long> pathList = decodeId(pathString);
+        ModuleNode tempNode = this;
+        newStack.push(tempNode);
+
+        if(pathList.size() > 1)
+            for (int i = 1; i < pathList.size();i++) {
+                BlockPos pos = BlockPos.fromLong(pathList.get(i));
+                tempNode = tempNode.getModuleMap().get(pos);
+
+                if(tempNode == null) {
+                    return false;
+                }
+                newStack.push(tempNode);
+            }
+        return true;
+    }
+
+    public ModuleNode getNodeByPathString(String pathString){
+        Stack<ModuleNode> newStack = new Stack<>();
+        updateStackByPathString(pathString,newStack);
+        return newStack.peek();
+    }
+
+    public Stack<ModuleNode> getNodeStack() {
+        return nodeStack;
+    }
+
+    public void setNodeStack(Stack<ModuleNode> nodeStack) {
+        this.nodeStack = nodeStack;
+    }
+
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
@@ -137,27 +145,21 @@ public class TileEntityCoreModule extends TileEntityModule implements IDynInvent
         return new SPacketUpdateTileEntity(getPos(),BLOCK_VISIBLE_PACKET,writeToNBT(new NBTTagCompound()));
     }
 
-    public NBTTagCompound getInventoryTag(){
-        return dynamicInventory.writeToNBT(new NBTTagCompound());
-    }
-
-    public void handleInventoryTag(NBTTagCompound nbtTagCompound){
-        dynamicInventory.readFromNBT(nbtTagCompound,false);
-    }
-
-    public SPacketUpdateTileEntity getInventoryPacket(){
-        return new SPacketUpdateTileEntity(getPos(),BLOCK_VISIBLE_PACKET,dynamicInventory.writeToNBT(new NBTTagCompound()));
-    }
-
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         super.onDataPacket(net, pkt);
         if(pkt.getTileEntityType() == BLOCK_VISIBLE_PACKET){
             NBTTagCompound nbtTagCompound = pkt.getNbtCompound();
             readNBT(nbtTagCompound);
-        }else if(pkt.getTileEntityType() == INVENTORY_CHANGED_PACKET){
-            NBTTagCompound nbtTagCompound = pkt.getNbtCompound();
-            handleInventoryTag(nbtTagCompound);
+        }
+    }
+
+    public void handleRemoveNodeTag(NBTTagCompound nbtTagCompound){
+        String nodeId = nbtTagCompound.getString("moduleId");
+        int index = nbtTagCompound.getInteger("index");
+        ModuleNode node = getCurModuleNode();
+        if(node.getId().equals(nodeId)){
+            removeModuleNode(index);
         }
     }
 
@@ -174,30 +176,21 @@ public class TileEntityCoreModule extends TileEntityModule implements IDynInvent
     @Override
     protected void slotChanged(int index, ItemStack stack) {
         if(index == 0){//prefab changed
-            if(getStackInSlot(index).isEmpty()){
-                this.setEmptyPrefab();
+            if(stack.isEmpty()){
+                ModuleUtils.removePrefab(this);
             }else{
-                AbstractPrefab prefab = new NormalPrefab();
-                NBTTagCompound compound = getStackInSlot(0).getTagCompound();
-                if(compound != null) {
-                    prefab.readFromNBT(compound,world);
-                }
-                setPrefab(prefab);
-                getModuleBase().enable();
+                ModuleUtils.setPrefab(world,this,stack);
             }
         }else if(index == 1){//timeline changed
-            if(getStackInSlot(index).isEmpty()){
-                this.getLine().reset();
+            if(stack.isEmpty()){
+                ModuleUtils.removeTimeline(this);
             }else{
-                NBTTagCompound compound = getStackInSlot(1).getTagCompound();
-                if(compound != null) {
-                    this.getLine().deserializeNBT(compound);
-                }
+                ModuleUtils.setTimeline(world,this,stack);
             }
         }
     }
 
-    public void offsetPrefab(int x,int y,int z){
+    public void offsetPrefab(int x, int y, int z){
         getModuleBase().getPrefab().setBaseLocation(getModuleBase().getModulePos().add(x,y,z));
     }
 
@@ -216,7 +209,6 @@ public class TileEntityCoreModule extends TileEntityModule implements IDynInvent
         return "module_gui";
     }
 
-
     public boolean isShowBlock() {
         return showBlock;
     }
@@ -225,41 +217,115 @@ public class TileEntityCoreModule extends TileEntityModule implements IDynInvent
         this.showBlock = showBlock;
     }
 
+    @Override
+    public void doTransform(double p, Matrix4f parentMatrix) {
+        super.doTransform(p, parentMatrix);
+    }
+
+    public void createModuleNode(BlockPos pos){
+        ModuleNode node = getCurModuleNode();
+        if(node.getModuleMap().getModules().size() < NODE_NUMBER_LIMIT && !node.getModuleMap().contains(pos)) {
+            long pid = node.getDynInventory().createSlot(ItemStack.EMPTY,0,false);
+            long tid = node.getDynInventory().createSlot(ItemStack.EMPTY,1,false);
+            ModuleNode moduleNode = ModuleUtils.buildEmptyModule(world,pid,tid);
+            moduleNode.setParent(node);
+            // TODO: 2020/3/25 ...
+            moduleNode.setModulePos(node.getModulePos());
+            moduleNode.setOffset(pos);
+            node.getModuleMap().addModule(moduleNode);
+        }
+    }
+
+    @Override
+    public NBTTagCompound getFullUpdateTag() {
+        return getUpdateTag();
+    }
+
+    @Override
+    public String getInventoryId() {
+        return getCurModuleNode().getId();
+    }
+
+    public List<IDynamicInventory> collectAllDynInventories(){
+        List<IDynamicInventory> list = new LinkedList<>();
+        Queue<ModuleNode> moduleNodes = new ArrayDeque<>();
+        moduleNodes.offer(this);
+
+        while (!moduleNodes.isEmpty()){
+            ModuleNode temp = moduleNodes.remove();
+            if(temp != this)
+                list.add(temp.getDynInventory());
+            else
+                list.add(dynamicInventory);
+
+            moduleNodes.addAll(temp.getModuleMap().getModules());
+        }
+
+        return list;
+    }
+
     @Nonnull
     @Override
     public DynamicInventory getDynInventory() {
-        return dynamicInventory;
+        ModuleNode node = getCurModuleNode();
+        if(node == this) return dynamicInventory;
+        else return node.getDynInventory();
     }
 
-    @Override
-    public SerializeWrapper.BlockPosWrap getHolderId() {
-        return new SerializeWrapper.BlockPosWrap(getPos());
+    public void removeModuleNode(int index){
+        ModuleNode node = getCurModuleNode();
+        if(node.getModuleMap().size() > index && index > -1) {
+            long id = node.getDynInventory()
+                    .getEntryByIndex(2 * index)
+                    .getKey();
+
+            node.getDynInventory().removeSlot(id, false);
+
+            id = node.getDynInventory()
+                    .getEntryByIndex(2 * index)
+                    .getKey();
+
+            node.getDynInventory().removeSlot(id, false);
+
+            node.getModuleMap().removeByTimelineId(id);
+        }
     }
 
+    public ModuleNode getCurModuleNode(){
+        return nodeStack.peek();
+    }
 
-    @Override
-    public void slotRemoved(long id, ItemStack itemStack,boolean forced) {
-        if(forced){
-            if(world != null && world.isRemote)
-                dynamicInventory.sync(this);
-
-            if(world != null && !world.isRemote && !itemStack.isEmpty()) {
-                IDynamicInventory.spawnItemStack(world, getPos().getX(),
-                        getPos().getY(), getPos().getZ(), itemStack.copy());
+    public void push(long prefabId, long timelineId){
+        ModuleNode node = getCurModuleNode().getModuleMap().getNodeById(prefabId, timelineId);
+        if(node != null){
+            if(!isSame(node)){
+                nodeStack.push(node);
             }
         }
     }
 
-    @Override
-    public void slotAdded(long id, ItemStack itemStack,boolean forced) {
-        if(forced) {
-            if (world != null && world.isRemote)
-                dynamicInventory.sync(this);
+    public void push(ModuleNode curModuleNode) {
+        ModuleNode top = getCurModuleNode();
+        if(top != curModuleNode){
+            nodeStack.push(curModuleNode);
         }
     }
 
-    @Override
-    public void onInventoryChanged(IInventory invBasic) {
+    public void pop(){
+        if(nodeStack.size() > 1){
+            nodeStack.pop();
+        }
+    }
 
+    public void resetNode(){
+        while (nodeStack.size() > 1){
+            nodeStack.pop();
+        }
+    }
+
+    public boolean isSame(ModuleNode node){
+        if(node == this) return true;
+        if(node == null || node.getClass() != this.getClass()) return false;
+        return node.getTimelineId() == getTimelineId() && node.getPrefabId() == getPrefabId();
     }
 }

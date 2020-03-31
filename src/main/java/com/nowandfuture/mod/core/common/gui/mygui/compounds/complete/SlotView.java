@@ -7,6 +7,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -77,7 +78,7 @@ public class SlotView extends View {
         getRoot().getGuiContainer().renderSlot(slot);
 
         //highlight
-        if(slot.isEnabled() && isHover()) {
+        if(slot.isEnabled() && isHovering()) {
             GlStateManager.disableLighting();
             GlStateManager.disableDepth();
             GlStateManager.colorMask(true, true, true, false);
@@ -85,6 +86,22 @@ public class SlotView extends View {
             GlStateManager.colorMask(true, true, true, true);
             GlStateManager.enableLighting();
             GlStateManager.enableDepth();
+
+            ItemStack itemStack = slot.getStack();
+//            if(itemStack != null && !itemStack.isEmpty()) {
+//                GlStateManager.pushMatrix();
+//                GlStateManager.enableDepth();
+//                GlStateManager.translate(0,0,-1000);
+//                getRoot().getGuiContainer().renderToolTip(itemStack, mouseX, mouseY);
+//                GlStateManager.disableDepth();
+//                GlStateManager.popMatrix();
+//            }
+            if(!itemStack.isEmpty())
+                getRoot().getGuiContainer().setHoveredExtSlot(slot);
+        }else{
+            if(getRoot().getGuiContainer().getHoveredExtSlot() == slot){
+                getRoot().getGuiContainer().setHoveredExtSlot(null);
+            }
         }
 
         RenderHelper.disableStandardItemLighting();

@@ -44,13 +44,13 @@ public class ComboBox extends ViewGroup {
         simpleStringList.bind(stringAdapter);
         simpleStringList.setVisible(false);
 
-        simpleStringList.setOnItemClick(new Consumer<Integer>() {
+        simpleStringList.setOnItemClick(new MyAbstractList.OnItemClickedListener() {
             @Override
-            public void accept(Integer integer) {
-                setIndex(integer);
+            public void onItemClicked(MyAbstractList view, int index, int button) {
+                setIndex(index);
                 closeList();
                 if(onItemClicked != null){
-                    onItemClicked.accept(integer);
+                    onItemClicked.accept(index);
                 }
             }
         });

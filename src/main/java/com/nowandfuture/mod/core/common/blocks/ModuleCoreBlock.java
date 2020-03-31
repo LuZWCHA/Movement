@@ -23,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public class ModuleCoreBlock extends BlockDirectional {
 
@@ -44,7 +45,11 @@ public class ModuleCoreBlock extends BlockDirectional {
         TileEntity tileEntity = worldIn.getTileEntity(pos);
         if(tileEntity instanceof TileEntityCoreModule){
             InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityCoreModule)tileEntity);
-            IDynamicInventory.dropInventoryItems(worldIn,pos,((TileEntityCoreModule) tileEntity).getDynInventory());
+            List<IDynamicInventory> list = ((TileEntityCoreModule) tileEntity).collectAllDynInventories();
+            for (IDynamicInventory di :
+                    list) {
+                IDynamicInventory.dropInventoryItems(worldIn,pos,di);
+            }
             worldIn.updateComparatorOutputLevel(pos, this);
         }
         super.breakBlock(worldIn, pos, state);

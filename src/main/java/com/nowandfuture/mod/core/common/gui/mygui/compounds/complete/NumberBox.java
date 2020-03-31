@@ -5,9 +5,7 @@ import com.google.common.base.Predicate;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
-import com.nowandfuture.mod.utils.DrawHelper;
 import org.apache.http.util.TextUtils;
 import org.lwjgl.input.Keyboard;
 
@@ -75,7 +73,7 @@ public class NumberBox extends ViewGroup {
             @Override
             public Boolean apply(@Nullable Character input) {
                 int keyCode = Keyboard.getEventKey();
-                return Character.isDigit(input)|| keyCode == Keyboard.KEY_DELETE ||
+                return Character.isDigit(input) || keyCode == Keyboard.KEY_DELETE ||
                         keyCode == Keyboard.KEY_BACK || keyCode == Keyboard.KEY_LEFT ||
                         keyCode == Keyboard.KEY_RIGHT || input == '-';
             }
@@ -95,8 +93,7 @@ public class NumberBox extends ViewGroup {
         });
 
         textField.setText(String.valueOf(curValue));
-        textField.setCursorPosition(0);
-//        textField.setTextColor(DrawHelper.colorInt(0,0,0,255));
+        textField.setCursorPositionZero();
     }
 
     @Override
@@ -118,7 +115,6 @@ public class NumberBox extends ViewGroup {
         plusBtn.setY(0);
         textField.setText(String.valueOf(curValue));
         textField.setCursorPositionZero();
-
     }
 
     @Override
@@ -146,7 +142,6 @@ public class NumberBox extends ViewGroup {
     }
 
     private void valueChanged(){
-        System.out.println("curValue = " + curValue);
         textField.setText(String.valueOf(curValue));
         textField.setCursorPositionZero();
 
@@ -218,7 +213,6 @@ public class NumberBox extends ViewGroup {
     @Override
     public void loseFocus() {
         super.loseFocus();
-        System.out.println("lose");
         textField.setFocused(false);
         if(TextUtils.isEmpty(textField.getText())){
             textField.setText(String.valueOf(curValue));

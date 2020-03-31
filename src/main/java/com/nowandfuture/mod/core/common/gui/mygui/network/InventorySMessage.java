@@ -1,17 +1,14 @@
 package com.nowandfuture.mod.core.common.gui.mygui.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class InventorySMessage implements IMessage {
+    private String inventoryId;
     private NBTTagCompound nbt;
     private int windowId;
 
@@ -23,21 +20,27 @@ public class InventorySMessage implements IMessage {
         return windowId;
     }
 
+    public String getInventoryId() {
+        return inventoryId;
+    }
+
     public InventorySMessage(){
 
     }
 
-    public InventorySMessage(int windowId,NBTTagCompound nbt){
+    public InventorySMessage(String inventoryId ,int windowId,NBTTagCompound nbt){
+        this.inventoryId = inventoryId;
         this.windowId = windowId;
         this.nbt = nbt;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        DataInputStream inputStream = new DataInputStream(new ByteBufInputStream(buf));
         try {
-            this.windowId = buf.readInt();
-            this.nbt = CompressedStreamTools.read(inputStream);
+            PacketBuffer packetBuffer = new PacketBuffer(buf);
+            this.windowId = packetBuffer.readInt();
+            this.inventoryId = packetBuffer.readString(256);
+            this.nbt = packetBuffer.readCompoundTag();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -45,12 +48,9 @@ public class InventorySMessage implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
-        DataOutputStream outputStream = new DataOutputStream(new ByteBufOutputStream(buf));
-        try {
-            buf.writeInt(this.windowId);
-            CompressedStreamTools.write(nbt,outputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        PacketBuffer packetBuffer = new PacketBuffer(buf);
+        packetBuffer.writeInt(this.windowId);
+        packetBuffer.writeString(this.inventoryId);
+        packetBuffer.writeCompoundTag(this.nbt);
     }
 }

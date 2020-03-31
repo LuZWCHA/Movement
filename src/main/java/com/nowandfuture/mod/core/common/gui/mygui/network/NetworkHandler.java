@@ -30,6 +30,7 @@ public enum NetworkHandler {
         int baseId = 0;
         channel.registerMessage(InventoryCMessageHandler.class, InventoryCMessage.class, baseId++, Side.SERVER);
         channel.registerMessage(InventorySMessageHandler.class,InventorySMessage.class,baseId++,Side.CLIENT);
+        channel.registerMessage(ClickDynInventoryCMessageHandler.class, ClickDynInventoryCMessage.class, baseId++, Side.SERVER);
     }
 
     @SideOnly(Side.CLIENT)

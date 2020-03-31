@@ -207,7 +207,7 @@ public class CubesBuilder {
         LocalWorld world = cube.getWorld();
 
         if(world != null){
-            world.streamCube(cube.getPos(),new LocalWorld.LocalWorldSearch() {
+            world.streamCubes(cube.getPos(),new LocalWorld.LocalWorldSearch() {
                 @Override
                 public void search(BlockPos blockPos, IBlockState blockState, TileEntity tileEntity) {
                     if(blockState.isOpaqueCube())

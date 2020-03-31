@@ -1,9 +1,8 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
-import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.api.ISizeChanged;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -28,6 +27,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     private ViewGroup parent;
     private RootView root;
     protected List<ViewGroup> children;
+    private boolean enableIntercepted = false;
 
     private ViewGroup lastPressedChild;
     private long lastPressTime;
@@ -41,6 +41,8 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     private AbstractGuiContainer.ActionClick actionClick;
 
     protected boolean isScissor = false;
+
+    private boolean isReachable = true;
     private boolean isInside;
 
     protected ViewGroup(){
@@ -55,6 +57,14 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         this.children = new LinkedList<>();
         this.parent = parent;
         this.root = rootView;
+    }
+
+    public void setReachable(boolean reachable) {
+        isReachable = reachable;
+    }
+
+    public boolean isReachable() {
+        return isReachable;
     }
 
     public ViewGroup getParent() {
@@ -156,6 +166,10 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         onChildrenLayout();
     }
 
+    /**
+     * @see AbstractGuiContainer#initGui() this method will be invoked only one time,even gui size changed
+     * to re-layout the guis,to see {@link ViewGroup#onLayout(int, int)}
+     */
     protected void onLoad(){
         for (ViewGroup view :
                 children) {
@@ -163,6 +177,13 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
     }
 
+    /**
+     * @param parentWidth its parent's width
+     * @param parentHeight its parent's height
+     * this method will be invoked when the gui's size changed: {@link ViewGroup#onWidthChanged(int, int)}
+     *                     {@link ViewGroup#onHeightChanged(int, int)} and also be invoked before its children
+     *                     to be layout {@link ViewGroup#onChildrenLayout()}
+     */
     protected abstract void onLayout(int parentWidth,int parentHeight);
 
     protected void onChildrenLayout(){
@@ -172,6 +193,11 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
     }
 
+
+    /**
+     * @param old the old width
+     * @param cur the new width
+     */
     @Override
     public void onWidthChanged(int old, int cur) {
         if(getParent() != null)
@@ -180,12 +206,20 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
             layout(-1,-1);
     }
 
+    /**
+     * @param old the old height
+     * @param cur the new height
+     */
     @Override
     public void onHeightChanged(int old, int cur) {
         if(getParent() != null)
             layout(getParent().getWidth(),getParent().getHeight());
         else
             layout(-1,-1);
+    }
+
+    protected boolean checkMouseInside(int mouseX, int mouseY, float partialTicks){
+        return isReachable && RootView.isInside(this,mouseX,mouseY);
     }
 
     /**
@@ -196,7 +230,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     @Override
     public void draw(int mouseX, int mouseY, float partialTicks) {
-        isInside = RootView.isInside(this,mouseX,mouseY);
+        isInside = checkMouseInside(mouseX, mouseY, partialTicks);
         drawDebugHoverBackground();
 
         if(isScissor) {
@@ -242,11 +276,11 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     }
 
-    public ViewGroup checkHover(int mouseX, int mouseY){
+    protected ViewGroup checkHover(int mouseX, int mouseY){
         ViewGroup vg;
         int tempX,tempY;
         if(isVisible() &&
-                checkParentHover() && RootView.isInside(this,mouseX,mouseY) ||
+                checkParentHover() && checkMouseInside(mouseX,mouseY,0) ||
                 !checkParentHover()) {
             for (int i = children.size(); i > 0; i--) {
                 vg = children.get(i - 1);
@@ -262,6 +296,11 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         return null;
     }
 
+
+    /**
+     * @return true when checking whether it's hovering by mouse and also its parents are hovered
+     *         false will check itself only.
+     */
     protected boolean checkParentHover(){
         return true;
     }
@@ -321,6 +360,8 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      * @param mouseY absolute location-y at root view
      * @param partialTicks
      * draw at root-view
+     * @see ViewGroup#onDraw(int, int, float) the diffierent between them just the Coordinate where
+     * it drawing
      */
     protected void onDrawAtScreenCoordinate(int mouseX, int mouseY, float partialTicks){
 
@@ -343,25 +384,57 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     protected abstract boolean onLongClicked(int mouseX, int mouseY, int mouseButton);
 
     @Override
-    public void mouseReleased(int mouseX, int mouseY, int state) {
-        if(lastPressedChild != null){
+    public void mouseReleased(int mouseX, int mouseY, int button) {
+        if(!interceptClickAction(mouseX, mouseY, button)
+                && lastPressedChild != null){
             mouseX -= lastPressedChild.getX();
             mouseY -= lastPressedChild.getY();
-            lastPressedChild.mouseReleased(mouseX,mouseY,state);
+            lastPressedChild.mouseReleased(mouseX,mouseY,button);
         }else{
-            onReleased(mouseX, mouseY, state);
+            onReleased(mouseX, mouseY, button);
             if(RootView.isInside(this,mouseX,mouseY)){
                 if(Minecraft.getSystemTime() - lastPressTime < root.longClickThreshold)
-                    mouseClicked(mouseX,mouseY,state);
+                    mouseClicked(mouseX,mouseY,button);
                 else{
-                    if(actionClick != null) actionClick.longClick(this,state,Minecraft.getSystemTime() - lastPressTime);
-                    mouseLongClicked(mouseX, mouseY, state);
+                    if(actionClick != null) actionClick.longClick(this,button,Minecraft.getSystemTime() - lastPressTime);
+                    mouseLongClicked(mouseX, mouseY, button);
                 }
             }
         }
     }
 
     protected abstract void onReleased(int mouseX, int mouseY, int state);
+
+    /**
+     * @return true if it enable its parent intercept its {@link ViewGroup#onClicked(int, int, int)}
+     */
+    private boolean enableIntercepted(){
+        return enableIntercepted;
+    }
+
+    protected boolean intercept(){
+        return true;
+    }
+
+    protected boolean interceptClickAction(int mouseX, int mouseY, int button){
+        boolean flag = visible && RootView.isInside(this,mouseX,mouseY)
+                && onPressed(mouseX, mouseY, button);
+
+        if(flag){
+            flag = onInterceptClickAction(mouseX, mouseY, button);
+            if(flag && lastPressedChild != null){
+                if(!lastPressedChild.enableIntercepted()){
+                    lastPressedChild.mouseReleased(mouseX - lastPressedChild.getX(),
+                            mouseY - lastPressedChild.getY(), button);
+                }
+            }
+        }
+        return flag;
+    }
+
+    protected boolean onInterceptClickAction(int mouseX, int mouseY, int button){
+        return false;
+    }
 
     @Override
     public boolean mousePressed(int mouseX, int mouseY,int state) {
@@ -441,6 +514,9 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         return false;
     }
 
+    /**
+     * this method is executed in {@link AbstractGuiContainer#updateScreen()} every tick
+     */
     public void onUpdate(){
         for (ViewGroup vg:
                 children){
@@ -469,6 +545,11 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     }
 
+    //public click event,visible is not affect
+    public void performClickAction(int x,int y,int button){
+        onClicked(x, y, button);
+    }
+
     public long getLastPressTime() {
         return lastPressTime;
     }
@@ -478,29 +559,45 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     }
 
     public void addChild(ViewGroup viewGroup){
+        viewGroup.parent = this;
         children.add(viewGroup);
     }
 
     public void addChildren(ViewGroup... viewGroup){
-        children.addAll(Lists.newArrayList(viewGroup));
+        for (ViewGroup v :
+                viewGroup) {
+            addChild(v);
+        }
     }
 
     public void addChild(int index ,ViewGroup viewGroup){
+        viewGroup.parent = this;
         children.add(index,viewGroup);
     }
 
     public void removeChild(ViewGroup viewGroup){
+        viewGroup.parent = null;
         children.remove(viewGroup);
     }
 
     public void removeChild(int index){
-        children.remove(index);
+        children.remove(index).parent = null;
     }
 
-    public void removeAllChildren(){children.clear();}
+    public void removeAllChildren(){
+        for (ViewGroup v :
+                children) {
+            v.parent = null;
+        }
+
+        children.clear();
+    }
 
     public void addAll(Collection<ViewGroup> viewGroups){
-        children.addAll(viewGroups);
+        for (ViewGroup v :
+                viewGroups) {
+            addChild(v);
+        }
     }
 
     public void forEach(Consumer<? super ViewGroup> consumer) {
@@ -563,14 +660,22 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         }
     }
 
-    public boolean isHover() {
+    public boolean isHovering() {
         return isHover;
     }
 
-    public void setHover(boolean hover) {
+    public void setHovering(boolean hover) {
         isHover = hover;
     }
 
+    /**
+     * @param isInsideParents same as {@link ViewGroup#checkParentHover()}
+     * @return true if it's hovering
+     *
+     * the difference between this and {@link ViewGroup#isHovering()} is that hovering will only allow one
+     * view being hovered,if its children being hovered,{@link ViewGroup#isHovering()} will return false.
+     *In anther world, {@link ViewGroup#isHovering()} only check the top view in the rootView.
+     */
     public boolean isMouseover(boolean isInsideParents){
         if(isInsideParents && getParent() != null){
             return isInside && getParent().isMouseover(true);
@@ -584,6 +689,19 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     public void setScissor(boolean scissor) {
         isScissor = scissor;
+    }
+
+    public void setEnableIntercepted(boolean value){
+        enableIntercepted = value;
+    }
+
+    public void childrenEnableIntercepted(boolean value){
+        forEach(new Consumer<ViewGroup>() {
+            @Override
+            public void accept(ViewGroup viewGroup) {
+                viewGroup.setEnableIntercepted(value);
+            }
+        });
     }
 
     public static class Builder{

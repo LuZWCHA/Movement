@@ -9,12 +9,16 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SlotView;
+import com.nowandfuture.mod.core.common.gui.mygui.network.ClickDynInventoryCMessage;
+import com.nowandfuture.mod.core.common.gui.mygui.network.NetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -99,8 +103,9 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         super.initGui();
         rootView.setX(this.guiLeft);
         rootView.setY(this.guiTop);
-        rootView.setWidth(this.width);
-        rootView.setHeight(this.height);
+        rootView.setWidth(this.xSize);
+        rootView.setHeight(this.ySize);
+        rootView.initGui();
         onStart();
         if(isFirstInit) {
             onLoad();
@@ -186,6 +191,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
             t.draw(mouseX,mouseY,partialTicks);
             t.draw2(mouseX, mouseY, partialTicks);
         }
+
         rootView.draw(mouseX, mouseY, partialTicks);
         rootView.draw2(mouseX, mouseY, partialTicks);
 
@@ -196,6 +202,20 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
+        drawDialog(mouseX, mouseY, partialTicks);
+    }
+
+    private void drawDialog(int mouseX, int mouseY, float partialTicks){
+        GlStateManager.disableRescaleNormal();
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        rootView.drawDialog(mouseX,mouseY,partialTicks);
+        rootView.drawDialog2(mouseX,mouseY,partialTicks);
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.enableLighting();
+        GlStateManager.enableDepth();
+        RenderHelper.enableStandardItemLighting();
     }
 
     @Override
@@ -206,6 +226,15 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
     //rename to obey naming style
     protected void onDrawForegroundLayer(int mouseX, int mouseY){
 
+    }
+
+    @Override
+    protected void renderHoveredToolTip(int p_191948_1_, int p_191948_2_) {
+        super.renderHoveredToolTip(p_191948_1_, p_191948_2_);
+        if(this.mc.player.inventory.getItemStack().isEmpty() && getHoveredExtSlot() != null &&
+                !getHoveredExtSlot().getStack().isEmpty()){
+            renderToolTip(getHoveredExtSlot().getStack(),p_191948_1_,p_191948_2_);
+        }
     }
 
     protected final void offset(MyGui gui){
@@ -278,7 +307,8 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
             setFocusGui(null);
         }
 
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        if(!rootView.isDialogShowing())
+            super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
@@ -384,7 +414,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         if(slot == null){
             if(rootView.getHoverView() instanceof SlotView){
                 Slot ps = ((SlotView) rootView.getHoverView()).getSlot();
-                ps.slotNumber = ps.getSlotIndex() + inventorySlots.inventorySlots.size();
+                ps.slotNumber = ps.getSlotIndex();
                 return ps;
             }
         }
@@ -403,7 +433,22 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
     }
 
     @Override
+    protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type) {
+        if(slotIn instanceof AbstractContainer.ProxySlot){
+            slotId = slotIn.getSlotIndex();
+            AbstractContainer container = (AbstractContainer) inventorySlots;
+            short short1 = container.getNextTransactionID(mc.player.inventory);
+            ItemStack itemStack = container.slotClickInExtSlot(slotId,mouseButton,type,mc.player);
+            ClickDynInventoryCMessage message = new ClickDynInventoryCMessage(inventorySlots.windowId,container.getDynInventoryId(),
+                    itemStack,slotId,mouseButton,type, short1);
+            NetworkHandler.INSTANCE.sendMessageToServer(message);
+        }else
+            super.handleMouseClick(slotIn, slotId, mouseButton, type);
+    }
+
+    @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
+
         if(rootView.getFocusedView() != null){
             rootView.handleKeyType(typedChar, keyCode);
         }else if (focusGui != null && keyCode != 1/* esc */) {
@@ -416,6 +461,12 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
     }
 
     @Override
+    protected boolean isMouseOverSlot(Slot slotIn, int mouseX, int mouseY) {
+        if(rootView.isDialogShowing()) return false;
+        return super.isMouseOverSlot(slotIn, mouseX, mouseY);
+    }
+
+    @Override
     protected boolean hasClickedOutside(int mouseX, int mouseY, int left, int top) {
         return super.hasClickedOutside(mouseX, mouseY, left, top) &&
                 !isInside(getExtraRegion(),mouseX,mouseY);
@@ -425,7 +476,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         if(regions == null) return false;
         for (GuiRegion v :
                 regions) {
-            if(x > v.left && x < v.right && y > v.bottom && y < v.top){
+            if(x > v.left && x < v.right && y < v.bottom && y > v.top){
                 return true;
             }
         }

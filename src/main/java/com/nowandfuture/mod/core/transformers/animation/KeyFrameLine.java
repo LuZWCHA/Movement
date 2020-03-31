@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagList;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class KeyFrameLine extends TimeLine {
+public class KeyFrameLine extends Timeline {
     //sorted
     public final static String NBT_KEY_FRAMES = "KeyFrames";
     public final static String NBT_KEY_TYPE = "KeyFrameType";
@@ -189,6 +189,7 @@ public class KeyFrameLine extends TimeLine {
 
     public void reset(){
         init();
+        setEnable(false);
     }
 
     @Override
@@ -290,7 +291,7 @@ public class KeyFrameLine extends TimeLine {
     }
 
     @Override
-    public TimeLine setTick(long tick) {
+    public Timeline setTick(long tick) {
         if(tick != getTick()) {
             super.setTick(tick);
             updateSections(false);

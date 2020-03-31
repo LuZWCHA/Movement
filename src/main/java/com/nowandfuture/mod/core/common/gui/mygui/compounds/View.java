@@ -1,10 +1,7 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import org.lwjgl.opengl.GL11;
-
 import javax.annotation.Nonnull;
+import java.util.Collection;
 
 public abstract class View extends ViewGroup {
 
@@ -37,8 +34,8 @@ public abstract class View extends ViewGroup {
     }
 
     @Override
-    public boolean handleKeyType(char typedChar, int keyCode) {
-        return super.handleKeyType(typedChar, keyCode);
+    protected boolean onInterceptClickAction(int mouseX, int mouseY, int button) {
+        return true;
     }
 
     @Override
@@ -55,6 +52,55 @@ public abstract class View extends ViewGroup {
 
     }
 
+    //------------------------------disable all children function----------------------------------
+
+    @Override
+    public final void addAll(Collection<ViewGroup> viewGroups) {
+
+    }
+
+    @Override
+    public final void addChild(ViewGroup viewGroup) {
+
+    }
+
+    @Override
+    public final void removeAllChildren() {
+
+    }
+
+    @Override
+    public final void addChild(int index, ViewGroup viewGroup) {
+
+    }
+
+    @Override
+    public final void addChildren(ViewGroup... viewGroup) {
+
+    }
+
+    @Override
+    public final void removeChild(int index) {
+
+    }
+
+    @Override
+    public final void removeChild(ViewGroup viewGroup) {
+
+    }
+
+    @Override
+    public final ViewGroup getChild(int index) {
+        return null;
+    }
+
+    @Override
+    public final int getChildrenSize() {
+        return 0;
+    }
+
+    //--------------------------------------------------------------------------------------------
+
     @Override
     protected void onReleased(int mouseX, int mouseY, int state) {
 
@@ -63,42 +109,6 @@ public abstract class View extends ViewGroup {
     @Override
     public boolean handleMouseInput(int mouseX, int mouseY) {
         return false;
-    }
-
-    @Override
-    public final void draw2(int mouseX, int mouseY, float partialTicks) {
-        if(isScissor) {
-            final ScaledResolution res = new ScaledResolution(getRoot().context);
-            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
-            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
-            final int ax = getAbsoluteX();
-            final int ay = getAbsoluteY();
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
-                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
-            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        }else{
-            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
-        }
-    }
-
-    @Override
-    public final void draw(int mouseX, int mouseY, float partialTicks) {
-        if(isScissor) {
-            final ScaledResolution res = new ScaledResolution(getRoot().context);
-            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
-            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
-            final int ax = getAbsoluteX();
-            final int ay = getAbsoluteY();
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
-                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
-            onDraw(mouseX, mouseY, partialTicks);
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        }else{
-            onDraw(mouseX, mouseY, partialTicks);
-        }
     }
 
     interface ClickListener{

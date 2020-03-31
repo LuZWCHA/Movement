@@ -23,7 +23,7 @@ import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
-import com.nowandfuture.mod.core.transformers.animation.TimeLine;
+import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
@@ -179,7 +179,10 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Float aFloat) {
                 previewView.setXAngle(aFloat);
+
                 numBox3.setText(String.valueOf(previewView.getXAngle()));
+                numBox3.setCursorPositionZero();
+
                 previewView.saveToFrame();
             }
         });
@@ -193,7 +196,10 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Float aFloat) {
                 previewView.setYAngle(aFloat);
+
                 numBox4.setText(String.valueOf(previewView.getYAngle()));
+                numBox4.setCursorPositionZero();
+
                 previewView.saveToFrame();
             }
         });
@@ -207,7 +213,10 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Float aFloat) {
                 previewView.setZAngle(aFloat);
+
                 numBox5.setText(String.valueOf(previewView.getZAngle()));
+                numBox5.setCursorPositionZero();
+
                 previewView.saveToFrame();
             }
         });
@@ -232,6 +241,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Integer v) {
                 numBox0.setText(String.valueOf(v));
+                numBox0.setCursorPositionZero();
+
                 previewView.setOffsetX(v);
                 submitValue();
             }
@@ -240,6 +251,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Integer v) {
                 numBox1.setText(String.valueOf(v));
+                numBox1.setCursorPositionZero();
+
                 previewView.setOffsetY(v);
                 submitValue();
             }
@@ -248,6 +261,8 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void accept(Integer v) {
                 numBox2.setText(String.valueOf(v));
+                numBox2.setCursorPositionZero();
+
                 previewView.setOffsetZ(v);
                 submitValue();
             }
@@ -463,7 +478,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     private void applyTimeline(){
-        TimeLine.Mode mode = TimeLine.Mode.values()[comboBox.getSelectIndex()];
+        Timeline.Mode mode = Timeline.Mode.values()[comboBox.getSelectIndex()];
         long totalTime;
         if(!totalTimeBox.getText().isEmpty())
             totalTime = Long.parseLong(totalTimeBox.getText());

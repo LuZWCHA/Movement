@@ -20,7 +20,7 @@ public class InventorySMessageHandler implements IMessageHandler<InventorySMessa
 
                         if(container instanceof AbstractContainer &&
                                 container.windowId == message.getWindowId()){
-                            ((AbstractContainer) container).setAllForDymInventory(message.getNbt());
+                            ((AbstractContainer) container).setAllForDymInventory(message.getInventoryId(),message.getNbt());
                         }
                     }
                 }

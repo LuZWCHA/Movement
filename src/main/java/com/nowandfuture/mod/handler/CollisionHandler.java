@@ -45,7 +45,7 @@ public class CollisionHandler {
             if(moduleAABB != null){
 
                 OBBox obBox = new OBBox(moduleAABB);
-                Matrix4f matrix4f = module.getModuleBase().getTransRes();
+                Matrix4f matrix4f = module.getModuleBase().getTransMatrix();
                 obBox.mulMatrix(matrix4f);
                 module.setRenderBox(new OBBox(obBox));
 

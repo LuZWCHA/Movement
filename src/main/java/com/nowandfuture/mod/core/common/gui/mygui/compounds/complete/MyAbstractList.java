@@ -1,5 +1,7 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
+import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
@@ -17,6 +19,18 @@ import java.util.Set;
 
 public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extends ViewGroup {
 
+    public abstract static class OnItemClickedListener extends AbstractGuiContainer.ActionClick{
+
+        @Override
+        public void clicked(MyGui gui, int button) {
+
+        }
+
+        public abstract void onItemClicked(MyAbstractList view,int index,int button);
+    }
+
+    private OnItemClickedListener onItemClick;
+
     private Adapter<T> adapter;
 
     private Color itemBackground,hoverBackground,selectedBackground;
@@ -32,6 +46,7 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
     private int autoScrollFrame = 15;
     private boolean isAutoScrolling = false;
 
+    // TODO: 2020/3/19 listen adapter change ,this function is not completed
     private SelectMode mode = SelectMode.SINGLE;
     private Set<Integer> selectIndexList;
 
@@ -218,7 +233,9 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
                     selectIndexList.clear();
                 }
 
-                onItemClicked(index, mouseX, mouseY);
+                if(onItemClick != null)
+                    onItemClick.onItemClicked(this,index,mouseButton);
+                onItemClicked(index, mouseX, mouseY,mouseButton);
 
                 T viewHolder;
                 int startIndex = getDrawFirst();
@@ -235,7 +252,12 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         return true;
     }
 
-    protected void onItemClicked(int index,int mouseX,int mouseY){
+    @Override
+    protected boolean onInterceptClickAction(int mouseX, int mouseY, int button) {
+        return true;
+    }
+
+    protected void onItemClicked(int index, int mouseX, int mouseY, int button){
 
     }
 
@@ -304,6 +326,10 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         cache.clear();
     }
 
+    public void setOnItemClick(OnItemClickedListener onItemClick) {
+        this.onItemClick = onItemClick;
+    }
+
     public static abstract class Adapter<T extends ViewHolder>{
         public abstract int getSize();
         public abstract int getHeight();
@@ -364,7 +390,7 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
         @Override
         protected void onReleased(int mouseX, int mouseY, int state) {
-
+            //do noting
         }
 
         @Override

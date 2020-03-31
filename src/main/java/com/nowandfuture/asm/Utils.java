@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ public class Utils {
 
     public static List<Object> getRenderChunks(){
         if(renderChunks == null)
-            renderChunks = ReflectionHelper.findField(RenderGlobal.class, new String[] { "renderInfos", "field_72755_R" });
+            renderChunks = ObfuscationReflectionHelper.findField(RenderGlobal.class, "field_72755_R" );
         try{
             Minecraft mc = Minecraft.getMinecraft();
             List<Object> renderChunkList = (List<Object>) renderChunks.get(mc.renderGlobal);
@@ -29,7 +29,9 @@ public class Utils {
     }
 
     public static Map<BlockPos,RenderChunk> getRenderChunkMap() throws NoSuchFieldException, IllegalAccessException {
+//        long time = System.currentTimeMillis();
         List<Object> chunkInfos = getRenderChunks();
+//        System.out.println(System.currentTimeMillis() - time);
 
         if(chunkInfos != null){
             Map<BlockPos,RenderChunk> map = new HashMap<>();

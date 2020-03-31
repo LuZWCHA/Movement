@@ -27,7 +27,7 @@ public class InventoryCMessageHandler implements IMessageHandler<InventoryCMessa
                     if (tileEntity instanceof IDynInventoryHolder) {
                         IDynamicInventory dynamicInventory = ((IDynInventoryHolder) tileEntity).getDynInventory();
                         //to drop items if a slot (not empty) is removed
-                        dynamicInventory.readFromNBT(message.getNbt(), true);
+                        dynamicInventory.readFromNBT(message.getNbt(), false);
 
                         NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                     }

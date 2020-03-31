@@ -5,7 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import java.io.Serializable;
 
-public class TimeLine {
+public class Timeline {
 
     public static final String NBT_ANM_LINE_ENABLE = "LineEnable";
     public static final String NBT_ANM_LINE_TOTAL = "TotalTick";
@@ -48,11 +48,11 @@ public class TimeLine {
     }
 
     @Override
-    public TimeLine clone(){
-        return new TimeLine(this);
+    public Timeline clone(){
+        return new Timeline(this);
     }
 
-    private TimeLine(TimeLine timeLine) {
+    private Timeline(Timeline timeLine) {
         this.enable = timeLine.enable;
         this.totalTick = timeLine.totalTick;
         this.tick = timeLine.tick;
@@ -60,7 +60,7 @@ public class TimeLine {
         this.mode = timeLine.mode;
     }
 
-    public TimeLine(){
+    public Timeline(){
         enable = false;
         step = DEFAULT_STEP;
         mode = Mode.CYCLE_RESTART;
@@ -166,7 +166,7 @@ public class TimeLine {
         return totalTick;
     }
 
-    public TimeLine setTotalTick(long totalTick) {
+    public Timeline setTotalTick(long totalTick) {
         if(totalTick <= 0) totalTick = 100;
         this.totalTick = totalTick;
         return this;
@@ -176,7 +176,7 @@ public class TimeLine {
         return tick;
     }
 
-    public TimeLine setTick(long tick) {
+    public Timeline setTick(long tick) {
         if(tick < 0) tick = 0;
         if(tick > totalTick) tick = totalTick;
         this.tick = tick;
@@ -190,13 +190,14 @@ public class TimeLine {
     public void reset(){
         step = 1;
         resetTick();
+        enable = false;
     }
 
     public void toMaxTick(){
         this.tick = totalTick;
     }
 
-    public TimeLine setStep(int step) {
+    public Timeline setStep(int step) {
         if(step > totalTick)
             step = (int) totalTick;
         else if(step < -totalTick){
@@ -210,7 +211,7 @@ public class TimeLine {
         return step;
     }
 
-    public TimeLine setMode(Mode mode) {
+    public Timeline setMode(Mode mode) {
         if(Mode.ONE_CYCLE == mode){
             resetTick();
         }
@@ -243,7 +244,7 @@ public class TimeLine {
         return enable;
     }
 
-    public TimeLine setEnable(boolean enable) {
+    public Timeline setEnable(boolean enable) {
         this.enable = enable;
         return this;
     }

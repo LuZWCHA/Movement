@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 public enum TimeLineManager {
     INSTANCE;
-    private final Map<String,TimeLine> lines;
+    private final Map<String, Timeline> lines;
 
     TimeLineManager(){
         lines = new LinkedHashMap<>();
@@ -15,14 +15,14 @@ public enum TimeLineManager {
 
     public void update(){
         if(lines.isEmpty()) return;
-        lines.values().forEach((Consumer<TimeLine>) timeLine -> {
+        lines.values().forEach((Consumer<Timeline>) timeLine -> {
             if(timeLine.isEnable())
                 timeLine.update();
         });
     }
 
-    public TimeLine registerTimeLine(String name){
-        TimeLine timeLine = new TimeLine();
+    public Timeline registerTimeLine(String name){
+        Timeline timeLine = new Timeline();
         lines.put(name, timeLine);
         return timeLine;
     }
@@ -32,7 +32,7 @@ public enum TimeLineManager {
     }
 
     @Nullable
-    public TimeLine getLine(String name){
+    public Timeline getLine(String name){
         return lines.get(name);
     }
 

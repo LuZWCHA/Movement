@@ -2,11 +2,11 @@ package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.api.IModule;
 import com.nowandfuture.mod.core.movecontrol.ModuleBase;
-import com.nowandfuture.mod.core.prefab.*;
+import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
-import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
-import com.nowandfuture.mod.core.transformers.animation.TimeLine;
+import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
@@ -21,7 +21,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityLockable;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -31,7 +30,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class TileEntityModule extends TileEntityLockable implements IInventory,IModule{
 
@@ -42,13 +40,17 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     private final static String NBT_TICK = "Tick";
     private final static String NBT_ENABLE = "Enable";
     private final static String NBT_ENABLE_COLLISION = "EnableCollision";
+    private final static String NBT_RENDER_REALTIME = "RenderRealtime";
 
     private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;
     private boolean enableCollision = false;
+    //render light realtime
+    //0:disable
+    //>0:re-render with a probability of 1/(1+renderRealtime)
+    private int renderRealtime = -1;
 
     protected ModuleBase moduleBase;
-
 
     //---------------CLIENT_DEBUG----------------
     private Vector3f impactAxis;
@@ -57,6 +59,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public TileEntityModule(){
         moduleBase = new ModuleBase();
         moduleBase.setModuleWorld(world);
+        moduleBase.createDefaultTransformer();
     }
 
     @Override
@@ -73,14 +76,13 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     @Override
     public void onLoad() {
         super.onLoad();
-        moduleBase.createDefaultTransformer();
     }
 
-    public void setModuleBase(@Nonnull ModuleBase moduleBase) {
-        moduleBase.setModuleWorld(world);
+    public void setModuleBase(@Nonnull ModuleBase newModuleBase) {
+        newModuleBase.setModuleWorld(world);
         //fix pos
-        moduleBase.setModulePos(getPos());
-        this.moduleBase = moduleBase;
+        newModuleBase.setModulePos(getPos());
+        moduleBase = newModuleBase;
     }
 
     public ModuleBase getModuleBase() {
@@ -89,17 +91,12 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     public void setPrefab(@Nonnull AbstractPrefab prefab) {
         //fix pos
-        if(prefab.isLocalWorldInit())
-            prefab.setBaseLocation(getPos());
+        prefab.setBaseLocation(getPos());
         moduleBase.setPrefab(prefab);
     }
 
     public AbstractPrefab getPrefab(){
         return moduleBase.getPrefab();
-    }
-
-    public void setEmptyPrefab(){
-        moduleBase.setPrefab(new NormalPrefab());
     }
 
     public void setModulePos(BlockPos posIn) {
@@ -131,8 +128,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     }
 
     @Override
-    public void doTransform(double p, Matrix4f matrix4f, BlockPos offset) {
-        moduleBase.doTransform(p, matrix4f, offset);
+    public void doTransform(double p, Matrix4f matrix4f) {
+        moduleBase.doTransform(p, matrix4f);
     }
 
     public void setTransformNode(@Nonnull AbstractTransformNode part) {
@@ -162,9 +159,9 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     @Override
     public void invalidate() {
+        if(world != null && world.isRemote)
+            moduleBase.clearGLResource();
         super.invalidate();
-        if(world.isRemote)
-            moduleBase.invalid();
     }
 
     @Override
@@ -188,7 +185,10 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        super.writeToNBT(compound);
+        //moduleNode is not a tileEntity in mc world
+        if(!(getClass() == ModuleNode.class))
+            super.writeToNBT(compound);
+
         compound.setBoolean(NBT_ENABLE_COLLISION,enableCollision);
 
         return moduleBase.writeToNBT(compound);
@@ -252,7 +252,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         }
     }
 
-    public TimeLine getLine() {
+    public Timeline getLine() {
         return moduleBase.getLine();
     }
 
@@ -404,4 +404,13 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         this.renderBox = renderBox;
     }
 
+    @SideOnly(Side.CLIENT)
+    public int getRenderRealtime() {
+        return renderRealtime;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void setRenderRealtime(int renderRealtime) {
+        this.renderRealtime = renderRealtime;
+    }
 }

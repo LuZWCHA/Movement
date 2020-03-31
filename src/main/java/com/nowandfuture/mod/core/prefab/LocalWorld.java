@@ -1,12 +1,15 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
@@ -24,11 +27,21 @@ import java.util.stream.Stream;
 import static com.nowandfuture.mod.core.client.renders.CubesBuilder.CUBE_SIZE;
 
 public class LocalWorld implements IBlockAccess {
+    private final Matrix4f matrix4f;
+    {
+        matrix4f = new Matrix4f();
+        matrix4f.setIdentity();
+    }
+
     private World parentWorld;
     private BlockPos parentWorldPos;
     private AbstractPrefab prefab;
 
-    private boolean useFixSkyLight = true;
+    private boolean useFixedSkyLight = true;
+
+    public Matrix4f getMatrix4f() {
+        return matrix4f;
+    }
 
     public BlockPos getParentWorldPos() {
         return parentWorldPos;
@@ -97,7 +110,7 @@ public class LocalWorld implements IBlockAccess {
         return this;
     }
 
-    public LocalWorld streamCube(BlockPos cubePos,LocalWorldSearch localWorldSearch){
+    public LocalWorld streamCubes(BlockPos cubePos, LocalWorldSearch localWorldSearch){
         final int x = cubePos.getX() * CUBE_SIZE;
         final int y = cubePos.getY() * CUBE_SIZE;
         final int z = cubePos.getZ() * CUBE_SIZE;
@@ -209,12 +222,11 @@ public class LocalWorld implements IBlockAccess {
     public LocalWorld(Vec3i size, BlockPos parentWorldPos, World world, AbstractPrefab prefab){
         this.size = size;
         this.prefab = prefab;
-        allocBlockArray(size.getX(),size.getY(),size.getZ());
-        tileEntities = new HashMap<>();
-        parentWorld = world;
+        this.allocBlockArray(size.getX(),size.getY(),size.getZ());
+        this.tileEntities = new HashMap<>();
+        this.parentWorld = world;
         this.parentWorldPos = parentWorldPos;
-
-        renderBlocks = new LinkedList<>();
+        this.renderBlocks = new LinkedList<>();
     }
 
     public boolean isBaned(TileEntity entity){
@@ -227,11 +239,16 @@ public class LocalWorld implements IBlockAccess {
         return tileEntities.get(pos);
     }
 
-    public int getActCombinedLight(BlockPos pos, int lightValue,boolean useFixSkyLight){
+    public int getActCombinedLight(BlockPos pos, int lightValue,Matrix4f matrix4f,boolean useFixSkyLight){
 
-        int i =  useFixSkyLight ? 15 :this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos);
-        int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos);
-        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,pos.add(parentWorldPos));
+        Vec3d transPos = OBBox.transformCoordinate(matrix4f,new Vec3d(pos));
+        BlockPos np = new BlockPos(transPos.x + parentWorldPos.getX(),
+                transPos.y + parentWorldPos.getY(),
+                transPos.z + parentWorldPos.getZ());
+
+        int i =  useFixSkyLight ? 15 :this.getLightFromNeighborsFor(EnumSkyBlock.SKY, pos, matrix4f);
+        int j = this.getLightFromNeighborsFor(EnumSkyBlock.BLOCK, pos, matrix4f);
+        int k = getParentWorld().getLightFor(EnumSkyBlock.BLOCK,np);
 
         if (j < lightValue)
         {
@@ -249,17 +266,17 @@ public class LocalWorld implements IBlockAccess {
         return i << 20 | j << 4;
     }
 
-    public void setUseFixSkyLight(boolean useFixSkyLight) {
-        this.useFixSkyLight = useFixSkyLight;
+    public void setUseFixedSkyLight(boolean useFixedSkyLight) {
+        this.useFixedSkyLight = useFixedSkyLight;
     }
 
     @Override
     public int getCombinedLight(BlockPos pos, int lightValue) {
-        return getActCombinedLight(pos, lightValue,false);
+        return getActCombinedLight(pos, lightValue, matrix4f,false);
     }
 
     @SideOnly(Side.CLIENT)
-    public int getLightFromNeighborsFor(EnumSkyBlock type, BlockPos pos)
+    public int getLightFromNeighborsFor(EnumSkyBlock type, BlockPos pos, Matrix4f matrix4f)
     {
         if (!parentWorld.provider.hasSkyLight() && type == EnumSkyBlock.SKY)
         {
@@ -267,11 +284,16 @@ public class LocalWorld implements IBlockAccess {
         }
         else
         {
+            Vec3d transPos = OBBox.transformCoordinate(matrix4f,new Vec3d(pos));
+            BlockPos np = new BlockPos(transPos.x + parentWorldPos.getX(),
+                    transPos.y + parentWorldPos.getY(),
+                    transPos.z + parentWorldPos.getZ());
+
             if (!this.isValid(pos) && type == EnumSkyBlock.BLOCK)
             {
                 return type.defaultLightValue;
             }
-            else if (!parentWorld.isBlockLoaded(pos.add(parentWorldPos)) && type == EnumSkyBlock.SKY)
+            else if (!parentWorld.isBlockLoaded(np) && type == EnumSkyBlock.SKY)
             {
                 return type.defaultLightValue;
             }
@@ -307,15 +329,15 @@ public class LocalWorld implements IBlockAccess {
             }
             else
             {
-                Chunk chunk = parentWorld.getChunk(pos.add(parentWorldPos));
-                if(type == EnumSkyBlock.SKY)
-                    return chunk.getLightFor(type,pos.add(parentWorldPos));
+                if (type == EnumSkyBlock.SKY) {
+                    Chunk chunk = parentWorld.getChunk(np);
+                    return chunk.getLightFor(type, np);
+                }
 
                 return getLightFor(type,pos);
             }
         }
     }
-
 
     public int getLightFor(EnumSkyBlock type, BlockPos pos)
     {
@@ -325,10 +347,6 @@ public class LocalWorld implements IBlockAccess {
         }
         else
         {
-            Chunk chunk = parentWorld.getChunk(pos.add(parentWorldPos));
-            if(type == EnumSkyBlock.SKY)
-                return chunk.getLightFor(type,pos.add(parentWorldPos));
-
             return getLight(pos);
         }
     }
@@ -344,6 +362,7 @@ public class LocalWorld implements IBlockAccess {
         return lightMap[x][y][z];
     }
 
+
     @Deprecated
     public void updateLightMap() throws InterruptedException{
         final int x = size.getX(),y = size.getY(),z = size.getZ();
@@ -352,14 +371,14 @@ public class LocalWorld implements IBlockAccess {
             for(int j=0;j<y;++j)
                 for(int k=0;k<z;++k) {
                     int light = parentWorld.getLightFromNeighborsFor(EnumSkyBlock.BLOCK,parentWorldPos.add(i,j,k));
-                    setLightForCoord(light,i,j,k);
+                    setLightFor(light,i,j,k);
                     if(Thread.currentThread().isInterrupted()){
                         throw new InterruptedException();
                     }
                 }
     }
 
-    private void setLightForCoord(int light,int x,int y,int z){
+    private void setLightFor(int light, int x, int y, int z){
         if(isValid(x,y,z)) {
             int orgLight = lightMap[x][y][z];
             if(light > orgLight) {
@@ -368,13 +387,148 @@ public class LocalWorld implements IBlockAccess {
         }
     }
 
-    public void setLightForCoord(int light,BlockPos pos){
+//    public boolean checkLightFor(EnumSkyBlock lightType, BlockPos pos)
+//    {
+//        if (!this.isAreaLoaded(pos, 16, false))
+//        {
+//            return false;
+//        }
+//        else
+//        {
+//            int updateRange = this.isAreaLoaded(pos, 18, false) ? 17 : 15;
+//            int j2 = 0;
+//            int k2 = 0;
+//            int light = this.getLightFor(lightType, pos);
+//            int orgLight = this.getRawLight(pos, lightType);
+//            int x = pos.getX();
+//            int y = pos.getY();
+//            int z = pos.getZ();
+//
+//            if (orgLight > light)
+//            {
+//                this.lightUpdateBlockList[k2++] = 133152;
+//            }
+//            else if (orgLight < light)
+//            {
+//                this.lightUpdateBlockList[k2++] = 133152 | light << 18;
+//
+//                while (j2 < k2)
+//                {
+//                    int lightPacket = this.lightUpdateBlockList[j2++];
+//                    int startX = (lightPacket & 63) - 32 + x;
+//                    int startY = (lightPacket >> 6 & 63) - 32 + y;
+//                    int startZ = (lightPacket >> 12 & 63) - 32 + z;
+//                    int curLight = lightPacket >> 18 & 15;
+//                    BlockPos blockpos1 = new BlockPos(startX, startY, startZ);
+//                    int startLight = this.getLightFor(lightType, blockpos1);
+//
+//                    if (startLight == curLight)
+//                    {
+//                        this.setLightFor(lightType, blockpos1, 0);
+//
+//                        if (curLight > 0)
+//                        {
+//                            int aX = net.minecraft.util.math.MathHelper.abs(startX - x);
+//                            int aY = net.minecraft.util.math.MathHelper.abs(startY - y);
+//                            int aZ = net.minecraft.util.math.MathHelper.abs(startZ - z);
+//
+//                            if (aX + aY + aZ < updateRange)
+//                            {
+//                                BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.retain();
+//
+//                                for (EnumFacing enumfacing : EnumFacing.values())
+//                                {
+//                                    int sideX = startX + enumfacing.getXOffset();
+//                                    int sideY = startY + enumfacing.getYOffset();
+//                                    int sideZ = startZ + enumfacing.getZOffset();
+//                                    blockpos$pooledmutableblockpos.setPos(sideX, sideY, sideZ);
+//                                    IBlockState bs = this.getBlockState(blockpos$pooledmutableblockpos);
+//                                    int newLight = Math.max(1, bs.getBlock().getLightOpacity(bs, this, blockpos$pooledmutableblockpos));
+//                                    startLight = this.getLightFor(lightType, blockpos$pooledmutableblockpos);
+//
+//                                    if (startLight == curLight - newLight && k2 < this.lightUpdateBlockList.length)
+//                                    {
+//                                        this.lightUpdateBlockList[k2++] = sideX - x + 32 | sideY - y + 32 << 6 | sideZ - z + 32 << 12 | curLight - newLight << 18;
+//                                    }
+//                                }
+//
+//                                blockpos$pooledmutableblockpos.release();
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                j2 = 0;
+//            }
+//
+//            while (j2 < k2)
+//            {
+//                int j7 = this.lightUpdateBlockList[j2++];
+//                int k7 = (j7 & 63) - 32 + x;
+//                int l7 = (j7 >> 6 & 63) - 32 + y;
+//                int i8 = (j7 >> 12 & 63) - 32 + z;
+//                BlockPos blockpos2 = new BlockPos(k7, l7, i8);
+//                int j8 = this.getLightFor(lightType, blockpos2);
+//                int k8 = this.getRawLight(blockpos2, lightType);
+//
+//                if (k8 != j8)
+//                {
+//                    this.setLightFor(lightType, blockpos2, k8);
+//
+//                    if (k8 > j8)
+//                    {
+//                        int l8 = Math.abs(k7 - x);
+//                        int i9 = Math.abs(l7 - y);
+//                        int j9 = Math.abs(i8 - z);
+//                        boolean flag = k2 < this.lightUpdateBlockList.length - 6;
+//
+//                        if (l8 + i9 + j9 < updateRange && flag)
+//                        {
+//                            if (this.getLightFor(lightType, blockpos2.west()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 - 1 - x + 32 + (l7 - y + 32 << 6) + (i8 - z + 32 << 12);
+//                            }
+//
+//                            if (this.getLightFor(lightType, blockpos2.east()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 + 1 - x + 32 + (l7 - y + 32 << 6) + (i8 - z + 32 << 12);
+//                            }
+//
+//                            if (this.getLightFor(lightType, blockpos2.down()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 - x + 32 + (l7 - 1 - y + 32 << 6) + (i8 - z + 32 << 12);
+//                            }
+//
+//                            if (this.getLightFor(lightType, blockpos2.up()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 - x + 32 + (l7 + 1 - y + 32 << 6) + (i8 - z + 32 << 12);
+//                            }
+//
+//                            if (this.getLightFor(lightType, blockpos2.north()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 - x + 32 + (l7 - y + 32 << 6) + (i8 - 1 - z + 32 << 12);
+//                            }
+//
+//                            if (this.getLightFor(lightType, blockpos2.south()) < k8)
+//                            {
+//                                this.lightUpdateBlockList[k2++] = k7 - x + 32 + (l7 - y + 32 << 6) + (i8 + 1 - z + 32 << 12);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            return true;
+//        }
+//    }
+
+    public void setLightFor(int light, BlockPos pos){
         if(isValid(pos)) {
             lightMap[pos.getX()][pos.getY()][pos.getZ()] = light;
         }
     }
 
-    public void setLightForCoord(int light,double x,double y,double z){
+    public void setLightFor(int light, double x, double y, double z){
         if(isValid(x,y,z)) {
             lightMap[(int)x][(int)y][(int)z] = light;
         }

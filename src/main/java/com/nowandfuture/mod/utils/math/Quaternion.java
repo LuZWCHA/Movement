@@ -3,9 +3,8 @@ package com.nowandfuture.mod.utils.math;
 import net.minecraft.util.math.MathHelper;
 
 import java.nio.FloatBuffer;
-import java.util.Vector;
 
-public class Quaternion extends Vector {
+public class Quaternion {
     private static final long serialVersionUID = 1L;
     public float x;
     public float y;
@@ -104,11 +103,11 @@ public class Quaternion extends Vector {
         return dest;
     }
 
-    public Vector negate() {
+    public Quaternion negate() {
         return negate(this, this);
     }
 
-    public Vector load(FloatBuffer buf) {
+    public Quaternion load(FloatBuffer buf) {
         this.x = buf.get();
         this.y = buf.get();
         this.z = buf.get();
@@ -116,7 +115,7 @@ public class Quaternion extends Vector {
         return this;
     }
 
-    public Vector scale(float scale) {
+    public Quaternion scale(float scale) {
         return scale(scale, this, this);
     }
 

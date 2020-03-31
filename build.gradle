@@ -43,6 +43,7 @@ configurations {
 }
 
 dependencies {
+
     shade files('libs/ffmpeg.jar')
     shade files('libs/ffmpeg-windows-x86_64.jar')
     shade files('libs/javacpp.jar')

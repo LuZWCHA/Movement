@@ -363,8 +363,8 @@ public class Matrix4f implements Serializable {
             dest = new Matrix4f();
         }
 
-        float c = (float) MathHelper.cos(angle);
-        float s = (float)MathHelper.sin(angle);
+        float c = MathHelper.cos(angle);
+        float s = MathHelper.sin(angle);
         float oneminusc = 1.0F - c;
         float xy = axis.x * axis.y;
         float yz = axis.y * axis.z;

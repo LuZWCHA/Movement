@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class ContainerModule extends AbstractContainer {
 
@@ -17,7 +18,7 @@ public class ContainerModule extends AbstractContainer {
     public ContainerModule(InventoryPlayer playerInventory, TileEntityCoreModule tileEntityModule){
         super();
         this.tileEntityModule = tileEntityModule;
-        dynamicInventory = tileEntityModule.getDynInventory();
+        holder = tileEntityModule;
 
         slot = new PrefabOnlySlot(playerInventory.player,tileEntityModule,
                 0,14,57);
@@ -88,4 +89,8 @@ public class ContainerModule extends AbstractContainer {
         return itemstack;
     }
 
+    @Override
+    protected void syncDynInventory(String id, NBTTagCompound nbtTagCompound) {
+        tileEntityModule.readFromNBT(nbtTagCompound);
+    }
 }

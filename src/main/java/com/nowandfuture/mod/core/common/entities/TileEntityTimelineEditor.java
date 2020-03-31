@@ -4,7 +4,7 @@ import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.gui.ContainerAnmEditor;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.NormalPrefab;
+import com.nowandfuture.mod.core.prefab.ModuleUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
@@ -63,15 +63,17 @@ public class TileEntityTimelineEditor extends TileEntityModule {
     protected void slotChanged(int index, ItemStack stack) {
         if(index == 0) {
             if(stack.isEmpty() || stack.getTagCompound() == null){
-                setEmptyPrefab();
+                ModuleUtils.removePrefab(this);
             }else{
                 if(!getPrefab().isLocalWorldInit()) {
-                    NormalPrefab prefab = new NormalPrefab();
-                    NBTTagCompound tagCompound = stack.getTagCompound();
-                    prefab.readFromNBT(tagCompound, getWorld());
-                    setPrefab(prefab);
-                    enable();
+//                    NormalPrefab prefab = new NormalPrefab();
+//                    NBTTagCompound tagCompound = stack.getTagCompound();
+//                    prefab.readFromNBT(tagCompound, getWorld());
+//                    setPrefab(prefab);
+//                    enable();
                 }
+                ModuleUtils.setPrefab(world,this,stack);
+
             }
         }
 

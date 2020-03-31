@@ -5,10 +5,10 @@ import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityConstructor;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
-import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.EditorView;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
 import com.nowandfuture.mod.core.common.gui.slots.PrefabOnlySlot;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
@@ -24,36 +24,37 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.util.Color;
 
+import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class GuiConstructor extends AbstractGuiContainer implements IContainerListener{
     public static final int GUI_ID = 0x102;
 
-    private MyButton lockBtn;
-    private MyButton createBtn;
+    private Button lockBtn;
+    private Button createBtn;
 
-    private MyButton resizeBtnXAdd;
-    private MyButton resizeBtnYAdd;
-    private MyButton resizeBtnZAdd;
-    private MyButton resizeBtnXSub;
-    private MyButton resizeBtnYSub;
-    private MyButton resizeBtnZSub;
+    private Button resizeBtnXAdd;
+    private Button resizeBtnYAdd;
+    private Button resizeBtnZAdd;
+    private Button resizeBtnXSub;
+    private Button resizeBtnYSub;
+    private Button resizeBtnZSub;
 
-    private MyLabel xLengthLab;
-    private MyLabel yLengthLab;
-    private MyLabel zLengthLab;
+    private TextView xLengthTv;
+    private TextView yLengthTv;
+    private TextView zLengthTv;
 
-    private MyTextField nameTexField;
+    private EditorView nameEv;
 
     private static final ResourceLocation CONSTRUCTOR_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/prefab_constructor.png");
 
-    private final InventoryPlayer playerInventory;
     private final TileEntityConstructor tileConstructor;
 
     public GuiConstructor(InventoryPlayer playerInv, TileEntityConstructor tileConstructor) {
         super(new ContainerConstructor(playerInv,tileConstructor));
-        this.playerInventory = playerInv;
         this.tileConstructor = tileConstructor;
 
         xSize = 285;
@@ -69,33 +70,65 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
     @Override
     public void onLoad() {
 
-        lockBtn = createMyButton(116, 52,48,24, R.name(R.id.text_constructor_btn_lock_lock_id));
-        createBtn = createMyButton(172, 52,48,24, R.name(R.id.text_constructor_btn_create_create_id));
-        nameTexField = createMyTextField(156, 15, 95, 12,"");
+        lockBtn = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(116).setY(56).setWidth(48).setHeight(16).build();
+        lockBtn.setText(R.name(R.id.text_constructor_btn_lock_lock_id));
+        createBtn = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(172).setY(56).setWidth(48).setHeight(16).build();
+        createBtn.setText(R.name(R.id.text_constructor_btn_create_create_id));
 
-        resizeBtnXAdd = createMyButton(10,56,20,20,R.name(R.id.text_constructor_btn_resizex_add_id));
-        resizeBtnXSub = createMyButton(80,56,20,20,R.name(R.id.text_constructor_btn_resizex_sub_id));
-        resizeBtnYAdd = createMyButton(10,82,20,20,R.name(R.id.text_constructor_btn_resizey_add_id));
-        resizeBtnYSub = createMyButton(80,82,20,20,R.name(R.id.text_constructor_btn_resizey_sub_id));
-        resizeBtnZAdd = createMyButton(10,108,20,20,R.name(R.id.text_constructor_btn_resizez_add_id));
-        resizeBtnZSub = createMyButton(80,108,20,20,R.name(R.id.text_constructor_btn_resizez_sub_id));
+        nameEv = GuiBuilder.wrap(new EditorView(getRootView()))
+                .setX(156).setY(15).setWidth(95).setHeight(12).build();
+        nameEv.setText(Strings.EMPTY);
 
-        xLengthLab = createMyLabel(40,56,30,20,-1);
-        yLengthLab = createMyLabel(40,82,30,20,-1);
-        zLengthLab = createMyLabel(40,108,30,20,-1);
+        resizeBtnXAdd = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(10).setY(56).setWidth(20).setHeight(16).build();
+        resizeBtnXAdd.setText(R.name(R.id.text_constructor_btn_resizex_add_id));
+        resizeBtnXSub = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(80).setY(56).setWidth(20).setHeight(16).build();
+        resizeBtnXSub.setText(R.name(R.id.text_constructor_btn_resizex_sub_id));
+        resizeBtnYAdd = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(10).setY(82).setWidth(20).setHeight(16).build();
+        resizeBtnYAdd.setText(R.name(R.id.text_constructor_btn_resizey_add_id));
+        resizeBtnYSub = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(80).setY(82).setWidth(20).setHeight(16).build();
+        resizeBtnYSub.setText(R.name(R.id.text_constructor_btn_resizey_sub_id));
+        resizeBtnZAdd = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(10).setY(108).setWidth(20).setHeight(16).build();
+        resizeBtnZAdd.setText(R.name(R.id.text_constructor_btn_resizez_add_id));
+        resizeBtnZSub = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(80).setY(108).setWidth(20).setHeight(16).build();
+        resizeBtnZSub.setText(R.name(R.id.text_constructor_btn_resizez_sub_id));
 
-        xLengthLab.enableBackDraw(false);
-        yLengthLab.enableBackDraw(false);
-        zLengthLab.enableBackDraw(false);
+        xLengthTv = GuiBuilder.wrap(new TextView(getRootView()))
+                .setX(40).setY(56).setWidth(30).setHeight(16).build();
+        yLengthTv = GuiBuilder.wrap(new TextView(getRootView()))
+                .setX(40).setY(82).setWidth(30).setHeight(16).build();
+        zLengthTv = GuiBuilder.wrap(new TextView(getRootView()))
+                .setX(40).setY(108).setWidth(30).setHeight(16).build();
 
-        nameTexField.setTextColor(16777215);
-        nameTexField.setDisabledTextColour(-1);
-        nameTexField.setEnableBackgroundDrawing(false);
-        nameTexField.setMaxStringLength(40);
+        nameEv.setTextColor(new Color(255,255,255));
+        nameEv.setDisabledTextColor(new Color(128,128,128));
+        nameEv.setDrawDecoration(false);
+        nameEv.setMaxStringLength(40);
 
-        xLengthLab.setCentered(true);
-        yLengthLab.setCentered(true);
-        zLengthLab.setCentered(true);
+        nameEv.setOnLoseFocus(new Consumer<EditorView>() {
+            @Override
+            public void accept(EditorView editorView) {
+                if(!tileConstructor.isEmpty() &&
+                        !tileConstructor.getPrefabName()
+                                .equals(nameEv.getText())) {
+                    LMessage.StringDataSyncMessage message =
+                            new LMessage.StringDataSyncMessage(LMessage.StringDataSyncMessage.GUI_CONSTRUCT_RENAME, nameEv.getText());
+                    message.setPos(tileConstructor.getPos());
+                    NetworkHandler.INSTANCE.sendMessageToServer(message);
+                }
+            }
+        });
+
+        xLengthTv.setCentered(true);
+        yLengthTv.setCentered(true);
+        zLengthTv.setCentered(true);
 
         addGuiCompoundsRelative(
                 lockBtn,
@@ -106,16 +139,15 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
                 resizeBtnXSub,
                 resizeBtnYSub,
                 resizeBtnZSub,
-                xLengthLab,
-                yLengthLab,
-                zLengthLab,
-                nameTexField
+                xLengthTv,
+                yLengthTv,
+                zLengthTv,
+                nameEv
         );
 
-        bind(createBtn, new ActionClick() {
+        createBtn.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
-                //construct at client
+            public void onClicked(View v) {
                 if(tileConstructor.isLock()) {
                     if(Minecraft.getMinecraft().player.getName().equals(tileConstructor.getLockUserName()))
                         tileConstructor.constructTest(
@@ -131,22 +163,22 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        bind(lockBtn,new ActionClick() {
+        lockBtn.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 tileConstructor.askForConstruct();
             }
         });
 
-        bind(resizeBtnXAdd,new ActionClick() {
+        resizeBtnXAdd.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getXLength() + 1;
                 sendData(data);
             }
 
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getXLength() + 16;
                 sendData(data);
             }
@@ -157,15 +189,15 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        bind(resizeBtnYAdd, new ActionClick() {
+        resizeBtnYAdd.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getYLength() + 1;
                 sendData(data);
             }
 
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getYLength() + 16;
                 sendData(data);
             }
@@ -176,14 +208,15 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        bind(resizeBtnZAdd, new ActionClick() {
+        resizeBtnZAdd.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getZLength() + 1;
                 sendData(data);
             }
+
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getZLength() + 16;
                 sendData(data);
             }
@@ -192,22 +225,20 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
                 data |= 0x00020000;
                 sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
-
         });
 
-        bind(resizeBtnXSub, new ActionClick() {
+        resizeBtnXSub.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getXLength() - 1;
                 if(data <= 0) return;
-
                 sendData(data);
             }
+
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getXLength() - 16;
                 if(data <= 0) return;
-
                 sendData(data);
             }
 
@@ -215,23 +246,20 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
                 data |= 0x00040000;
                 sendIntMessageToServer(LMessage.IntDataSyncMessage.RESIZE_FLAG,data);
             }
-
         });
 
-        bind(resizeBtnYSub, new ActionClick() {
+        resizeBtnYSub.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getYLength() - 1;
                 if(data <= 0) return;
-
                 sendData(data);
             }
 
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getYLength() - 16;
                 if(data <= 0) return;
-
                 sendData(data);
             }
 
@@ -241,20 +269,18 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
             }
         });
 
-        bind(resizeBtnZSub, new ActionClick() {
+        resizeBtnZSub.setActionListener(new View.ActionListener() {
             @Override
-            public void clicked(MyGui gui, int button) {
+            public void onClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getZLength() - 1;
                 if(data <= 0) return;
-
                 sendData(data);
             }
 
             @Override
-            public void longClick(MyGui gui,int state, long lastTime) {
+            public void onLongClicked(View v) {
                 int data = (short) tileConstructor.getAABBSelectArea().getZLength() - 16;
                 if(data <= 0) return;
-
                 sendData(data);
             }
 
@@ -281,9 +307,9 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         tileConstructor.setAreaSizeChanged(new IChangeListener.IChangeEvent() {
             @Override
             public void changed() {
-                xLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
-                yLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
-                zLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
+                xLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
+                yLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
+                zLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
             }
         });
 
@@ -300,17 +326,17 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
     private void updateBtn(){
         if(tileConstructor.isLock()){
             if(!mc.player.getName().equals(tileConstructor.getLockUserName())) {
-                lockBtn.enabled = false;
-                createBtn.enabled = false;
+                lockBtn.setEnable(false);
+                createBtn.setEnable(false);
             }else{
-                lockBtn.enabled = !tileConstructor.isConstructing();
-                lockBtn.displayString = R.name(R.id.text_constructor_btn_lock_unlock_id);;
-                createBtn.enabled = !tileConstructor.isEmpty() && !tileConstructor.isConstructing();
+                lockBtn.setEnable(!tileConstructor.isConstructing());
+                lockBtn.setText(R.name(R.id.text_constructor_btn_lock_unlock_id));
+                createBtn.setEnable(!tileConstructor.isEmpty() && !tileConstructor.isConstructing());
             }
         }else{
-            lockBtn.displayString = R.name(R.id.text_constructor_btn_lock_lock_id);
-            lockBtn.enabled = true;
-            createBtn.enabled = false;
+            lockBtn.setText(R.name(R.id.text_constructor_btn_lock_lock_id));
+            lockBtn.setEnable(true);
+            createBtn.setEnable(false);
         }
     }
 
@@ -354,13 +380,11 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         tileConstructor.setSlotChanged(null);
 
         if(!tileConstructor.isEmpty()&&
-                !tileConstructor.getPrefabName().equals(nameTexField.getText()))                 {
-            NetworkHandler.INSTANCE.sendMessageToServer(
-                    new LMessage.RenamePrefabMessage(
-                            tileConstructor.getPos(),
-                            nameTexField.getText())
-
-            );
+                !tileConstructor.getPrefabName().equals(nameEv.getText()))
+        {
+            LMessage.StringDataSyncMessage message = new LMessage.StringDataSyncMessage(LMessage.StringDataSyncMessage.GUI_CONSTRUCT_RENAME, nameEv.getText());
+            message.setPos(tileConstructor.getPos());
+            NetworkHandler.INSTANCE.sendMessageToServer(message);
         }
     }
 
@@ -369,45 +393,24 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
         return null;
     }
 
-    @Override
-    protected void childLoseFocus(MyGui gui) {
-
-        if(gui == nameTexField){
-            nameTexField.setFocused(false);
-            if(!tileConstructor.isEmpty() &&
-                    !tileConstructor.getPrefabName()
-                            .equals(nameTexField.getText())) {
-
-                NetworkHandler.INSTANCE.sendMessageToServer(
-                        new LMessage.RenamePrefabMessage(
-                                tileConstructor.getPos(),
-                                nameTexField.getText())
-                );
-            }
-        }
-
-    }
-
-
     private void slotChanged(){
-
         Slot prefabSlot = inventorySlots.getSlot(0);
         if(prefabSlot instanceof PrefabOnlySlot){
             if(!prefabSlot.getStack().isEmpty()) {
                 String s = PrefabItem.getPrefabName(prefabSlot.getStack());
-                nameTexField.setEnabled(true);
-                nameTexField.setVisible(true);
-                nameTexField.setText(Strings.isNullOrEmpty(s) ? "NoName" : s);
+                nameEv.setEnabled(true);
+                nameEv.setVisible(true);
+                nameEv.setText(Strings.isNullOrEmpty(s) ?
+                        R.name(R.id.text_constructor_editview_rename_hint_id) : s);
 
             } else {
-                nameTexField.setText("");
-                nameTexField.setVisible(false);
-                nameTexField.setEnabled(false);
+                nameEv.setText(Strings.EMPTY);
+                nameEv.setVisible(false);
+                nameEv.setEnabled(false);
             }
 
             updateBtn();
         }
-
     }
 
     @Override
@@ -416,19 +419,20 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
     }
 
     @Override
-    public void sendAllContents(Container containerToSend, NonNullList<ItemStack> itemsList) {
+    public void sendAllContents(@Nonnull Container containerToSend, @Nonnull NonNullList<ItemStack> itemsList) {
+
         if(!tileConstructor.isEmpty()) {
             String name = tileConstructor.getPrefabName();
-            nameTexField.setText(Strings.isNullOrEmpty(name) ? "NoName" : name);
+            nameEv.setText(Strings.isNullOrEmpty(name) ? "NoName" : name);
         }else{
-            nameTexField.setText("");
-            nameTexField.setVisible(false);
-            nameTexField.setEnabled(false);
+            nameEv.setText(Strings.EMPTY);
+            nameEv.setVisible(false);
+            nameEv.setEnabled(false);
         }
 
-        xLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
-        yLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
-        zLengthLab.setFirst(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
+        xLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getXLength()));
+        yLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getYLength()));
+        zLengthTv.setText(String.valueOf(tileConstructor.getAABBSelectArea().getZLength()));
 
         updateBtn();
     }

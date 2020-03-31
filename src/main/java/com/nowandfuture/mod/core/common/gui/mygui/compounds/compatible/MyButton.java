@@ -1,7 +1,9 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.config.GuiButtonExt;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
@@ -10,6 +12,7 @@ import java.io.IOException;
 public class MyButton extends GuiButtonExt implements MyGui {
 
     private boolean asView;
+    private ResourceLocation location;
 
     public MyButton(int id, int x, int y, String displayString) {
         super(id, x, y, displayString);
@@ -112,8 +115,20 @@ public class MyButton extends GuiButtonExt implements MyGui {
             if (strWidth > width - 6 && strWidth > ellipsisWidth)
                 buttonText = mc.fontRenderer.trimStringToWidth(buttonText, width - 6 - ellipsisWidth).trim() + "...";
 
+            this.drawForeground();
             this.drawCenteredString(mc.fontRenderer, buttonText, this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
         }
+    }
+
+    private void drawForeground() {
+        if (location != null) {
+            Minecraft.getMinecraft().renderEngine.bindTexture(location);
+            DrawHelper.drawTexturedModalRect(4, 4,this.zLevel, 0, 0, 8, 8,8,8);
+        }
+    }
+
+    public void setImageLocation(ResourceLocation location) {
+        this.location = location;
     }
 
     @Override

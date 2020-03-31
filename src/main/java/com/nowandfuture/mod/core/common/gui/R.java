@@ -9,6 +9,8 @@ public interface R {
         public static final String text_constructor_btn_lock_lock_id = "movement.constructor.lock";
         public static final String text_constructor_btn_lock_unlock_id = "movement.constructor.unlock";
         public static final String text_constructor_btn_create_create_id = "movement.constructor.create";
+        public static final String text_constructor_editview_rename_hint_id = "movement.constructor.rename.hint";
+
         public static final String text_constructor_btn_resizex_add_id = "movement.constructor.x_add";
         public static final String text_constructor_btn_resizex_sub_id = "movement.constructor.x_sub";
         public static final String text_constructor_btn_resizey_add_id = "movement.constructor.y_add";

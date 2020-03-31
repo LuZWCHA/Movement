@@ -39,6 +39,13 @@ public class LightWorld implements IBlockAccess {
         return realWorld.getTileEntity(pos);
     }
 
+
+    /**
+     * @param pos
+     * @param lightValue
+     * @return
+     * @see LightWorld#getBlockState(BlockPos)
+     */
     @Override
     public int getCombinedLight(BlockPos pos, int lightValue) {
         double dis = pos.getDistance(this.pos.getX(),this.pos.getY(),this.pos.getZ());
@@ -52,7 +59,6 @@ public class LightWorld implements IBlockAccess {
 
                     Vector3f transPos = MathHelper.mult(new Vector3f(ap), quaternion);
                     BlockPos newPos = this.pos.add(transPos.x + 0.5 ,transPos.y + 0.5,transPos.z + 0.5);
-                    BlockPos ap1 = newPos.subtract(this.pos);
                     int light = realWorld.getCombinedLight(newPos,lightValue);
 
                     return light;
@@ -69,6 +75,10 @@ public class LightWorld implements IBlockAccess {
 
         double dis = pos.getDistance(this.pos.getX(),this.pos.getY(),this.pos.getZ());
 
+        //because of the light-rerender in the backed consumer(processor)
+        //the light packets around the block,for example,the 3 * 3 * 3 - 1 (=26)blocks around this
+        //block, that will affect the light values(on 6 faces), so to refine the brightness, we have to
+        //get a transformed position based on the BlockPos#pos.
         if(dis <= 1.733 && dis > 0){
             TileEntity tileEntity = realWorld.getTileEntity(this.pos);
             if(tileEntity instanceof TileEntityTransformedBlock){
@@ -79,7 +89,6 @@ public class LightWorld implements IBlockAccess {
 
                     Vector3f transPos = MathHelper.mult(new Vector3f(ap), quaternion);
                     BlockPos newPos = this.pos.add(transPos.x + 0.5 ,transPos.y + 0.5,transPos.z + 0.5);
-                    BlockPos ap1 = newPos.subtract(this.pos);
                     return realWorld.getBlockState(newPos);
                 }
             }

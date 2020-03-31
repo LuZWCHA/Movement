@@ -5,20 +5,23 @@ import com.google.common.collect.Lists;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.gui.custom.PairSlotsListVew;
+import com.nowandfuture.mod.core.common.gui.custom.PositionEditorView;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.Dialog;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import org.lwjgl.util.Color;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -39,6 +42,8 @@ public class GuiModule extends AbstractGuiContainer {
     private Button hideBlockBtn;
     private Button useClientCollisionBtn;//not finished
 
+    private TextView title;
+    private Button backBtn;
     private PairSlotsListVew pairSlotsListVew;
 
     public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityCoreModule tileEntityModule) {
@@ -112,28 +117,64 @@ public class GuiModule extends AbstractGuiContainer {
         removeBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
-                DynamicInventory dynamicInventory = tileEntityCoreModule.getDynInventory();
-                if(dynamicInventory.getSizeInventory() > 1) {
-                    long id = dynamicInventory
-                            .getEntryByIndex(dynamicInventory.getSizeInventory() - 1)
-                            .getKey();
-
-                    dynamicInventory.removeSlot(id,false);
-
-                    id = dynamicInventory
-                            .getEntryByIndex(dynamicInventory.getSizeInventory() - 1)
-                            .getKey();
-
-                    dynamicInventory.removeSlot(id,true);
-                }
+                LMessage.VoidMessage message = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_MODULE_REMOVE);
+                message.setPos(tileEntityCoreModule.getPos());
+                NetworkHandler.INSTANCE.sendMessageToServer(message);
             }
         });
 
         addBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
-                tileEntityCoreModule.getDynInventory().createSlot(ItemStack.EMPTY, 0,false);
-                tileEntityCoreModule.getDynInventory().createSlot(ItemStack.EMPTY, 1,true);
+
+                FrameLayout frameLayout = new FrameLayout(getRootView());
+                frameLayout.setBackgroundColor(new Color(255,255,255,255));
+                frameLayout.setWidth(100);
+                frameLayout.setHeight(80);
+                PositionEditorView positionEditorView = new PositionEditorView(getRootView());
+                positionEditorView.setPos(BlockPos.ORIGIN);
+                positionEditorView.setX(4);
+                positionEditorView.setY(8);
+                positionEditorView.setWidth(100);
+                positionEditorView.setHeight(16);
+
+                Button confirmBtn = new Button(getRootView());
+                confirmBtn.setX(40);
+                confirmBtn.setY(60);
+                confirmBtn.setWidth(26);
+                confirmBtn.setHeight(16);
+
+                Button cancelBtn = new Button(getRootView());
+                cancelBtn.setX(72);
+                cancelBtn.setY(60);
+                cancelBtn.setWidth(26);
+                cancelBtn.setHeight(16);
+
+                frameLayout.addChildren(positionEditorView,cancelBtn,confirmBtn);
+
+                Dialog dialog = getRootView().createDialogBuilder(frameLayout)
+                        .build();
+                dialog.setCenter()
+                        .show();
+
+                cancelBtn.setActionListener(new View.ActionListener() {
+                    @Override
+                    public void onClicked(View v) {
+                        dialog.dispose();
+                    }
+                });
+
+                confirmBtn.setActionListener(new View.ActionListener() {
+                    @Override
+                    public void onClicked(View v) {
+                        LMessage.LongDataMessage message =
+                                new LMessage.LongDataMessage(LMessage.LongDataMessage.GUI_MODULE_ADD,
+                                        positionEditorView.getPos().toLong());
+                        message.setPos(tileEntityCoreModule.getPos());
+                        NetworkHandler.INSTANCE.sendMessageToServer(message);
+                        dialog.dispose();
+                    }
+                });
             }
         });
 
@@ -176,19 +217,45 @@ public class GuiModule extends AbstractGuiContainer {
             setVisible(true,tickLabel,view);
         }
 
+        title = new GuiBuilder<>(new TextView(getRootView()))
+                .setX(getXSize() + 4).setY(4).setWidth(60).setHeight(16).build();
+        title.setText(tileEntityCoreModule.getCurModuleNode().getId());
+
+        backBtn = new GuiBuilder<>(new Button(getRootView()))
+                .setX(getXSize() + 68).setY(4).setWidth(30).setHeight(16).build();
+        backBtn.setText("back");
+        backBtn.setActionListener(new View.ActionListener() {
+            @Override
+            public void onClicked(View v) {
+                LMessage.VoidMessage message = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_LIST_BACK);
+                message.setPos(tileEntityCoreModule.getPos());
+                NetworkHandler.INSTANCE.sendMessageToServer(message);
+                tileEntityCoreModule.pop();
+            }
+        });
+
         pairSlotsListVew = new PairSlotsListVew(getRootView());
         PairSlotsListVew.SlotsAdapter adapter = new PairSlotsListVew.SlotsAdapter();
-        adapter.setInventory(tileEntityCoreModule.getDynInventory());
+        adapter.setCoreModule(tileEntityCoreModule);
         pairSlotsListVew.bind(adapter);
 
         pairSlotsListVew.setX(getXSize() + 4);
-        pairSlotsListVew.setY(4);
+        pairSlotsListVew.setY(4 + 16);
         pairSlotsListVew.setWidth(100);
         pairSlotsListVew.setHeight(120);
+
+//        pairSlotsListVew.setOnItemClick(new MyAbstractList.OnItemClickedListener() {
+//            @Override
+//            public void onItemClicked(MyAbstractList view, int index, int button) {
+//                //do nothing
+//            }
+//        });
 
         updateShowOrHideBtn();
 
         addGuiCompoundsRelative(
+                title,
+                backBtn,
                 addBtn,
                 removeBtn,
                 useClientCollisionBtn,
@@ -263,6 +330,8 @@ public class GuiModule extends AbstractGuiContainer {
 
         updateStartOrStopBtn();
         updateCollisionEnableBtn();
+
+        title.setText(tileEntityCoreModule.getCurModuleNode().getId());
     }
 
     @Override
@@ -288,7 +357,9 @@ public class GuiModule extends AbstractGuiContainer {
     @Override
     protected List<GuiRegion> getExtraRegion() {
         List<GuiRegion> list = Lists.newArrayList();
-        list.add(GuiRegion.of(xSize + 4,ySize + 4,xSize + pairSlotsListVew.getWidth(),ySize + pairSlotsListVew.getHeight()));
+        int left = guiLeft + xSize + 4;
+        int top = guiTop + 4;
+        list.add(GuiRegion.of(left,top,left + 100,top + 120));
         return list;
     }
 

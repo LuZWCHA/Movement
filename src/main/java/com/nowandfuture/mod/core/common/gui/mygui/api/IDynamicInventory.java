@@ -28,6 +28,7 @@ public interface IDynamicInventory extends IInventory {
     void foreach(Consumer<Packet> packetConsumer);
     boolean syncAs(Map<Long,ItemStack> itemStackMap,boolean canBeListened);
     boolean isExistedOf(long id);
+    String getId();
     SlotCreator getCreator();
 
     NBTTagCompound writeToNBT(NBTTagCompound compound);

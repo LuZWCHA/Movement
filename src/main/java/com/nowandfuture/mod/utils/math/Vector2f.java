@@ -2,9 +2,8 @@ package com.nowandfuture.mod.utils.math;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
-import java.util.Vector;
 
-public class Vector2f extends Vector implements Serializable {
+public class Vector2f  implements Serializable {
     private static final long serialVersionUID = 1L;
     public float x;
     public float y;
@@ -36,7 +35,7 @@ public class Vector2f extends Vector implements Serializable {
         return this;
     }
 
-    public Vector negate() {
+    public Vector2f negate() {
         this.x = -this.x;
         this.y = -this.y;
         return this;
@@ -96,19 +95,19 @@ public class Vector2f extends Vector implements Serializable {
         }
     }
 
-    public Vector store(FloatBuffer buf) {
+    public Vector2f store(FloatBuffer buf) {
         buf.put(this.x);
         buf.put(this.y);
         return this;
     }
 
-    public Vector load(FloatBuffer buf) {
+    public Vector2f load(FloatBuffer buf) {
         this.x = buf.get();
         this.y = buf.get();
         return this;
     }
 
-    public Vector scale(float scale) {
+    public Vector2f scale(float scale) {
         this.x *= scale;
         this.y *= scale;
         return this;

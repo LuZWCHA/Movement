@@ -6,11 +6,8 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> {
-
-    private Consumer<Integer> onItemClick;
 
     public SimpleStringList(@Nonnull RootView rootView) {
         super(rootView);
@@ -21,14 +18,8 @@ public class SimpleStringList extends MyAbstractList<MyAbstractList.ViewHolder> 
     }
 
     @Override
-    protected void onItemClicked(int index,int x,int y) {
-        super.onItemClicked(index,x,y);
-        if(onItemClick != null)
-            onItemClick.accept(index);
-    }
-
-    public void setOnItemClick(Consumer<Integer> onItemClick) {
-        this.onItemClick = onItemClick;
+    protected void onItemClicked(int index,int x,int y,int button) {
+        super.onItemClicked(index,x,y,button);
     }
 
     @Override

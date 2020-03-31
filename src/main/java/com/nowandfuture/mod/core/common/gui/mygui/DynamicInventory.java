@@ -61,7 +61,8 @@ public class DynamicInventory implements IDynamicInventory {
 
     public void removeInventoryChangeListener(IInventorySlotChangedListener listener)
     {
-        this.changeListeners.remove(listener);
+        if(changeListeners != null)
+            this.changeListeners.remove(listener);
     }
 
     @Override
@@ -96,6 +97,7 @@ public class DynamicInventory implements IDynamicInventory {
 
             if (!itemstack.isEmpty()) {
                 this.markDirty();
+                this.markDirty3(index,getStackInSlot(index));
             }
 
             return itemstack;
@@ -121,6 +123,10 @@ public class DynamicInventory implements IDynamicInventory {
 
     @Override
     public void setInventorySlotContents(int index,@Nonnull ItemStack stack) {
+        ItemStack itemstack = map.get((long) index);
+        boolean flag = itemstack != null && !stack.isEmpty() && stack.isItemEqual(itemstack) && ItemStack.areItemStackTagsEqual(stack, itemstack);
+        flag |= stack.isEmpty() && itemstack != null && itemstack.isEmpty();
+
         this.map.put((long) index, stack);
 
         if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
@@ -129,6 +135,10 @@ public class DynamicInventory implements IDynamicInventory {
         }
 
         this.markDirty();
+
+        if(!flag && itemstack != null){
+            this.markDirty3(index,stack);
+        }
     }
 
     @Override
@@ -142,6 +152,15 @@ public class DynamicInventory implements IDynamicInventory {
         {
             for (IInventorySlotChangedListener changeListener : this.changeListeners) {
                 changeListener.onInventoryChanged(this);
+            }
+        }
+    }
+
+    public void markDirty3(long id,ItemStack stack) {
+        if (this.changeListeners != null)
+        {
+            for (IInventorySlotChangedListener changeListener : this.changeListeners) {
+                changeListener.onSlotContentChanged(id, stack);
             }
         }
     }
@@ -259,24 +278,22 @@ public class DynamicInventory implements IDynamicInventory {
         createSlot(max + 1,slot,forced);
     }
 
-    public void createSlot(ItemStack stack, int type,boolean forced){
-        long max = 0;
-        for(Long id : map.keySet()){
-            if(id > max){
-                max = id;
-            }
+    public long createSlot(ItemStack stack, int type, boolean forced){
+        long value = 0;
+        while (map.containsKey(value)){
+            value ++;
         }
-        createSlot(max + 1,stack,getCreator(),type,forced);
+        createSlot(value,stack,getCreator(),type,forced);
+        return value;
     }
 
-    public void createSlot(ItemStack stack, SlotCreator creator,int type,boolean forced){
-        long max = 0;
-        for(Long id : map.keySet()){
-            if(id > max){
-                max = id;
-            }
+    public long createSlot(ItemStack stack, SlotCreator creator,int type,boolean forced){
+        long value = 0;
+        while (map.containsKey(value)){
+            value ++;
         }
-        createSlot(max + 1,stack,creator,type,forced);
+        createSlot(value,stack,creator,type,forced);
+        return value;
     }
 
     @Override
@@ -304,6 +321,11 @@ public class DynamicInventory implements IDynamicInventory {
     @Override
     public Map<Long, AbstractContainer.ProxySlot> getSlots() {
         return slots;
+    }
+
+    @Override
+    public String getId() {
+        return null;
     }
 
     @Override
@@ -361,10 +383,21 @@ public class DynamicInventory implements IDynamicInventory {
         IDynamicInventory.loadAllSlots(compound,this,forced);
     }
 
+    @Deprecated
     @SideOnly(Side.CLIENT)
     public void sync(IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap> holder){
         NetworkHandler.INSTANCE.sendMessageToServer(
                 new InventoryCMessage((short) 0,holder.getHolderId(),holder.getDynInventory().writeToNBT(new NBTTagCompound()))
         );
+    }
+
+    public static int getIndexById(IDynamicInventory dynamicInventory,long id){
+        Set<Long> ids = dynamicInventory.getSlots().keySet();
+        int index = 0;
+        for (Long i :
+                ids) {
+            if(id == i) return index;
+        }
+        return -1;
     }
 }

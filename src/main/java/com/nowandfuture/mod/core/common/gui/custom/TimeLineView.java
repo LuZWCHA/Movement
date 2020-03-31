@@ -41,6 +41,7 @@ public class TimeLineView extends View {
 
     public TimeLineView(@Nonnull RootView rootView){
         super(rootView);
+        setScissor(true);
     }
 
     public void init(KeyFrameLine keyFrameLine,AbstractPrefab prefab){
@@ -72,13 +73,13 @@ public class TimeLineView extends View {
     }
 
     private void drawBackground(){
-        Gui.drawRect(0,0,getWidth(),getHeight(),DrawHelper.colorInt(10,10,10,200));
-        drawHorizontalLine(0,getWidth(),0,DrawHelper.colorInt(180,180,180,255));
+        Gui.drawRect(0,0,getWidth(),getHeight(),colorInt(10,10,10,200));
+        drawHorizontalLine(0,getWidth(),0,colorInt(180,180,180,255));
         //draw start
-        drawVerticalLine(linePadding,0,2,DrawHelper.colorInt(180,180,180,255));
-        drawString(getRoot().getFontRenderer(),"0",linePadding,1,DrawHelper.colorInt(180,180,180,180));
+        drawVerticalLine(linePadding,0,2,colorInt(180,180,180,255));
+        drawString(getRoot().getFontRenderer(),"0",linePadding,1,colorInt(180,180,180,180));
 
-        drawVerticalLine(getWidth() - linePadding,0,2,DrawHelper.colorInt(180,180,180,255));
+        drawVerticalLine(getWidth() - linePadding,0,2,colorInt(180,180,180,255));
         String endString = String.valueOf(keyFrameLine.getTotalTick());
 
         int stringWidth = getRoot().getFontRenderer().getStringWidth(endString);
@@ -87,7 +88,7 @@ public class TimeLineView extends View {
 
     private void drawLine(KeyFrame.KeyFrameType type){
         int posY = type.ordinal() * distance + timeLineOffsetY;
-        drawHorizontalLine(0,getWidth(),posY,DrawHelper.colorInt(200,200,200,255));
+        drawHorizontalLine(0,getWidth(),posY,colorInt(200,200,200,255));
     }
 
     public void drawKeyFrame(KeyFrame keyFrame, KeyFrame.KeyFrameType type){
@@ -102,27 +103,27 @@ public class TimeLineView extends View {
 
             DrawHelper.drawRhombus(posX - keyFrameSize, posY - keyFrameSize,
                     posX + keyFrameSize, posY + keyFrameSize,
-                    DrawHelper.colorInt(150, 0, 0, 255));
+                    colorInt(150, 0, 0, 255));
             DrawHelper.drawRhombus(posX - keyFrameSize + 1, posY - keyFrameSize + 1,
                     posX + keyFrameSize - 1, posY + keyFrameSize - 1,
-                    DrawHelper.colorInt(100, 0, 0, 255));
+                    colorInt(100, 0, 0, 255));
 
             if(keyFrame.getBeginTick() == hoverTime){
                 DrawHelper.drawRhombus(posX - keyFrameSize + 1, posY - keyFrameSize + 1,
                         posX + keyFrameSize - 1, posY + keyFrameSize - 1,
-                        DrawHelper.colorInt(255, 0, 0, 200));
+                        colorInt(255, 0, 0, 200));
             }else if(MathHelper.approximate(keyFrame.getBeginTick(),curTick,1)){
                 DrawHelper.drawRhombus(posX - keyFrameSize + 1, posY - keyFrameSize + 1,
                         posX + keyFrameSize - 1, posY + keyFrameSize - 1,
-                        DrawHelper.colorInt(255, 255, 0, 200));
+                        colorInt(255, 255, 0, 200));
             }
         }else {
             DrawHelper.drawRhombus(posX - keyFrameSize, posY - keyFrameSize,
                     posX + keyFrameSize, posY + keyFrameSize,
-                    DrawHelper.colorInt(0, 150, 0, 255));
+                    colorInt(0, 150, 0, 255));
             DrawHelper.drawRhombus(posX - keyFrameSize + 1, posY - keyFrameSize + 1,
                     posX + keyFrameSize - 1, posY + keyFrameSize - 1,
-                    DrawHelper.colorInt(0, 220, 0, 255));
+                    colorInt(0, 220, 0, 255));
         }
     }
 
@@ -133,14 +134,14 @@ public class TimeLineView extends View {
                         MathHelper.approximate(rotationLine,mouseY,keyFrameSize))) {
             final long time = getSelectTime(mouseX);
 
-            drawVerticalLine(mouseX, 1, getHeight(), DrawHelper.colorInt(200, 0, 60, 100));
+            drawVerticalLine(mouseX, 1, getHeight(), colorInt(200, 0, 60, 100));
 
             if (mouseX <= getWidth() - linePadding && mouseX >= linePadding) {
                 String timeString = String.valueOf(time);
                 if(mouseX + getRoot().getFontRenderer().getStringWidth(timeString) > getWidth()){
                     mouseX -= mouseX + getRoot().getFontRenderer().getStringWidth(timeString) - getWidth();
                 }
-                drawString(getRoot().getFontRenderer(), timeString, mouseX, 1, DrawHelper.colorInt(255, 255, 255, 255));
+                drawString(getRoot().getFontRenderer(), timeString, mouseX, 1, colorInt(255, 255, 255, 255));
                 hoverTime = time;
             }else{
                 hoverTime = -1;
@@ -156,7 +157,7 @@ public class TimeLineView extends View {
         //curTick may larger than totalTick because of not same total time before apply the modify
         if(curTick <= total){
             int x = (int) (curTick/(float)total * (getWidth() - 2 * linePadding));
-            drawVerticalLine(x + linePadding, 1, 4, DrawHelper.colorInt(255, 255, 0, 255));
+            drawVerticalLine(x + linePadding, 1, 4, colorInt(255, 255, 0, 255));
         }
     }
 
@@ -182,7 +183,6 @@ public class TimeLineView extends View {
        return (int) (value * width) + start;
     }
 
-    //垃圾代码！
     @Override
     public boolean onClicked(int mouseX, int mouseY, int mouseButton) {
 

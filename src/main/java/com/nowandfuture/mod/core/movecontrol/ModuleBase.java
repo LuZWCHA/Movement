@@ -1,7 +1,6 @@
 package com.nowandfuture.mod.core.movecontrol;
 
 import com.nowandfuture.mod.api.IModule;
-import com.nowandfuture.mod.core.client.renders.CubesRenderer;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import com.nowandfuture.mod.core.transformers.*;
@@ -10,7 +9,6 @@ import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import joptsimple.internal.Strings;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -37,7 +35,7 @@ public class ModuleBase implements IModule {
     private final Object lock = new Object();
     private AbstractPrefab prefab;
     private AbstractTransformNode transformerHead;
-    private Matrix4f transRes;
+    private Matrix4f transMatrix;
 
     private boolean enable;
 
@@ -47,7 +45,7 @@ public class ModuleBase implements IModule {
         super();
         prefab = new NormalPrefab();
         line = new KeyFrameLine();
-        transRes = new Matrix4f();
+        transMatrix = new Matrix4f();
         //all animation only create on client
     }
 
@@ -105,14 +103,13 @@ public class ModuleBase implements IModule {
         return enable && prefab.isReady();
     }
 
-
     @Override
     public BlockPos getModulePos() {
         return prefab.getBasePos();
     }
 
     @Override
-    public void doTransform(double p, Matrix4f matrix4f, BlockPos offset) {
+    public void doTransform(double p, Matrix4f matrix4f) {
         transformPre(p,matrix4f);
         transformPost(p,matrix4f);
     }
@@ -177,10 +174,10 @@ public class ModuleBase implements IModule {
     }
 
     private void updateBox(){
-        transRes.setIdentity();
+        transMatrix.setIdentity();
 
-        transformPre(0,transRes);
-        transformPost(0,transRes);
+        transformPre(0, transMatrix);
+        transformPost(0, transMatrix);
     }
 
     public AxisAlignedBB getMinAABB(){
@@ -199,7 +196,8 @@ public class ModuleBase implements IModule {
         this.world = worldIn;
     };
 
-    public void invalid() {
+    @SideOnly(Side.CLIENT)
+    public void clearGLResource() {
         if(prefab != null && getModuleWorld().isRemote){
             prefab.invalid();
         }
@@ -225,8 +223,8 @@ public class ModuleBase implements IModule {
 
     }
 
-    public Matrix4f getTransRes() {
-        return transRes;
+    public Matrix4f getTransMatrix() {
+        return transMatrix;
     }
 
     public World getModuleWorld(){

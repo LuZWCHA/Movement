@@ -1,18 +1,20 @@
 package com.nowandfuture.mod.network.message;
 
 import com.nowandfuture.mod.core.common.entities.*;
+import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.prefab.ModuleNodeMap;
 import com.nowandfuture.mod.core.transformers.TimeInterpolation;
-import com.nowandfuture.mod.core.transformers.animation.TimeLine;
+import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import com.nowandfuture.mod.network.NetworkHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.ByteBufUtil;
 import joptsimple.internal.Strings;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -21,10 +23,12 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Stack;
 
-import static com.nowandfuture.mod.utils.math.MathHelper.*;
+import static com.nowandfuture.mod.utils.math.MathHelper.getIntLowBits;
 
 public abstract class LMessage implements IMessage {
     private int x,y,z;
@@ -99,9 +103,10 @@ public abstract class LMessage implements IMessage {
     public static class NBTMessage extends LMessage implements IMessageHandler<NBTMessage,IMessage>{
         public static final int TAG = 6;
 
-        public static final short GUI_APPLY_TIMELINE_FLAG = 0x0000;
-        public static final short TRANSFORMED_BLOCK_FLAG = 0x0001;
-        public static final short GUI_CHANGE_INVENTORY = 0x0002;
+        public static final short GUI_APPLY_TIMELINE_FLAG = 0x00;
+        public static final short TRANSFORMED_BLOCK_FLAG = 0x01;
+        public static final short GUI_CHANGE_INVENTORY = 0x02;
+        public static final short GUI_REMOVE_NODE = 0x03;
 
 
         public NBTTagCompound nbt;
@@ -182,7 +187,17 @@ public abstract class LMessage implements IMessage {
                                     }
                                 }
                                 break;
-
+                            case GUI_REMOVE_NODE:
+                                if(tileEntity instanceof TileEntityCoreModule){
+                                    NBTTagCompound nbtTagCompound = message.nbt;
+                                    if(nbtTagCompound != null) {
+                                        ((TileEntityCoreModule) tileEntity).handleRemoveNodeTag(nbtTagCompound);
+                                        NetworkHandler.syncToTrackingClients(ctx, tileEntity,
+                                                tileEntity.getUpdatePacket()
+                                        );
+                                    }
+                                }
+                                break;
                         }
                     }
                 }
@@ -195,12 +210,15 @@ public abstract class LMessage implements IMessage {
     public static class VoidMessage extends LMessage implements IMessageHandler<VoidMessage,IMessage>{
         public static final int TAG = 5;
 
-        public static final short GUI_RESTART_FLAG = 0x0000;
-        public static final short GUI_EXPORT_TIMELINE_FLAG = 0x0001;
-        public static final short GUI_START_FLAG = 0x0002;
-        public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x0003;
-        public static final short GUI_ENABLE_COLLISION_FLAG = 0x0004;
-        public static final short GUI_VIDEO_PLAYER_STATE_FLAG = 0x0005;
+        public static final short GUI_RESTART_FLAG = 0x00;
+        public static final short GUI_EXPORT_TIMELINE_FLAG = 0x01;
+        public static final short GUI_START_FLAG = 0x02;
+        public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x03;
+        public static final short GUI_ENABLE_COLLISION_FLAG = 0x04;
+        public static final short GUI_VIDEO_PLAYER_STATE_FLAG = 0x05;
+
+        public static final short GUI_MODULE_REMOVE = 0x07;
+        public static final short GUI_LIST_BACK = 0x08;
 
         public VoidMessage(){
             setTag(TAG);
@@ -231,19 +249,19 @@ public abstract class LMessage implements IMessage {
             player.getServerWorld().addScheduledTask(new Runnable() {
                 @Override
                 public void run() {
-                    if(tileEntity != null){
-                        switch (message.flag){
+                    if(tileEntity != null) {
+                        switch (message.flag) {
                             case GUI_RESTART_FLAG:
-                                if(tileEntity instanceof TileEntityModule){
+                                if (tileEntity instanceof TileEntityModule) {
 
-                                    if(!((TileEntityModule) tileEntity).getLine().isEnable()) {
+                                    if (!((TileEntityModule) tileEntity).getLine().isEnable()) {
                                         ((TileEntityModule) tileEntity).getLine().restart();
-                                    }else{
+                                    } else {
                                         ((TileEntityModule) tileEntity).getLine().stop();
                                     }
                                     ((TileEntityModule) tileEntity).enable();
 
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity,
                                             ((TileEntityModule) tileEntity).getTimelineUpdatePacket(
                                                     ((TileEntityModule) tileEntity).getLine().getTick(),
                                                     ((TileEntityModule) tileEntity).getLine().isEnable()
@@ -252,31 +270,31 @@ public abstract class LMessage implements IMessage {
                                 }
                                 break;
                             case GUI_EXPORT_TIMELINE_FLAG:
-                                if(tileEntity instanceof TileEntityTimelineEditor){
-                                    boolean empty =((TileEntityTimelineEditor) tileEntity).getStackInSlot(1).isEmpty();
-                                    NBTTagCompound compound = ((TileEntityTimelineEditor)tileEntity).getLine()
+                                if (tileEntity instanceof TileEntityTimelineEditor) {
+                                    boolean empty = ((TileEntityTimelineEditor) tileEntity).getStackInSlot(1).isEmpty();
+                                    NBTTagCompound compound = ((TileEntityTimelineEditor) tileEntity).getLine()
                                             .serializeNBT(new NBTTagCompound());
-                                    if(compound != null && !empty){
+                                    if (compound != null && !empty) {
 
                                         ((TileEntityTimelineEditor) tileEntity)
                                                 .getStackInSlot(1)
                                                 .setTagCompound(compound);
 
-                                        NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+                                        NetworkHandler.syncToTrackingClients(ctx, tileEntity);
                                     }
                                 }
                                 break;
                             case GUI_START_FLAG:
-                                if(tileEntity instanceof TileEntityModule){
+                                if (tileEntity instanceof TileEntityModule) {
 
-                                    if(!((TileEntityModule) tileEntity).getLine().isEnable()) {
+                                    if (!((TileEntityModule) tileEntity).getLine().isEnable()) {
                                         ((TileEntityModule) tileEntity).getLine().start();
-                                    }else{
+                                    } else {
                                         ((TileEntityModule) tileEntity).getLine().stop();
                                     }
                                     ((TileEntityModule) tileEntity).enable();
 
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity,
                                             ((TileEntityModule) tileEntity).getTimelineUpdatePacket(
                                                     ((TileEntityModule) tileEntity).getLine().getTick(),
                                                     ((TileEntityModule) tileEntity).getLine().isEnable()
@@ -285,40 +303,53 @@ public abstract class LMessage implements IMessage {
                                 }
                                 break;
                             case GUI_SHOW_OR_HIDE_BLOCK_FLAG:
-                                if(tileEntity instanceof TileEntityCoreModule){
+                                if (tileEntity instanceof TileEntityCoreModule) {
 
-                                    if(((TileEntityCoreModule) tileEntity).isShowBlock()) {
+                                    if (((TileEntityCoreModule) tileEntity).isShowBlock()) {
                                         ((TileEntityCoreModule) tileEntity).setShowBlock(false);
-                                    }else{
+                                    } else {
                                         ((TileEntityCoreModule) tileEntity).setShowBlock(true);
                                     }
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity,
                                             ((TileEntityCoreModule) tileEntity).getShowBlockPacket()
                                     );
                                 }
                                 break;
                             case GUI_ENABLE_COLLISION_FLAG:
-                                if(tileEntity instanceof TileEntityCoreModule){
+                                if (tileEntity instanceof TileEntityCoreModule) {
 
-                                    if(((TileEntityCoreModule) tileEntity).isEnableCollision()) {
+                                    if (((TileEntityCoreModule) tileEntity).isEnableCollision()) {
                                         ((TileEntityCoreModule) tileEntity).setEnableCollision(false);
-                                    }else{
+                                    } else {
                                         ((TileEntityCoreModule) tileEntity).setEnableCollision(true);
                                     }
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity,
                                             ((TileEntityCoreModule) tileEntity).getCollisionEnablePacket()
                                     );
                                 }
                                 break;
                             case GUI_VIDEO_PLAYER_STATE_FLAG:
-                                if(tileEntity instanceof TileEntitySimplePlayer){
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,
-                                            tileEntity.getUpdatePacket()
-                                    );
+                                if (tileEntity instanceof TileEntitySimplePlayer) {
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity);
+                                }
+                                break;
+                            case GUI_MODULE_REMOVE:
+                                if (tileEntity instanceof TileEntityCoreModule) {
+                                    ModuleNodeMap map = ((TileEntityCoreModule) tileEntity).getCurModuleNode().getModuleMap();
+
+                                    ((TileEntityCoreModule) tileEntity).removeModuleNode(map.size() - 1);
+
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity);
+                                }
+                                break;
+                            case GUI_LIST_BACK:
+                                if (tileEntity instanceof TileEntityCoreModule) {
+                                    ((TileEntityCoreModule) tileEntity).pop();
+
+                                    NetworkHandler.syncToTrackingClients(ctx, tileEntity);
                                 }
                                 break;
 
-
                         }
                     }
                 }
@@ -327,80 +358,6 @@ public abstract class LMessage implements IMessage {
             return null;
         }
     }
-
-
-    //this method will move to StringDataMessage.java
-    @Deprecated
-    public static class RenamePrefabMessage extends LMessage implements IMessageHandler<RenamePrefabMessage,IMessage>{
-        public static final int TAG = 4;
-        private String name;
-
-        public RenamePrefabMessage(){
-            setTag(TAG);
-        }
-
-        public RenamePrefabMessage(BlockPos pos, String name) {
-            this(pos.getX(), pos.getY(), pos.getZ(),name);
-        }
-
-        public RenamePrefabMessage(int x, int y, int z) {
-            super(x, y, z);
-            setTag(TAG);
-        }
-
-        public RenamePrefabMessage(int x, int y, int z,String name) {
-            this(x, y, z);
-            this.name = name;
-        }
-
-        @Override
-        public void fromBytes(ByteBuf buf) {
-            super.fromBytes(buf);
-            name = Strings.EMPTY;
-            int length = buf.readInt();
-            if(length > 0)
-                name = buf.readCharSequence(length,StandardCharsets.UTF_8).toString();
-        }
-
-        @Override
-        public void toBytes(ByteBuf buf) {
-            super.toBytes(buf);
-            if(name == null) name = Strings.EMPTY;
-            buf.writeInt(name.length());
-            if(name.length() > 0)
-                buf.writeCharSequence(name, StandardCharsets.UTF_8);
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public IMessage onMessage(RenamePrefabMessage message, MessageContext ctx) {
-            BlockPos blockPos = new BlockPos(message.getX(),message.getY(),message.getZ());
-            final EntityPlayerMP player = NetworkHandler.getServerPlayer(ctx);
-            TileEntity tileEntity = NetworkHandler.getServerWorld(ctx).getTileEntity(blockPos);;
-
-            player.getServerWorld().addScheduledTask(new Runnable() {
-                @Override
-                public void run() {
-                    if(tileEntity != null){
-                        if(tileEntity instanceof TileEntityConstructor){
-                            ((TileEntityConstructor) tileEntity).setPrefabName(message.getName());
-                            NetworkHandler.syncToTrackingClients(ctx,tileEntity);
-                        }
-                    }
-                }
-            });
-
-            return null;
-        }
-    }
-
 
     public static class FloatDataSyncMessage extends LMessage implements IMessageHandler<FloatDataSyncMessage,IMessage>{
         public static final int TAG = 3;
@@ -573,19 +530,19 @@ public abstract class LMessage implements IMessage {
                             case GUI_PLAYER_FACING_ROTATE:
                                 if(tileEntity instanceof TileEntitySimplePlayer){
                                     ((TileEntitySimplePlayer) tileEntity).setFacing(EnumFacing.values()[message.data]);
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                 }
                                 break;
                             case GUI_PLAYER_SIZE_X:
                                 if(tileEntity instanceof TileEntitySimplePlayer){
                                     ((TileEntitySimplePlayer) tileEntity).setWidth(message.data);
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                 }
                                 break;
                             case GUI_PLAYER_SIZE_Y:
                                 if(tileEntity instanceof TileEntitySimplePlayer){
                                     ((TileEntitySimplePlayer) tileEntity).setHeight(message.data);
-                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity,tileEntity.getUpdatePacket());
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                 }
                                 break;
 
@@ -604,8 +561,10 @@ public abstract class LMessage implements IMessage {
     public static class StringDataSyncMessage extends LMessage implements IMessageHandler<StringDataSyncMessage,IMessage>{
         public static final int TAG = 3;
 
-        public static final short CONSTRUCT_LOCK_FLAG = 0x0000;
-        public static final short GUI_PLAYER_URL = 0x0001;
+        public static final short CONSTRUCT_LOCK_FLAG = 0x00;
+        public static final short GUI_CONSTRUCT_RENAME = 0x01;
+        public static final short GUI_PLAYER_URL = 0x02;
+        public static final short GUI_CLICK_NODE = 0x03;
 
         public String data;
 
@@ -622,25 +581,20 @@ public abstract class LMessage implements IMessage {
 
         @Override
         public void fromBytes(ByteBuf buf) {
+            PacketBuffer packetBuffer = new PacketBuffer(buf);
             super.fromBytes(buf);
-            this.flag = buf.readShort();
-            int length = buf.readInt();
-            if(length > 0)
-                this.data = buf.readCharSequence(length, StandardCharsets.UTF_8).toString();
-            else
-                this.data = Strings.EMPTY;
+            this.flag = packetBuffer.readShort();
+            this.data = packetBuffer.readString(32767);
         }
 
         @Override
         public void toBytes(ByteBuf buf) {
             super.toBytes(buf);
             buf.writeShort(flag);
-            if(data == null) data = "";
-            int writerIndex = buf.writerIndex();
-            // pre write a length to take on place
-            buf.writeInt(0);
-            int length = ByteBufUtil.writeUtf8(buf, data);
-            buf.setInt(writerIndex,length);
+            if(data == null) data = Strings.EMPTY;
+
+            PacketBuffer buffer = new PacketBuffer(buf);
+            buffer.writeString(data);
         }
 
         public String getData() {
@@ -692,12 +646,30 @@ public abstract class LMessage implements IMessage {
                                     }
                                 }
                                 break;
+                            case GUI_CONSTRUCT_RENAME:
+                                if(tileEntity instanceof TileEntityConstructor){
+                                    ((TileEntityConstructor) tileEntity).setPrefabName(message.getData());
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+                                }
+                                break;
                             case GUI_PLAYER_URL:
                                 if (tileEntity instanceof TileEntitySimplePlayer) {
                                     String url = message.data;
                                     ((TileEntitySimplePlayer) tileEntity).setUrl(url);
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                 }
+                                break;
+                            case GUI_CLICK_NODE:
+                                if(tileEntity instanceof TileEntityCoreModule){
+                                    String path = message.data;
+                                    Stack<ModuleNode> stack = new Stack<>();
+                                    boolean flag = ((TileEntityCoreModule) tileEntity).updateStackByPathString(path,stack);
+                                    if(flag){
+                                        ((TileEntityCoreModule) tileEntity).setNodeStack(stack);
+                                    }
+                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+                                }
+                                break;
 
                         }
 
@@ -715,7 +687,9 @@ public abstract class LMessage implements IMessage {
     public static class LongDataMessage extends LMessage implements IMessageHandler<LongDataMessage,IMessage>{
         public static final int TAG = 0;
 
-        public static final short GUI_TICK_SLIDE = 0x0000;
+        public static final short GUI_TICK_SLIDE = 0x00;
+        public static final short GUI_MODULE_ADD = 0x01;
+
 
         public long data;
 
@@ -771,6 +745,13 @@ public abstract class LMessage implements IMessage {
                             NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityCoreModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityCoreModule) tileEntity).getLine().isEnable()));
                         }
                         break;
+                    case GUI_MODULE_ADD:
+                        if (tileEntity instanceof TileEntityCoreModule) {
+                            long posLong = message.data;
+                            ((TileEntityCoreModule) tileEntity).createModuleNode(BlockPos.fromLong(posLong));
+                            NetworkHandler.syncToTrackingClients(ctx, tileEntity);
+                        }
+                        break;
                 }
             }
 
@@ -790,7 +771,7 @@ public abstract class LMessage implements IMessage {
         public static final int TAG = 1;
 
         //time line
-        private TimeLine.Mode mode = TimeLine.Mode.STOP;
+        private Timeline.Mode mode = Timeline.Mode.STOP;
         private long totalTick;
         private TimeInterpolation.Type type;
 
@@ -825,11 +806,11 @@ public abstract class LMessage implements IMessage {
 
         }
 
-        public TimeLine.Mode getMode() {
+        public Timeline.Mode getMode() {
             return mode;
         }
 
-        public void setMode(TimeLine.Mode mode) {
+        public void setMode(Timeline.Mode mode) {
             this.mode = mode;
         }
 

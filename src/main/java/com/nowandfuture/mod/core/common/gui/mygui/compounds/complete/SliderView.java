@@ -191,7 +191,12 @@ public class SliderView extends View {
         return false;
     }
 
-    private boolean isInSlider(int mouseX,int mouseY){
+    @Override
+    protected boolean interceptClickAction(int mouseX, int mouseY, int button) {
+        return false;
+    }
+
+    private boolean isInSlider(int mouseX, int mouseY){
         return mouseX <= sliderX + sliderHalfWidth && mouseX >= sliderX - sliderHalfWidth
                 && mouseY <= sliderY + sliderHalfHeight && mouseY >= sliderY - sliderHalfHeight;
     }

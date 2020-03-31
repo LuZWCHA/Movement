@@ -4,9 +4,8 @@ import net.minecraft.util.math.BlockPos;
 
 import java.io.Serializable;
 import java.nio.FloatBuffer;
-import java.util.Vector;
 
-public class Vector3f extends Vector implements Serializable {
+public class Vector3f implements Serializable {
     private static final long serialVersionUID = 1L;
     public float x;
     public float y;

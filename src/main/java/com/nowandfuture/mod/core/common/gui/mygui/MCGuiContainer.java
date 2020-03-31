@@ -1,6 +1,5 @@
 package com.nowandfuture.mod.core.common.gui.mygui;
 
-import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -14,13 +13,11 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
-import java.util.Set;
 
 public class MCGuiContainer extends GuiContainer {
 
@@ -36,6 +33,7 @@ public class MCGuiContainer extends GuiContainer {
 //    protected int guiLeft;
 //    /** Starting Y position for the Gui. Inconsistent use for Gui backgrounds. */
 //    protected int guiTop;
+    private AbstractContainer.ProxySlot hoveredExtSlot;
     /** holds the slot currently hovered */
     private Slot hoveredSlot;
     /** Used when touchscreen is enabled. */
@@ -215,6 +213,14 @@ public class MCGuiContainer extends GuiContainer {
         {
             this.renderToolTip(this.hoveredSlot.getStack(), p_191948_1_, p_191948_2_);
         }
+    }
+
+    public void setHoveredSlot(Slot hoveredSlot) {
+        this.hoveredSlot = hoveredSlot;
+    }
+
+    public Slot getHoveredSlot() {
+        return hoveredSlot;
     }
 
     /**
@@ -725,7 +731,7 @@ public class MCGuiContainer extends GuiContainer {
     /**
      * Returns whether the mouse is over the given slot.
      */
-    private boolean isMouseOverSlot(Slot slotIn, int mouseX, int mouseY)
+    protected boolean isMouseOverSlot(Slot slotIn, int mouseX, int mouseY)
     {
         return this.isPointInRegion(slotIn.xPos, slotIn.yPos, 16, 16, mouseX, mouseY);
     }
@@ -742,6 +748,13 @@ public class MCGuiContainer extends GuiContainer {
     public int getGuiTop() { return guiTop; }
     public int getXSize() { return xSize; }
     public int getYSize() { return ySize; }
-
     /* ======================================== FORGE END   =====================================*/
+
+    public AbstractContainer.ProxySlot getHoveredExtSlot() {
+        return hoveredExtSlot;
+    }
+
+    public void setHoveredExtSlot(AbstractContainer.ProxySlot hoveredExtSlot) {
+        this.hoveredExtSlot = hoveredExtSlot;
+    }
 }

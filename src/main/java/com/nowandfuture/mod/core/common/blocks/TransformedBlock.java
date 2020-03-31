@@ -5,6 +5,7 @@ import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.TransformedBlockWorld;
 import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.MapColor;
@@ -253,11 +254,14 @@ public class TransformedBlock extends Block {
     public int getLightOpacity(IBlockState state, IBlockAccess world, BlockPos pos) {
         TileEntityTransformedBlock transformedBlock = (TileEntityTransformedBlock) world.getTileEntity(pos);
         Block block = null;
+        boolean isTransformed = false;
         if(transformedBlock != null && transformedBlock.getLocalBlock().blockState != null){
             block = transformedBlock.getLocalBlock().blockState.getBlock();
+            isTransformed = !transformedBlock.getRotVec().equals(new Vector3f(0,0,0));
         }
         return block == null ? super.getLightOpacity(state,world,pos) :
-                block.getLightOpacity(transformedBlock.getLocalBlock().blockState, world, pos);
+                block.getLightOpacity(transformedBlock.getLocalBlock().blockState, world, pos)
+                + (isTransformed ? 128 : 0);
     }
 
     @Nullable
