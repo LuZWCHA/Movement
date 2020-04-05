@@ -404,8 +404,6 @@ public class DrawHelper {
 
     //-------------------------------------------GUI draw----------------------------------------------
 
-    //draw texture not in a square region,for
-    //vanilla width and height is default 256
     public static void drawTexturedModalRect(int x, int y,float zLevel, int u, int v, int maxU, int maxV, int textureWidth, int textureHeight)
     {
         double f = 1f/(float)(textureWidth);

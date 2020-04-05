@@ -114,7 +114,7 @@ public class Timeline {
                 break;
             case CYCLE_BACK:
                 if(tick + step >= totalTick) {
-                    tick = 2 * totalTick - tick - step;
+                    tick = (totalTick << 1) - tick - step;
                     if(!test)
                         this.step = -step;
                 }else if(tick + step <= 0){
@@ -178,7 +178,26 @@ public class Timeline {
 
     public Timeline setTick(long tick) {
         if(tick < 0) tick = 0;
-        if(tick > totalTick) tick = totalTick;
+        else {
+            switch (mode) {
+                case ONE_TIME:
+                    if (tick > totalTick) tick = totalTick;
+                    break;
+                case ONE_CYCLE:
+                    if (tick > (totalTick << 1)) tick = 0;
+                    else if (tick > totalTick) tick = (totalTick << 1) - tick;
+                    break;
+                case CYCLE_RESTART:
+                    tick = tick % totalTick;
+                    break;
+                case CYCLE_BACK:
+                    tick = tick % (totalTick << 1);
+                    if (tick > totalTick) tick = (totalTick << 1) - tick;
+                case STOP:
+                    break;
+            }
+        }
+
         this.tick = tick;
         return this;
     }
@@ -265,7 +284,4 @@ public class Timeline {
         compound.setInteger(NBT_ANM_LINE_MODE,mode.modeValue);
         return compound;
     }
-
-
-
 }

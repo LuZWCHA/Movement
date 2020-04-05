@@ -5,9 +5,15 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.ISizeChanged;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.utils.DrawHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Color;
 import org.lwjgl.util.vector.Vector3f;
@@ -18,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@SideOnly(Side.CLIENT)
 public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
 
     private int width;
@@ -36,17 +43,57 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     private boolean visible = true;
     private boolean isHover = false;
     private boolean isClickable = true;
-    private int[] pads = new int[4];
+
+    private boolean isLoaded;
+    private AbstractGuiContainer.GuiRegion rectangleRegion;
 
     private AbstractGuiContainer.ActionClick actionClick;
 
-    protected boolean isScissor = false;
+    //this scissor can only do not in nested-mode
+    protected boolean isClipping = false;
+    private static int stencilMaskDepth = -1;
 
     private boolean isReachable = true;
     private boolean isInside;
 
-    protected ViewGroup(){
+    private ViewClipMask viewClipMask;
 
+    public int getPadLeft() {
+        return padLeft;
+    }
+
+    public void setPadLeft(int padLeft) {
+        this.padLeft = padLeft;
+    }
+
+    public int getPadRight() {
+        return padRight;
+    }
+
+    public void setPadRight(int padRight) {
+        this.padRight = padRight;
+    }
+
+    public int getPadTop() {
+        return padTop;
+    }
+
+    public void setPadTop(int padTop) {
+        this.padTop = padTop;
+    }
+
+    public int getPadBottom() {
+        return padBottom;
+    }
+
+    public void setPadBottom(int padBottom) {
+        this.padBottom = padBottom;
+    }
+
+    protected int padLeft,padRight,padTop,padBottom;
+
+    protected ViewGroup(){
+        isLoaded = false;
     }
 
     public ViewGroup(@Nonnull RootView rootView){
@@ -57,6 +104,9 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         this.children = new LinkedList<>();
         this.parent = parent;
         this.root = rootView;
+        this.isLoaded = false;
+        padBottom = padLeft = padRight = padTop = 0;
+        viewClipMask = new RectangleClipMask(this);
     }
 
     public void setReachable(boolean reachable) {
@@ -92,7 +142,6 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     public int getX() {
         return x;
     }
-
 
     /**
      * @return get absolute location at root view
@@ -162,8 +211,19 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     }
 
     public void layout(int parentWidth,int parentHeight){
-        onLayout(parentWidth, parentHeight);
-        onChildrenLayout();
+        if(isLoaded) {
+            onLayout(parentWidth, parentHeight);
+            onChildrenLayout();
+        }
+    }
+
+    public void load(){
+        onLoad();
+        this.isLoaded = true;
+        for (ViewGroup view :
+                children) {
+            view.load();
+        }
     }
 
     /**
@@ -171,10 +231,7 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      * to re-layout the guis,to see {@link ViewGroup#onLayout(int, int)}
      */
     protected void onLoad(){
-        for (ViewGroup view :
-                children) {
-            view.onLoad();
-        }
+
     }
 
     /**
@@ -192,7 +249,6 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
             view.layout(this.width,this.height);
         }
     }
-
 
     /**
      * @param old the old width
@@ -232,16 +288,34 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     public void draw(int mouseX, int mouseY, float partialTicks) {
         isInside = checkMouseInside(mouseX, mouseY, partialTicks);
         drawDebugHoverBackground();
+        if(isClipping) {
 
-        if(isScissor) {
-            final ScaledResolution res = new ScaledResolution(getRoot().context);
-            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
-            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
-            final int ax = getAbsoluteX();
-            final int ay = getAbsoluteY();
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
-                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
+            stencilMaskDepth ++;
+            int mask_layer = (0x01 << stencilMaskDepth);
+            int layer = (mask_layer - 1) | mask_layer;
+
+            int currentFunc = GL11.glGetInteger(GL11.GL_STENCIL_FUNC);
+            int currentOpFailed = GL11.glGetInteger(GL11.GL_STENCIL_FAIL);
+            int currentOpZPass = GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_PASS);
+            int currentOpZFailed = GL11.glGetInteger(GL11.GL_STENCIL_PASS_DEPTH_FAIL);
+            int currentRef = GL11.glGetInteger(GL11.GL_STENCIL_REF);
+            int currentMask = GL11.glGetInteger(GL11.GL_STENCIL_WRITEMASK);
+            int currentValueMask = GL11.glGetInteger(GL11.GL_STENCIL_VALUE_MASK);
+            boolean currentEnable = GL11.glIsEnabled(GL11.GL_STENCIL_TEST);
+
+            GL11.glEnable(GL11.GL_STENCIL_TEST);
+
+            GL11.glStencilMask(mask_layer);
+            GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT);
+
+            GL11.glStencilFunc(GL11.GL_NEVER,mask_layer,mask_layer);
+            GL11.glStencilOp(GL11.GL_REPLACE,GL11.GL_KEEP,GL11.GL_KEEP);
+
+            viewClipMask.drawMask();
+
+            GL11.glStencilFunc(GL11.GL_EQUAL, layer, layer);
+            GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
+
             onDraw(mouseX, mouseY, partialTicks);
 
             int tempX, tempY;
@@ -256,10 +330,18 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
                     GlStateManager.popMatrix();
                 }
             }
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+//            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            stencilMaskDepth --;
+            GL11.glStencilFunc(currentFunc,currentRef,currentValueMask);
+            GL11.glStencilOp(currentOpFailed,currentOpZFailed,currentOpZPass);
+            GL11.glStencilMask(currentMask);
+            if(!currentEnable) {
+                GL11.glDisable(GL11.GL_STENCIL_TEST);
+            }
+
         }else{
             onDraw(mouseX, mouseY, partialTicks);
-
             int tempX, tempY;
             for (ViewGroup view :
                     children) {
@@ -313,38 +395,14 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
      */
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
+        onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
 
-        if(isScissor) {
-            final ScaledResolution res = new ScaledResolution(getRoot().context);
-            final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
-            final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
-            final int ax = getAbsoluteX();
-            final int ay = getAbsoluteY();
-            GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
-                    (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
-
-            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
-
-            for (ViewGroup view :
-                    children) {
-                if(view.isVisible()) {
-                    view.draw2(mouseX, mouseY, partialTicks);
-                }
-            }
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        }else{
-            onDrawAtScreenCoordinate(mouseX, mouseY, partialTicks);
-
-            for (ViewGroup view :
-                    children) {
-                if(view.isVisible()) {
-                    view.draw2(mouseX, mouseY, partialTicks);
-                }
+        for (ViewGroup view :
+                children) {
+            if(view.isVisible()) {
+                view.draw2(mouseX, mouseY, partialTicks);
             }
         }
-
-
     }
 
     /**
@@ -685,10 +743,10 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
     }
 
     /**
-     * @param scissor whether it's children will be scissored by it
+     * @param clipping whether it's children will be scissored by it
      */
-    public void setScissor(boolean scissor) {
-        isScissor = scissor;
+    public void setClipping(boolean clipping) {
+        isClipping = clipping;
     }
 
     public void setEnableIntercepted(boolean value){
@@ -702,6 +760,10 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
                 viewGroup.setEnableIntercepted(value);
             }
         });
+    }
+
+    public void setViewClipMask(@Nonnull ViewClipMask viewClipMask) {
+        this.viewClipMask = viewClipMask;
     }
 
     public static class Builder{
@@ -785,5 +847,68 @@ public abstract class ViewGroup extends Gui implements MyGui, ISizeChanged {
         GlStateManager.rotate(180,1,0,0);
         drawString(getRoot().context.fontRenderer,s,0,(int)0,DrawHelper.colorInt(r,g,b,a));
         GlStateManager.popMatrix();
+    }
+
+    public static void drawCenteredStringWithoutShadow(FontRenderer fontRendererIn, String text, int x, int y, int color)
+    {
+        fontRendererIn.drawString(text, (x - fontRendererIn.getStringWidth(text) / 2), y, color);
+    }
+
+    public static void drawStringWithoutShadow(FontRenderer fontRendererIn, String text, int x, int y, int color)
+    {
+        fontRendererIn.drawString(text, x, y, color);
+    }
+
+    public static void drawTexturedModalRect(int x, int y,float zLevel, int u, int v, int maxU, int maxV, int textureWidth, int textureHeight)
+    {
+        double f = 1f/(float)(textureWidth);
+        double f1 = 1f/(float)(textureHeight);
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        bufferBuilder.pos(x, y + maxV, zLevel).tex(u*f, maxV*f1).endVertex();
+        bufferBuilder.pos(x + maxU, y + maxV, zLevel).tex(maxU*f, maxV*f1).endVertex();
+        bufferBuilder.pos(x + maxU, y, zLevel).tex(maxU*f, v*f1).endVertex();
+        bufferBuilder.pos(x, y, zLevel).tex(u*f, v*f1).endVertex();
+        tessellator.draw();
+    }
+
+    protected void preScissor(){
+        final ScaledResolution res = new ScaledResolution(getRoot().context);
+        final double scaleW = getRoot().context.displayWidth / res.getScaledWidth_double();
+        final double scaleH = getRoot().context.displayHeight / res.getScaledHeight_double();
+        final int ax = getAbsoluteX();
+        final int ay = getAbsoluteY();
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor((int) (ax * scaleW), (int) (getRoot().context.displayHeight - (ay + getHeight()) * scaleH),
+                (int) (getWidth() * scaleW), (int) (getHeight() * scaleH));
+    }
+
+    protected void postScissor(){
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+    }
+
+    public abstract static class ViewClipMask {
+        protected ViewGroup viewGroup;
+
+        public ViewClipMask(ViewGroup viewGroup){
+            this.viewGroup = viewGroup;
+        }
+
+        public abstract void drawMask();
+    }
+
+    public static class RectangleClipMask extends ViewClipMask {
+
+        public RectangleClipMask(ViewGroup viewGroup) {
+            super(viewGroup);
+        }
+
+        @Override
+        public void drawMask() {
+            {
+                drawRect(0,0,viewGroup.getWidth(),viewGroup.getHeight(),viewGroup.colorInt(255,255,255,255));
+            }
+        }
     }
 }

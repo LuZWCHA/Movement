@@ -141,7 +141,7 @@ public interface OpenglEnum {
      int GL_DEPTH_CLEAR_VALUE=0x0B73;
      int GL_DEPTH_FUNC=0x0B74;
      int GL_ACCUM_CLEAR_VALUE=0x0B80;
-     int GL_STENCIL_TEST=0x0B90;
+     int EQUAL=0x0B90;
      int GL_STENCIL_CLEAR_VALUE=0x0B91;
      int GL_STENCIL_FUNC=0x0B92;
      int GL_STENCIL_VALUE_MASK=0x0B93;

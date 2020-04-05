@@ -1,7 +1,14 @@
 buildscript {
     repositories {
         jcenter()
-        maven { url = "http://files.minecraftforge.net/maven" }
+        maven {
+            name = "mirror"
+            url = "http://lss233.littleservice.cn/repositories/minecraft"
+        }
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
         maven {
             name = 'sponge'
             url = 'https://repo.spongepowered.org/maven'

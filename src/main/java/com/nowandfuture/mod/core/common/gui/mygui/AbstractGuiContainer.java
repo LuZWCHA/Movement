@@ -19,6 +19,8 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -557,5 +559,15 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         public static GuiRegion of(MyGui gui){
             return new GuiRegion(gui.getX(),gui.getY(),gui.getX() + gui.getWidth(),gui.getY() + gui.getHeight());
         }
+
+
+    }
+
+    public static String Vec3iString(Vec3i pos){
+        return String.format("%d,%d,%d", pos.getX(),pos.getY(),pos.getZ());
+    }
+
+    public static String Vec3dString(Vec3d vec3d){
+        return String.format("%f,%f,%f", vec3d.x,vec3d.y,vec3d.z);
     }
 }

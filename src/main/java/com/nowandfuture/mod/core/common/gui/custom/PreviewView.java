@@ -181,7 +181,7 @@ public class PreviewView extends View {
     @Override
     protected void onLoad() {
         super.onLoad();
-        setScissor(false);
+        setClipping(false);
         isPressed = false;
         reload();
     }
@@ -215,7 +215,9 @@ public class PreviewView extends View {
     @Override
     protected void onDrawAtScreenCoordinate(int mouseX, int mouseY, float partialTicks) {
         if(checkNotNull()){
+            preScissor();
             drawModule();
+            postScissor();
         }
     }
 
@@ -312,7 +314,6 @@ public class PreviewView extends View {
         GlStateManager.loadIdentity();
         Project.gluPerspective(60, getWidth()/(float)getHeight(), 0.05F, 256);
 
-
         //---------------------------------------------draw----------------------------------------------------
 
         GlStateManager.matrixMode(GL11.GL_MODELVIEW);
@@ -374,7 +375,7 @@ public class PreviewView extends View {
 
         GlStateManager.popMatrix();
 
-      //restore init viewport
+        //restore init viewport
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
         GlStateManager.viewport(0,0,getRoot().context.displayWidth,getRoot().context.displayHeight);
         GlStateManager.loadIdentity();

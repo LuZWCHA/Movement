@@ -16,9 +16,9 @@ public class Dialog{
         frameLayout.addChild(content);
     }
 
-    void setPosAndSize(int x,int y,int width,int height){
-        frameLayout.setX(x);
-        frameLayout.setY(y);
+    void setSize(int width, int height){
+        frameLayout.setX(0);
+        frameLayout.setY(0);
         frameLayout.setWidth(width);
         frameLayout.setHeight(height);
     }
@@ -49,8 +49,8 @@ public class Dialog{
     }
 
     public void show(){
-        content.onLoad();
-        content.setVisible(true);
+        frameLayout.load();
+        frameLayout.setVisible(true);
     }
 
     public void dispose(){

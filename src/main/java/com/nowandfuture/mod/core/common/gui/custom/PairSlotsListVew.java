@@ -20,6 +20,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.util.Color;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -61,8 +62,8 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
             indexTv.setWidth(20);
             indexTv.setHeight(16);
 
-            psv.setScissor(false);
-            tlv.setScissor(false);
+            psv.setClipping(false);
+            tlv.setClipping(false);
             int offsetY = (getHeight() - psv.getHeight())/2;
             psv.setX(20);
             psv.setY(offsetY);
@@ -73,14 +74,16 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
             removeBtn.setY(2);
             removeBtn.setWidth(16);
             removeBtn.setHeight(16);
+            removeBtn.setButtonColor(new Color(0,0,0,0));
             removeBtn.setImageLocation(new ResourceLocation(Movement.MODID,"textures/gui/remove.png"));
-
+            removeBtn.setVanillaStyle(false);
             enterBtn.setX(64);
             enterBtn.setY(2);
             enterBtn.setWidth(16);
             enterBtn.setHeight(16);
+            enterBtn.setButtonColor(new Color(0,0,0,0));
             enterBtn.setImageLocation(new ResourceLocation(Movement.MODID,"textures/gui/enter.png"));
-
+            enterBtn.setVanillaStyle(false);
             addChildren(indexTv,psv,tlv,removeBtn, enterBtn);
         }
 

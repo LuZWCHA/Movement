@@ -5,8 +5,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.AbstractLayout;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
-import com.nowandfuture.mod.utils.DrawHelper;
-import net.minecraft.client.gui.Gui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.util.Color;
@@ -17,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extends ViewGroup {
+public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extends FrameLayout {
 
     public abstract static class OnItemClickedListener extends AbstractGuiContainer.ActionClick{
 
@@ -46,6 +45,12 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
     private int autoScrollFrame = 15;
     private boolean isAutoScrolling = false;
 
+    private boolean isEnableSlider = false;
+    private static final int SLIDER_WIDTH = 4;
+    private static final int SLIDER_MIN_SIZE = 6;
+    private int sliderPosY = 0;
+    private int sliderSize = SLIDER_MIN_SIZE;
+
     // TODO: 2020/3/19 listen adapter change ,this function is not completed
     private SelectMode mode = SelectMode.SINGLE;
     private Set<Integer> selectIndexList;
@@ -68,14 +73,24 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         NONE
     }
 
+    private boolean isDragged = false;
+    private int dragStartX = -1,dragStartY = -1;
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
+        if(isEnableSlider && mouseX > getWidth() - SLIDER_WIDTH){
+            if(mouseY > sliderPosY && mouseY <= sliderPosY + sliderSize){
+                dragStartX = mouseX;
+                dragStartY = mouseY;
+                isDragged = true;
+            }
+        }
+
         return true;
     }
 
     @Override
     protected void onReleased(int mouseX, int mouseY, int state) {
-
+        if(isDragged) isDragged = false;
     }
 
     public MyAbstractList(@Nonnull RootView rootView) {
@@ -90,11 +105,11 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
     private void init(){
         cache = new ArrayList<>();
-        setScissor(true);
         setClickable(true);
+        setClipping(true);
         selectIndexList = new HashSet<>();
-        itemBackground = new Color(255,255,255,128);
-        hoverBackground = new Color(128,128,128,180);
+        hoverBackground = new Color(255,255,255,128);
+        itemBackground = new Color(128,128,128,180);
         selectedBackground = new Color(200,200,200,200);
     }
 
@@ -130,7 +145,7 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
-        drawBackground();
+        super.onDraw(mouseX, mouseY, partialTicks);
         if(!getAdapter().isEnable()) return;
 
         final float ceilLength = getAdapter().getHeight() + spiltDistance;
@@ -167,6 +182,24 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
             drawSplitLine();
             GlStateManager.popMatrix();
         }
+
+        if(isEnableSlider && getAdapter().getSize() > 0)
+            drawSliderIn();
+    }
+
+    private void drawSliderIn(){
+        int size = calculateSliderSize();
+        float length = getContentLength();
+        float progress = scrollDistance / (length - getHeight());
+        sliderPosY = (int) (progress * (getHeight() - size));
+        int left = getWidth() - SLIDER_WIDTH;
+        int top = sliderPosY;
+        sliderSize = size;
+        drawSlider(left,top,size);
+    }
+
+    protected void drawSlider(int left, int top, int size) {
+        drawRect(left,top,getWidth(),top + size,colorInt(200,200,200,255));
     }
 
     @Override
@@ -174,11 +207,8 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         layoutItems();
     }
 
-    private void drawBackground(){
-        Gui.drawRect(0,0,getWidth(),getHeight(),DrawHelper.colorInt(0,0,0,130));
-    }
-
     private void layoutItems(){
+        final int sliderWidth = isEnableSlider ? SLIDER_WIDTH : 0;
         final float ceilLength = getAdapter().getHeight() + spiltDistance;
         final int startIndex = getDrawFirst();
         removeAllChildren();
@@ -190,17 +220,29 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
             }
             viewHolder = cache.get(index - startIndex);
 
-            getAdapter().handleIn(this,viewHolder, index);
-
             float scrollItemLength = index * ceilLength;
             float offsetY = scrollItemLength - scrollDistance;
 
             viewHolder.setY((int) offsetY);
             viewHolder.setX(0);
-            viewHolder.setWidth(getWidth());
+            viewHolder.setWidth(getWidth() - sliderWidth);
             viewHolder.setHeight(getAdapter().getHeight());
+
+            getAdapter().handleIn(this,viewHolder, index);
+
+            viewHolder.setClipping(true);
             addChild(viewHolder);
+            viewHolder.load();
         }
+    }
+
+    private int calculateSliderSize(){
+        float contentLength = getContentLength();
+        float pageSize = getHeight();
+//        float itemSize = getAdapter().getHeight() + spiltDistance;
+
+        int size = (int) (pageSize * pageSize / contentLength);
+        return (int) Math.min(Math.max(SLIDER_MIN_SIZE,size),pageSize);
     }
 
     protected void drawSplitLine(){
@@ -208,13 +250,28 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
     }
 
     @Override
+    protected boolean onMousePressedMove(int mouseX, int mouseY, int state) {
+        if(isEnableSlider && isDragged){
+            int deltaY = mouseY - dragStartY;
+            scrollDistance += deltaY * getContentLength() / getHeight();
+            dragStartY = mouseY;
+            fixScroll();
+        }
+        return true;
+    }
+
+    @Override
     protected boolean onClicked(int mouseX, int mouseY, int mouseButton) {
+        final int sliderWidth = isEnableSlider ? SLIDER_WIDTH : 0;
         final float ceilLength = getAdapter().getHeight() + spiltDistance;
 
         float actY = mouseY + scrollDistance;
         int index = (int) (actY / ceilLength);
         if(index >= 0 && index < getAdapter().getSize()) {
-            if (actY > index * ceilLength && actY < ceilLength * index + getAdapter().getHeight()) {
+            if (actY > index * ceilLength &&
+                    actY < ceilLength * index + getAdapter().getHeight() &&
+                    mouseX >= 0 && mouseX < getWidth() - sliderWidth) {
+
                 mouseY = (int) (actY - index * ceilLength);
 
                 if(mode == SelectMode.SINGLE){
@@ -298,7 +355,7 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
         return true;
     }
 
-    public void fixScroll(){
+    protected void fixScroll(){
         if(getContentLength() - getHeight() < 0){
             scrollDistance = 0;
             return;
@@ -308,6 +365,14 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
             scrollDistance = getContentLength() - getHeight();
         } else if(scrollDistance < 0)
             scrollDistance = 0;
+    }
+
+    public boolean isEnableSlider() {
+        return isEnableSlider;
+    }
+
+    public void setEnableSlider(boolean enableSlider) {
+        isEnableSlider = enableSlider;
     }
 
     private float getContentLength(){

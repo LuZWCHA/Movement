@@ -1,7 +1,7 @@
 {
   "package": "com.nowandfuture.mixins",
   "mixins": ["MixinEntityPlayerMP"],
-  "client": [],
+  "client": ["MixinFontRenderer"],
   "server": [],
   "compatibilityLevel": "JAVA_8",
   "minVersion": "0.6.11",

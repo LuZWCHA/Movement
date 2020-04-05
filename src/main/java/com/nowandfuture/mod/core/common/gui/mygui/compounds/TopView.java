@@ -3,7 +3,7 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 public class TopView extends ViewGroup {
 
     TopView(RootView rootView){
-        super(rootView);
+        super(rootView,null);
     }
 
     @Override

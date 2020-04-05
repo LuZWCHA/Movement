@@ -41,7 +41,7 @@ public class TimeLineView extends View {
 
     public TimeLineView(@Nonnull RootView rootView){
         super(rootView);
-        setScissor(true);
+        setClipping(true);
     }
 
     public void init(KeyFrameLine keyFrameLine,AbstractPrefab prefab){

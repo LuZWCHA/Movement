@@ -741,7 +741,7 @@ public abstract class LMessage implements IMessage {
                 switch (message.flag){
                     case GUI_TICK_SLIDE:
                         if(tileEntity instanceof TileEntityCoreModule) {
-                            ((TileEntityCoreModule) tileEntity).getLine().setTick(message.data);
+                            ((TileEntityCoreModule) tileEntity).setTick(message.data);
                             NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityCoreModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityCoreModule) tileEntity).getLine().isEnable()));
                         }
                         break;

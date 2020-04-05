@@ -2,6 +2,7 @@ package com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible;
 
 import com.google.common.collect.Lists;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -18,7 +19,7 @@ public class MyLabel extends Gui implements MyGui {
     public int y;
     private final List<String> labels;
     public int id;
-    private boolean centered;
+    private boolean horizontalCenter;
     public boolean visible = true;
     private boolean labelBgEnabled;
     private int textColor;
@@ -27,6 +28,8 @@ public class MyLabel extends Gui implements MyGui {
     private int brColor;
     private final FontRenderer fontRenderer;
     private int border;
+    private boolean drawShadow = true;
+    private int maxLines = 1;
 
     public MyLabel(FontRenderer fontRenderer, int id, int x, int y, int width, int height, int textColor)
     {
@@ -37,7 +40,7 @@ public class MyLabel extends Gui implements MyGui {
         this.width = width;
         this.height = height;
         this.labels = Lists.<String>newArrayList();
-        this.centered = false;
+        this.horizontalCenter = false;
         this.labelBgEnabled = true;
         this.textColor = textColor;
         this.backColor = -1;
@@ -86,9 +89,9 @@ public class MyLabel extends Gui implements MyGui {
     /**
      * Sets the Label to be centered
      */
-    public MyLabel setCentered(boolean centered)
+    public MyLabel setHorizontalCenter(boolean horizontalCenter)
     {
-        this.centered = centered;
+        this.horizontalCenter = horizontalCenter;
         return this;
     }
 
@@ -125,17 +128,29 @@ public class MyLabel extends Gui implements MyGui {
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             this.drawLabelBackground(mouseX, mouseY);
             int i = this.y + this.height / 2 + this.border / 2;
-            int j = i - this.labels.size() * 10 / 2;
 
-            for (int k = 0; k < this.labels.size(); ++k)
+            int textHeight = 10;
+            int rowNum = getHeight() / textHeight;
+            int size = Math.min(rowNum,labels.size());
+            size = Math.min(maxLines,size);
+
+            int j = i - size * 10 / 2;
+
+            for (int k = 0; k < size; ++k)
             {
-                if (this.centered)
+                if (this.horizontalCenter)
                 {
-                    this.drawCenteredString(this.fontRenderer, this.labels.get(k), this.x + this.width / 2, j + k * 10, this.textColor);
+                    if(drawShadow)
+                        this.drawCenteredString(this.fontRenderer, this.labels.get(k), this.x + this.width / 2, j + k * textHeight, this.textColor);
+                    else
+                        ViewGroup.drawCenteredStringWithoutShadow(this.fontRenderer, this.labels.get(k), this.x + this.width / 2, j + k * textHeight, this.textColor);
                 }
                 else
                 {
-                    this.drawString(this.fontRenderer, this.labels.get(k), this.x, j + k * 10, this.textColor);
+                    if(drawShadow)
+                        this.drawString(this.fontRenderer, this.labels.get(k), this.x, j + k * textHeight, this.textColor);
+                    else
+                        ViewGroup.drawStringWithoutShadow(this.fontRenderer, this.labels.get(k), this.x, j + k * textHeight, this.textColor);
                 }
             }
         }
@@ -210,6 +225,14 @@ public class MyLabel extends Gui implements MyGui {
     @Override
     public void draw2(int mouseX, int mouseY, float partialTicks) {
 
+    }
+
+    public void setMaxLines(int maxLines) {
+        this.maxLines = maxLines;
+    }
+
+    public void setDrawTextShadow(boolean drawTextShadow){
+        this.drawShadow = drawTextShadow;
     }
 
     @Override

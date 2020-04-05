@@ -37,14 +37,14 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     protected final static int TIMELINE_MODIFY_PACKET = 0x12;
     protected final static int ENABLE_COLLISION_PACKET = 0x13;
 
-    private final static String NBT_TICK = "Tick";
-    private final static String NBT_ENABLE = "Enable";
-    private final static String NBT_ENABLE_COLLISION = "EnableCollision";
+    public final static String NBT_TICK = "Tick";
+    public final static String NBT_ENABLE = "Enable";
+    public final static String NBT_ENABLE_COLLISION = "EnableCollision";
     private final static String NBT_RENDER_REALTIME = "RenderRealtime";
 
     private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;
-    private boolean enableCollision = false;
+    protected boolean enableCollision = false;
     //render light realtime
     //0:disable
     //>0:re-render with a probability of 1/(1+renderRealtime)
@@ -147,14 +147,18 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     @Override
     public void update() {
         if(moduleBase.updateLine()){
-            if(!world.isRemote){//sync with client every FORCE_UPDATE_TIME tick
-                if(tick ++ % FORCE_UPDATE_TIME == 0) {
-                    NetworkHandler.syncToTrackingClients(world, this,
-                            getTimelineUpdatePacket(moduleBase.getLine().getTick(), moduleBase.getLine().isEnable()));
-                }
-            }
+            syncToClients();
         }
         moduleBase.update();
+    }
+
+    protected void syncToClients(){
+        if(!world.isRemote){//sync with client every FORCE_UPDATE_TIME tick
+            if(tick ++ % FORCE_UPDATE_TIME == 0) {
+                NetworkHandler.syncToTrackingClients(world, this,
+                        getTimelineUpdatePacket(getLine().getTick(), getLine().isEnable()));
+            }
+        }
     }
 
     @Override
@@ -186,7 +190,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         //moduleNode is not a tileEntity in mc world
-        if(!(getClass() == ModuleNode.class))
+        if(getClass() != ModuleNode.class)
             super.writeToNBT(compound);
 
         compound.setBoolean(NBT_ENABLE_COLLISION,enableCollision);

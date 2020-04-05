@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.math.MathHelper;
+import org.lwjgl.util.Color;
 
 //something changed in minecraft.client.xxx.GuiTextField.I have to extract it out or it will be crashed!
 public class GuiTextField extends Gui
@@ -47,6 +48,10 @@ public class GuiTextField extends Gui
     private GuiPageButtonList.GuiResponder guiResponder;
     /** Called to check if the text is valid */
     private Predicate<String> validator = Predicates.<String>alwaysTrue();
+
+    private boolean drawShadow;
+    private Color selectionColor = new Color(0,0,255);
+    private int cursorColor = -3092272;
 
     public GuiTextField(int componentId, FontRenderer fontrendererObj, int x, int y, int par5Width, int par6Height)
     {
@@ -559,7 +564,7 @@ public class GuiTextField extends Gui
             if (!s.isEmpty())
             {
                 String s1 = flag ? s.substring(0, j) : s;
-                j1 = this.fontRenderer.drawStringWithShadow(s1, (float)l, (float)i1, i);
+                j1 = this.fontRenderer.drawString(s1, (float)l, (float)i1, i,drawShadow);
             }
 
             boolean flag2 = this.cursorPosition < this.text.length() || this.text.length() >= this.getMaxStringLength();
@@ -577,18 +582,18 @@ public class GuiTextField extends Gui
 
             if (!s.isEmpty() && flag && j < s.length())
             {
-                j1 = this.fontRenderer.drawStringWithShadow(s.substring(j), (float)j1, (float)i1, i);
+                j1 = this.fontRenderer.drawString(s.substring(j), (float)j1, (float)i1, i,drawShadow);
             }
 
             if (flag1)
             {
                 if (flag2)
                 {
-                    Gui.drawRect(k1, i1 - 1, k1 + 1, i1 + 1 + this.fontRenderer.FONT_HEIGHT, -3092272);
+                    Gui.drawRect(k1, i1 - 1, k1 + 1, i1 + 1 + this.fontRenderer.FONT_HEIGHT, cursorColor);
                 }
                 else
                 {
-                    this.fontRenderer.drawStringWithShadow("_", (float)k1, (float)i1, i);
+                    this.fontRenderer.drawString("_", (float)k1, (float)i1, i,drawShadow);
                 }
             }
 
@@ -631,15 +636,15 @@ public class GuiTextField extends Gui
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuffer();
-        GlStateManager.color(0.0F, 0.0F, 255.0F, 255.0F);
+        GlStateManager.color(selectionColor.getRed() / 255f, selectionColor.getGreen() / 255f, selectionColor.getBlue() / 255f, selectionColor.getAlpha() / 255f);
         GlStateManager.disableTexture2D();
         GlStateManager.enableColorLogic();
         GlStateManager.colorLogicOp(GlStateManager.LogicOp.OR_REVERSE);
         bufferbuilder.begin(7, DefaultVertexFormats.POSITION);
-        bufferbuilder.pos((double)startX, (double)endY, 0.0D).endVertex();
-        bufferbuilder.pos((double)endX, (double)endY, 0.0D).endVertex();
-        bufferbuilder.pos((double)endX, (double)startY, 0.0D).endVertex();
-        bufferbuilder.pos((double)startX, (double)startY, 0.0D).endVertex();
+        bufferbuilder.pos(startX, endY, 0.0D).endVertex();
+        bufferbuilder.pos(endX, endY, 0.0D).endVertex();
+        bufferbuilder.pos(endX, startY, 0.0D).endVertex();
+        bufferbuilder.pos(startX, startY, 0.0D).endVertex();
         tessellator.draw();
         GlStateManager.disableColorLogic();
         GlStateManager.enableTexture2D();
@@ -828,5 +833,25 @@ public class GuiTextField extends Gui
     public void setVisible(boolean isVisible)
     {
         this.visible = isVisible;
+    }
+
+    public void setSelectionColor(Color selectionColor) {
+        this.selectionColor = selectionColor;
+    }
+
+    public void setCursorColor(int cursorColor) {
+        this.cursorColor = cursorColor;
+    }
+
+    public void setDisabledColor(int disabledColor) {
+        this.disabledColor = disabledColor;
+    }
+
+    public void setEnabledColor(int enabledColor) {
+        this.enabledColor = enabledColor;
+    }
+
+    public void setDrawShadow(boolean drawShadow) {
+        this.drawShadow = drawShadow;
     }
 }

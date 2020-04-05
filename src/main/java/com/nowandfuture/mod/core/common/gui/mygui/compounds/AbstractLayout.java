@@ -13,7 +13,7 @@ public abstract class AbstractLayout<T extends LayoutParameter> extends ViewGrou
 
     private List<T> layoutParameters;
     private Color color;
-    protected int[] margins = new int[4];
+
 
     public AbstractLayout(@Nonnull RootView rootView){
         super(rootView);

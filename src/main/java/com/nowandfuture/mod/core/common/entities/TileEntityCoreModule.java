@@ -25,7 +25,7 @@ import java.util.*;
 
 public class TileEntityCoreModule extends ModuleNode {
 
-    protected NonNullList<ItemStack> moduleItemStacks =
+    private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
 
     public final static String NBT_SHOW_BLOCK = "ShowBlock";
@@ -127,6 +127,16 @@ public class TileEntityCoreModule extends ModuleNode {
         return newStack.peek();
     }
 
+    @Override
+    public void update() {
+        boolean isUpdate = moduleBase.updateLine();
+        moduleBase.update();
+        if(isUpdate){
+            setTick(getLine().getTick());
+            syncToClients();
+        }
+    }
+
     public Stack<ModuleNode> getNodeStack() {
         return nodeStack;
     }
@@ -134,7 +144,6 @@ public class TileEntityCoreModule extends ModuleNode {
     public void setNodeStack(Stack<ModuleNode> nodeStack) {
         this.nodeStack = nodeStack;
     }
-
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
@@ -328,4 +337,6 @@ public class TileEntityCoreModule extends ModuleNode {
         if(node == null || node.getClass() != this.getClass()) return false;
         return node.getTimelineId() == getTimelineId() && node.getPrefabId() == getPrefabId();
     }
+
+
 }

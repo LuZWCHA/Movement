@@ -126,6 +126,22 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
         return false;
     }
 
+    public void setTick(long tick){
+        getLine().setTick(tick);
+        for (ModuleNode node:
+                map.getModules()) {
+            node.setTick(tick);
+        }
+    }
+
+    public void setTimelineEnable(boolean enable){
+        getLine().setEnable(enable);
+        for (ModuleNode node:
+                map.getModules()) {
+            node.getLine().setEnable(enable);
+        }
+    }
+
     @Override
     public void update() {
         moduleBase.updateLine();
@@ -222,10 +238,18 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-        super.onDataPacket(net, pkt);
-        if(pkt.getTileEntityType() == INVENTORY_CHANGED_PACKET){
-            NBTTagCompound nbtTagCompound = pkt.getNbtCompound();
-            handleInventoryTag(nbtTagCompound);
+        NBTTagCompound nbtGet = pkt.getNbtCompound();
+        if(pkt.getTileEntityType() == 1) {
+            this.readFromNBT(nbtGet);
+        }else if(pkt.getTileEntityType() == TIMELINE_UPDATE_PACKET){
+            this.setTimelineEnable(nbtGet.getBoolean(NBT_ENABLE));
+            this.setTick(nbtGet.getLong(NBT_TICK));
+        }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
+            this.getLine().deserializeNBT(nbtGet);
+        }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){
+            this.setEnableCollision(nbtGet.getBoolean(NBT_ENABLE_COLLISION));
+        }else if(pkt.getTileEntityType() == INVENTORY_CHANGED_PACKET){
+            this.handleInventoryTag(nbtGet);
         }
     }
 

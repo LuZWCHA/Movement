@@ -5,10 +5,11 @@ import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FileViewerView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
@@ -16,7 +17,10 @@ import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
+import org.lwjgl.util.Color;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,11 +32,11 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     private TileEntitySimplePlayer player;
 
     private MyTextField urlTextField;
+    private Button fileBowerBtn;
 
     private Button playBtn, stopBtn, rotateBtn;
     private SliderView volumeView;
     private NumberBox widthBox,heightBox;
-    private ComboBox comboBox;
     private FrameLayout btnLayout;
 
     public GuiMediaPlayer(TileEntitySimplePlayer player) {
@@ -46,7 +50,6 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         volumeView = new SliderView(getRootView(),btnLayout);
         widthBox = new NumberBox(getRootView(),btnLayout);
         heightBox = new NumberBox(getRootView(),btnLayout);
-        comboBox = new ComboBox(getRootView(),btnLayout);
 
         xSize = 200;
         ySize = 100;
@@ -55,7 +58,45 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     @Override
     public void onLoad() {
         urlTextField = createMyTextField(20,20,160,14,"video url");
-        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox,comboBox);
+        fileBowerBtn = GuiBuilder.wrap(new Button(getRootView()))
+                .setX(190).setY(20).setWidth(26).setHeight(14).build();
+        fileBowerBtn.setText("...");
+        fileBowerBtn.setActionListener(new View.ActionListener() {
+            @Override
+            public void onClicked(View v) {
+                File root = new File("D:\\迅雷下载");
+                FileViewerView view = new FileViewerView(getRootView(),root);
+                view.setBackgroundColor(new Color(255,255,255));
+                view.setFileFilter(new FileFilter() {
+                    String[] suffixes = new String[]{"mp4","avi","mov","mkv","flv","gif","mp3"};
+
+                    @Override
+                    public boolean accept(File pathname) {
+                        if(!pathname.isDirectory()) {
+                            String name = pathname.getName();
+                            for (final String suffix : this.suffixes) {
+                                if (name.endsWith(suffix)) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }else {
+                            return true;
+                        }
+                    }
+                });
+                view.setX(0);
+                view.setY(0);
+                view.setWidth(160);
+                view.setHeight(100);
+                RootView.DialogBuilder builder = getRootView().createDialogBuilder(view);
+                builder.build().setCenter().show();
+            }
+        });
+
+        addGuiCompounds(fileBowerBtn);
+
+        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox);
 
         btnLayout.setX(20);
         btnLayout.setY(40);

@@ -33,7 +33,7 @@ public class GuiModule extends AbstractGuiContainer {
     private static final ResourceLocation MODULE_GUI_TEXTURE = new ResourceLocation(Movement.MODID,"textures/gui/module_shower.png");
 
     private TileEntityCoreModule tileEntityCoreModule;
-    private SliderView view;
+    private SliderView tickSlider;
     //just as an example
     private MyLabel tickLabel;
     private TextView tipLabel;
@@ -56,10 +56,10 @@ public class GuiModule extends AbstractGuiContainer {
 
     @Override
     public void onLoad() {
-        view = GuiBuilder.wrap(new SliderView(getRootView()))
+        tickSlider = GuiBuilder.wrap(new SliderView(getRootView()))
                 .setX(110).setY(56).setWidth(60).setHeight(20).build();
-        view.setProgress(0);
-        view.setProgressChanged(new Consumer<Float>() {
+        tickSlider.setProgress(0);
+        tickSlider.setProgressChanged(new Consumer<Float>() {
             @Override
             public void accept(Float aFloat) {
                 long tick = aFloat.longValue();
@@ -69,7 +69,7 @@ public class GuiModule extends AbstractGuiContainer {
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
             }
         });
-        view.setProgressChanging(new Consumer<Float>() {
+        tickSlider.setProgressChanging(new Consumer<Float>() {
             @Override
             public void accept(Float aFloat) {
                 long total = tileEntityCoreModule.getLine().getTotalTick();
@@ -78,12 +78,12 @@ public class GuiModule extends AbstractGuiContainer {
                 tickLabel.setFirst(String.valueOf(tick));
             }
         });
-        addView(view);
+        addView(tickSlider);
 
         //example for mix minecraft gui and my gui,so the ticklabel won't replace with textview
         long tick = tileEntityCoreModule.getLine().getTick();
         long total = tileEntityCoreModule.getLine().getTotalTick();
-        view.setRange(total,0,0);
+        tickSlider.setRange(total,0,0);
         tickLabel = createMyLabel(130,70,20,12,-1);
         tickLabel.setFirst(String.valueOf(tick)).setBackColor(0).setBorderColor(0);
 
@@ -92,7 +92,7 @@ public class GuiModule extends AbstractGuiContainer {
         tipLabel = GuiBuilder.wrap(tipLabel)
                 .setWidth(100).setHeight(14).setX(8).setY(16).build();
 
-        view.setProgress(tick);
+        tickSlider.setProgress(tick);
 
         startBtn = GuiBuilder.wrap(new Button(getRootView()))
                 .setX(134).setY(30).setWidth(26).setHeight(16).build();
@@ -107,9 +107,9 @@ public class GuiModule extends AbstractGuiContainer {
         useClientCollisionBtn.setText(R.name(R.id.text_module_btn_collision_enable_id));
 
         addBtn = GuiBuilder.wrap(new Button(getRootView()))
-                .setX(134).setY(8).setWidth(16).setHeight(16).build();
+                .setX(xSize + 4).setY(140).setWidth(16).setHeight(16).build();
         removeBtn = GuiBuilder.wrap(new Button(getRootView()))
-                .setX(150).setY(8).setWidth(16).setHeight(16).build();
+                .setX(xSize + 84).setY(140).setWidth(16).setHeight(16).build();
 
         removeBtn.setText("-");
         addBtn.setText("+");
@@ -212,18 +212,17 @@ public class GuiModule extends AbstractGuiContainer {
 
         //noinspection Duplicates
         if(tileEntityCoreModule.getStackInSlot(1).isEmpty()){
-            setVisible(false,view,tickLabel);
+            setVisible(false, tickSlider,tickLabel);
         }else{
-            setVisible(true,tickLabel,view);
+            setVisible(true,tickLabel, tickSlider);
         }
 
         title = new GuiBuilder<>(new TextView(getRootView()))
-                .setX(getXSize() + 4).setY(4).setWidth(60).setHeight(16).build();
+                .setX(getXSize() + 6).setY(4).setWidth(60).setHeight(16).build();
         title.setText(tileEntityCoreModule.getCurModuleNode().getId());
 
         backBtn = new GuiBuilder<>(new Button(getRootView()))
-                .setX(getXSize() + 68).setY(4).setWidth(30).setHeight(16).build();
-        backBtn.setText("back");
+                .setX(getXSize() + 68).setY(4).setWidth(32).setHeight(16).build();
         backBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
@@ -233,6 +232,8 @@ public class GuiModule extends AbstractGuiContainer {
                 tileEntityCoreModule.pop();
             }
         });
+        backBtn.setVanillaStyle(false);
+        backBtn.setImageLocation(new ResourceLocation(Movement.MODID,"textures/gui/back.png"));
 
         pairSlotsListVew = new PairSlotsListVew(getRootView());
         PairSlotsListVew.SlotsAdapter adapter = new PairSlotsListVew.SlotsAdapter();
@@ -243,13 +244,6 @@ public class GuiModule extends AbstractGuiContainer {
         pairSlotsListVew.setY(4 + 16);
         pairSlotsListVew.setWidth(100);
         pairSlotsListVew.setHeight(120);
-
-//        pairSlotsListVew.setOnItemClick(new MyAbstractList.OnItemClickedListener() {
-//            @Override
-//            public void onItemClicked(MyAbstractList view, int index, int button) {
-//                //do nothing
-//            }
-//        });
 
         updateShowOrHideBtn();
 
@@ -310,33 +304,34 @@ public class GuiModule extends AbstractGuiContainer {
         super.updateScreen();
 
         if(tileEntityCoreModule.getStackInSlot(1).isEmpty()){
-            view.setVisible(false);
+            tickSlider.setVisible(false);
             tickLabel.visible = false;
         }else{
-            view.setVisible(true);
+            tickSlider.setVisible(true);
             tickLabel.visible = true;
         }
 
-        if(view.isVisible()){
+        if(tickSlider.isVisible()){
             long tick = tileEntityCoreModule.getLine().getTick();
             long total = tileEntityCoreModule.getLine().getTotalTick();
 
-            view.setRange(total,0,0);
-            if(!view.isDrag()) {
+            tickSlider.setRange(total,0,0);
+            if(!tickSlider.isDrag()) {
                 tickLabel.setFirst(String.valueOf(tick));
-                view.setProgress(tick);
+                tickSlider.setProgress(tick);
             }
         }
 
         updateStartOrStopBtn();
         updateCollisionEnableBtn();
 
-        title.setText(tileEntityCoreModule.getCurModuleNode().getId());
+        BlockPos pos = tileEntityCoreModule.getCurModuleNode().getOffset();
+        title.setText(Vec3iString(pos));
     }
 
     @Override
     public void onDestroy() {
-        view.setProgressChanged(null);
+        tickSlider.setProgressChanged(null);
     }
 
     @Override

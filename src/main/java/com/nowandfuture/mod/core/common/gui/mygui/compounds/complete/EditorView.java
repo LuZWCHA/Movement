@@ -145,7 +145,19 @@ public class EditorView extends View {
         this.onLoseFocus = onLoseFocus;
     }
 
+    public void setSelectionColor(Color color){
+        this.textField.setSelectionColor(color);
+    }
+
+    public void setCursorColor(Color color){
+        this.textField.setCursorColor(colorInt(color));
+    }
+
     public void setDrawDecoration(boolean v){
         this.textField.setEnableBackgroundDrawing(v);
+    }
+
+    public void setDrawShadow(boolean drawShadow){
+        this.textField.setDrawShadow(drawShadow);
     }
 }

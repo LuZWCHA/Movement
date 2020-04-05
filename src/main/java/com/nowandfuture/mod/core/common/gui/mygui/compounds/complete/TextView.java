@@ -1,18 +1,15 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds.complete;
 
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.ViewGroup;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
-import com.nowandfuture.mod.utils.DrawHelper;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import joptsimple.internal.Strings;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 
 import javax.annotation.Nonnull;
 
-// TODO: 2020/2/12 to finish textview to replace label
-public class TextView extends View {
+public class TextView extends FrameLayout {
     private MyLabel label;
     private String text = Strings.EMPTY;
 
@@ -39,25 +36,56 @@ public class TextView extends View {
     @Override
     public void setX(int x) {
         super.setX(x);
-        label.setX(0);
     }
 
     @Override
     public void setY(int y) {
         super.setY(y);
-        label.setY(0);
     }
 
     @Override
     public void setWidth(int width) {
         super.setWidth(width);
-        label.setWidth(width);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
     }
 
     @Override
     public void setHeight(int height) {
         super.setHeight(height);
-        label.setHeight(height);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
+    }
+
+    @Override
+    public void setPadLeft(int padLeft) {
+        super.setPadLeft(padLeft);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
+    }
+
+    @Override
+    public void setPadBottom(int padBottom) {
+        super.setPadBottom(padBottom);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
+    }
+
+    @Override
+    public void setPadRight(int padRight) {
+        super.setPadRight(padRight);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
+    }
+
+    @Override
+    public void setPadTop(int padTop) {
+        super.setPadTop(padTop);
+        updateSize(getWidth(),getHeight(),padLeft,padTop,padRight,padBottom);
+    }
+
+    private void updateSize(int w, int h, int padLeft, int padTop, int padRight, int padBottom){
+        label.setX(padLeft);
+        label.setY(padTop);
+        int contentWidth = w - padLeft - padRight;
+        label.setWidth(Math.max(0,contentWidth));
+        int contentHeight = h - padTop - padBottom;
+        label.setHeight(Math.max(0,contentHeight));
     }
 
     @Override
@@ -89,15 +117,16 @@ public class TextView extends View {
         label.empty();
         FontRenderer fr = getRoot().getFontRenderer();
         int stringLength = fr.getStringWidth(string);
-        if(getWidth() > stringLength || string.isEmpty()) {
+        if(getWidth() - padLeft - padRight > stringLength || string.isEmpty()) {
             label.setFirst(string);
         } else{
             String curLine;
             String temp = string;
             int start;
             int lineNum = 0;
+            int contentLength = getWidth() - padLeft - padRight;
             while(!temp.isEmpty()){
-                curLine = fr.trimStringToWidth(temp,getWidth());
+                curLine = fr.trimStringToWidth(temp,contentLength);
                 if(curLine.isEmpty()){
                     curLine = String.valueOf(temp.charAt(0));
                 }
@@ -116,11 +145,12 @@ public class TextView extends View {
     }
 
     public void setCentered(boolean centered){
-        label.setCentered(centered);
+        label.setHorizontalCenter(centered);
     }
 
     @Override
     protected void onDraw(int mouseX, int mouseY, float partialTicks) {
+        super.onDraw(mouseX, mouseY, partialTicks);
         label.draw(mouseX, mouseY, partialTicks);
     }
 
@@ -140,5 +170,9 @@ public class TextView extends View {
 
     public void setTextColor(int color){
         label.setTextColor(color);
+    }
+
+    public void setEnableTextShadow(boolean enabled){
+        label.setDrawTextShadow(enabled);
     }
 }

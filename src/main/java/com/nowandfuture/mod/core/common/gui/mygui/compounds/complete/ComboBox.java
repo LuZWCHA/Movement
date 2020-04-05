@@ -54,7 +54,7 @@ public class ComboBox extends ViewGroup {
                 }
             }
         });
-        setScissor(false);
+        setClipping(false);
     }
 
     public void setContents(List<String> contents) {
@@ -75,7 +75,7 @@ public class ComboBox extends ViewGroup {
         label.setBackColor(DrawHelper.colorInt(20,20,20,200));
         label.setBorderWidth(2);
         label.setBorderColor(DrawHelper.colorInt(80,80,80,255));
-        label.setCentered(true);
+        label.setHorizontalCenter(true);
 
         setHeight(labelHeight + listHeight);
         super.onLoad();

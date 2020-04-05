@@ -1,8 +1,12 @@
 package com.nowandfuture.mod.core.common.gui.mygui.compounds;
 
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
+@SideOnly(Side.CLIENT)
 public abstract class View extends ViewGroup {
 
     public View(@Nonnull RootView rootView) {

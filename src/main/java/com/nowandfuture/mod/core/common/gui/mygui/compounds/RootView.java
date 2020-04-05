@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.Fra
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -87,7 +88,7 @@ public class RootView implements MyGui{
         this.w = w;
         this.h = h;
         topView = new TopView(this);
-        topView.setScissor(false);
+        topView.setClipping(false);
 
         topView.setX(x);
         topView.setY(y);
@@ -145,7 +146,7 @@ public class RootView implements MyGui{
 
         public Dialog build(){
             Dialog dialog = new Dialog(content);
-            dialog.setPosAndSize(0,0,content.getWidth(),content.getHeight());
+            dialog.setSize(content.getWidth(),content.getHeight());
             rootView.setDialogView(dialog);
             return dialog;
         }
@@ -160,7 +161,11 @@ public class RootView implements MyGui{
     }
 
     public void onLoad(){
-        topView.onLoad();
+        Framebuffer framebuffer = Minecraft.getMinecraft().getFramebuffer();
+        if(!framebuffer.isStencilEnabled()){
+            framebuffer.enableStencil();
+        }
+        topView.load();
     }
 
     @Deprecated
@@ -219,7 +224,7 @@ public class RootView implements MyGui{
 
     public void initGui(){
         //update dialog's position
-        if(dialogView.isShowing())
+        if(dialogView.isShowing() && dialogView.isInCenter())
             dialogView.setCenter();
     }
 
