@@ -55,6 +55,7 @@ public class Movement implements IModPlugin {
     {
         proxy.init(event);
         NetworkRegistry.INSTANCE.registerGuiHandler(this,new GuiHandler());
+
     }
 
     @Mod.EventHandler

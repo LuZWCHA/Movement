@@ -36,7 +36,15 @@ public class FileViewerView extends FrameLayout {
 
     private boolean chooseFile = true;
     private List<File> selectFiles = new ArrayList<>();
-    private View.ActionListener actionListener;
+    private AcceptFile actionListener;
+
+    public void setActionListener(AcceptFile actionListener) {
+        this.actionListener = actionListener;
+    }
+
+    public interface AcceptFile{
+        void onAcceptFile(List<File> file);
+    }
 
     public FileViewerView(@Nonnull RootView rootView, File root) {
         super(rootView);
@@ -172,7 +180,7 @@ public class FileViewerView extends FrameLayout {
             @Override
             public void onClicked(View v) {
                 if(actionListener != null){
-                    actionListener.onClicked(v);
+                    actionListener.onAcceptFile(fileList);
                 }
             }
         });

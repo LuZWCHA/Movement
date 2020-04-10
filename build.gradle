@@ -24,9 +24,9 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "0.1"
+version = "0.2"
 group = "com.nowandfurure.movement"
-archivesBaseName = "movement"
+archivesBaseName = "Movement"
 
 sourceCompatibility = targetCompatibility = '1.8'
 compileJava {
@@ -34,12 +34,17 @@ compileJava {
 }
 
 minecraft {
-
     version = "1.12.2-14.23.5.2836"
     runDir = "run"
     clientJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
 //    serverJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
 
+//    sourceSets.main.output.resourcesDir=sourceSets.main.output.classesDir
+//    sourceSets {
+//        main {
+//            output.resourcesDir = output.classesDir
+//        }
+//    }
     mappings = "stable_39"
 //    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
@@ -49,8 +54,9 @@ configurations {
     compile.extendsFrom(shade)
 }
 
-dependencies {
 
+
+dependencies {
     shade files('libs/ffmpeg.jar')
     shade files('libs/ffmpeg-windows-x86_64.jar')
     shade files('libs/javacpp.jar')
@@ -77,15 +83,18 @@ processResources {
     }
 }
 
-
-
 mixin {
     add sourceSets.main, "mixins.movement.refmap.json"
 }
 
+//sourceSets {
+//    main {
+//        output.resourcesDir = output.classesDir
+//    }
+//}
+
 jar {
     manifest {
-
         attributes([
                 "FMLCorePlugin": "com.nowandfuture.mod.MovementCore",
                 "FMLCorePluginContainsFMLMod": true

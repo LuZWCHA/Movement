@@ -105,6 +105,7 @@ public class GuiModule extends AbstractGuiContainer {
         useClientCollisionBtn = GuiBuilder.wrap(new Button(getRootView()))
                 .setX(8).setY(30).setWidth(90).setHeight(16).build();
         useClientCollisionBtn.setText(R.name(R.id.text_module_btn_collision_enable_id));
+        useClientCollisionBtn.setEnable(false);
 
         addBtn = GuiBuilder.wrap(new Button(getRootView()))
                 .setX(xSize + 4).setY(140).setWidth(16).setHeight(16).build();
@@ -129,26 +130,28 @@ public class GuiModule extends AbstractGuiContainer {
 
                 FrameLayout frameLayout = new FrameLayout(getRootView());
                 frameLayout.setBackgroundColor(new Color(255,255,255,255));
-                frameLayout.setWidth(100);
+                frameLayout.setWidth(108);
                 frameLayout.setHeight(80);
                 PositionEditorView positionEditorView = new PositionEditorView(getRootView());
                 positionEditorView.setPos(BlockPos.ORIGIN);
-                positionEditorView.setX(4);
-                positionEditorView.setY(8);
-                positionEditorView.setWidth(100);
+                positionEditorView.setX(8);
+                positionEditorView.setY(12);
+                positionEditorView.setWidth(92);
                 positionEditorView.setHeight(16);
 
                 Button confirmBtn = new Button(getRootView());
-                confirmBtn.setX(40);
-                confirmBtn.setY(60);
-                confirmBtn.setWidth(26);
+                confirmBtn.setX(34);
+                confirmBtn.setY(52);
+                confirmBtn.setWidth(32);
                 confirmBtn.setHeight(16);
+                confirmBtn.setText("confirm");
 
                 Button cancelBtn = new Button(getRootView());
                 cancelBtn.setX(72);
-                cancelBtn.setY(60);
-                cancelBtn.setWidth(26);
+                cancelBtn.setY(52);
+                cancelBtn.setWidth(32);
                 cancelBtn.setHeight(16);
+                cancelBtn.setText("cancel");
 
                 frameLayout.addChildren(positionEditorView,cancelBtn,confirmBtn);
 
@@ -222,7 +225,7 @@ public class GuiModule extends AbstractGuiContainer {
         title.setText(tileEntityCoreModule.getCurModuleNode().getId());
 
         backBtn = new GuiBuilder<>(new Button(getRootView()))
-                .setX(getXSize() + 68).setY(4).setWidth(32).setHeight(16).build();
+                .setX(getXSize() + 72).setY(4).setWidth(32).setHeight(14).build();
         backBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {

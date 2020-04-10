@@ -17,6 +17,7 @@ import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.util.Color;
 
 import java.io.File;
@@ -64,7 +65,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         fileBowerBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
-                File root = new File("D:\\迅雷下载");
+                File root = new File(Minecraft.getMinecraft().gameDir.getAbsolutePath());
                 FileViewerView view = new FileViewerView(getRootView(),root);
                 view.setBackgroundColor(new Color(255,255,255));
                 view.setFileFilter(new FileFilter() {
@@ -89,6 +90,14 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                 view.setY(0);
                 view.setWidth(160);
                 view.setHeight(100);
+                view.setActionListener(new FileViewerView.AcceptFile() {
+                    @Override
+                    public void onAcceptFile(List<File> files) {
+                        if(files != null && !files.isEmpty()){
+                            urlTextField.setText(files.get(0).getAbsolutePath());
+                        }
+                    }
+                });
                 RootView.DialogBuilder builder = getRootView().createDialogBuilder(view);
                 builder.build().setCenter().show();
             }
@@ -196,7 +205,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
             public void onClicked(View v) {
                 player.setFacing(player.getFacing().rotateY());
                 LMessage.IntDataSyncMessage message =
-                        new LMessage.IntDataSyncMessage(LMessage.IntDataSyncMessage.GUI_PLAYER_FACING_ROTATE,
+                        new LMessage.IntDataSyncMessage(
+                                LMessage.IntDataSyncMessage.GUI_PLAYER_FACING_ROTATE,
                                 player.getFacing().ordinal());
                 message.setPos(player.getPos());
                 NetworkHandler.INSTANCE.sendMessageToServer(message);
@@ -218,7 +228,9 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                 if(player !=null) {
                     player.setWidth(integer.shortValue());
                     LMessage.IntDataSyncMessage intDataSyncMessage =
-                            new LMessage.IntDataSyncMessage(LMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_X,integer);
+                            new LMessage.IntDataSyncMessage(
+                                    LMessage.IntDataSyncMessage.GUI_PLAYER_SIZE_X,integer
+                            );
                     intDataSyncMessage.setPos(player.getPos());
                     NetworkHandler.INSTANCE.sendMessageToServer(intDataSyncMessage);
                 }

@@ -47,17 +47,23 @@ public class PlayerActionHandler {
 
     //click empty
     @SubscribeEvent
-    public void handleClickEmpty(PlayerInteractEvent.RightClickEmpty rightClickBlock){
-        TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickBlock,true);
-        if(rayResult != null && rightClickBlock.getHand() == EnumHand.MAIN_HAND){
+    public void handleClickEmpty(PlayerInteractEvent.RightClickEmpty rightClickEmpty){
+        TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickEmpty,true);
+        if(rayResult != null && rightClickEmpty.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
+            rightClickEmpty.setCancellationResult(EnumActionResult.SUCCESS);
         }
     }
 
     //click with item
     @SubscribeEvent
     public void handleClickItem(PlayerInteractEvent.RightClickItem rightClickBlock){
-
+        TileEntityRayResult rayResult = checkIsClickedOnTileEntity(rightClickBlock,true);
+        if(rayResult != null && rightClickBlock.getHand() == EnumHand.MAIN_HAND){
+            rayResult.tileEntity.onRightClick(rayResult.hitVec);
+            rightClickBlock.setCancellationResult(EnumActionResult.SUCCESS);
+            rightClickBlock.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
@@ -65,7 +71,7 @@ public class PlayerActionHandler {
         TileEntityRayResult rayResult = checkIsClickedOnTileEntity(entityInteract,false);
         if(rayResult != null && entityInteract.getHand() == EnumHand.MAIN_HAND){
             rayResult.tileEntity.onRightClick(rayResult.hitVec);
-            entityInteract.setCancellationResult(EnumActionResult.PASS);
+            entityInteract.setCancellationResult(EnumActionResult.SUCCESS);
             entityInteract.setCanceled(true);
         }
     }

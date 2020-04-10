@@ -7,7 +7,7 @@ import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenGLDis
 import com.nowandfuture.mod.core.client.renders.videorenderer.PBOFrameTexture;
 import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
-import com.nowandfuture.mod.handler.RenderHandler;
+import com.nowandfuture.mod.handler.ClientHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -145,7 +145,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             }
 
         }else {
-            Integer frameLimit = RenderHandler.getScores().get(te.getPos());
+            Integer frameLimit = ClientHandler.getScores().get(te.getPos());
             if(frameLimit == null) frameLimit = 0;
 
             if(r.nextInt(100) <= 100 - DRAW_FRAME_NUMBER &&
