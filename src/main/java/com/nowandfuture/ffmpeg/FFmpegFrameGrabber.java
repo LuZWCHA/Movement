@@ -1,4 +1,3 @@
-package com.nowandfuture.ffmpeg;
 /*
  * Copyright (C) 2009-2019 Samuel Audet
  *
@@ -47,6 +46,22 @@ package com.nowandfuture.ffmpeg;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+package com.nowandfuture.ffmpeg;
+
+import org.bytedeco.ffmpeg.avcodec.AVCodec;
+import org.bytedeco.ffmpeg.avcodec.AVCodecContext;
+import org.bytedeco.ffmpeg.avcodec.AVCodecParameters;
+import org.bytedeco.ffmpeg.avcodec.AVPacket;
+import org.bytedeco.ffmpeg.avformat.*;
+import org.bytedeco.ffmpeg.avutil.AVDictionary;
+import org.bytedeco.ffmpeg.avutil.AVDictionaryEntry;
+import org.bytedeco.ffmpeg.avutil.AVFrame;
+import org.bytedeco.ffmpeg.avutil.AVRational;
+import org.bytedeco.ffmpeg.swresample.SwrContext;
+import org.bytedeco.ffmpeg.swscale.SwsContext;
+import org.bytedeco.javacpp.*;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -58,20 +73,9 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.DoublePointer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.PointerPointer;
 
-import org.bytedeco.ffmpeg.avcodec.*;
-import org.bytedeco.ffmpeg.avformat.*;
-import org.bytedeco.ffmpeg.avutil.*;
-import org.bytedeco.ffmpeg.swresample.*;
-import org.bytedeco.ffmpeg.swscale.*;
 import static org.bytedeco.ffmpeg.global.avcodec.*;
-import static org.bytedeco.ffmpeg.global.avdevice.*;
+import static org.bytedeco.ffmpeg.global.avdevice.avdevice_register_all;
 import static org.bytedeco.ffmpeg.global.avformat.*;
 import static org.bytedeco.ffmpeg.global.avutil.*;
 import static org.bytedeco.ffmpeg.global.swresample.*;
@@ -141,6 +145,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     public FFmpegFrameGrabber(InputStream inputStream) {
         this(inputStream, Integer.MAX_VALUE - 8);
     }
+    /** Set maximumSize to 0 to disable seek and minimize startup time. */
     public FFmpegFrameGrabber(InputStream inputStream, int maximumSize) {
         this.inputStream = inputStream;
         this.closeInputStream = true;
@@ -235,8 +240,13 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     if (closeInputStream) {
                         inputStream.close();
                     }
-                } else {
-                    inputStream.reset();
+                } else if (maximumSize > 0) {
+                    try {
+                        inputStream.reset();
+                    } catch (IOException ex) {
+                        // "Resetting to invalid mark", give up?
+                        System.err.println("Error on InputStream.reset(): " + ex);
+                    }
                 }
             } catch (IOException ex) {
                 throw new Exception("Error on InputStream.close(): ", ex);
@@ -772,12 +782,20 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         return oc;
     }
 
+    /** Calls {@code start(true)}. */
     public void start() throws Exception {
+        start(true);
+    }
+    /** Set findStreamInfo to false to minimize startup time, at the expense of robustness. */
+    public void start(boolean findStreamInfo) throws Exception {
         synchronized (org.bytedeco.ffmpeg.global.avcodec.class) {
-            startUnsafe();
+            startUnsafe(findStreamInfo);
         }
     }
     public void startUnsafe() throws Exception {
+        startUnsafe(true);
+    }
+    public void startUnsafe(boolean findStreamInfo) throws Exception {
         if (oc != null && !oc.isNull()) {
             throw new Exception("start() has already been called: Call stop() before calling start() again.");
         }
@@ -849,8 +867,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
 
         oc.max_delay(maxDelay);
 
-        // Retrieve stream information
-        if ((ret = avformat_find_stream_info(oc, (PointerPointer)null)) < 0) {
+        // Retrieve stream information, if desired
+        if (findStreamInfo && (ret = avformat_find_stream_info(oc, (PointerPointer)null)) < 0) {
             throw new Exception("avformat_find_stream_info() error " + ret + ": Could not find stream information.");
         }
 
@@ -1200,18 +1218,21 @@ public class FFmpegFrameGrabber extends FrameGrabber {
     }
 
     public Frame grab() throws Exception {
-        return grabFrame(true, true, true, false);
+        return grabFrame(true, true, true, false, true);
     }
     public Frame grabImage() throws Exception {
-        return grabFrame(false, true, true, false);
+        return grabFrame(false, true, true, false, false);
     }
     public Frame grabSamples() throws Exception {
-        return grabFrame(true, false, true, false);
+        return grabFrame(true, false, true, false, false);
     }
     public Frame grabKeyFrame() throws Exception {
-        return grabFrame(false, true, true, true);
+        return grabFrame(false, true, true, true, false);
     }
     public Frame grabFrame(boolean doAudio, boolean doVideo, boolean doProcessing, boolean keyFrames) throws Exception {
+        return grabFrame(doAudio, doVideo, doProcessing, keyFrames, true);
+    }
+    public Frame grabFrame(boolean doAudio, boolean doVideo, boolean doProcessing, boolean keyFrames, boolean doData) throws Exception {
         if (oc == null || oc.isNull()) {
             throw new Exception("Could not grab: No AVFormatContext. (Has start() been called?)");
         } else if ((!doVideo || video_st == null) && (!doAudio || audio_st == null)) {
@@ -1234,6 +1255,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
         frame.sampleRate = 0;
         frame.audioChannels = 0;
         frame.samples = null;
+        frame.data = null;
         frame.opaque = null;
         if (doVideo && videoFrameGrabbed) {
             if (doProcessing) {
@@ -1263,6 +1285,8 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     }
                 }
             }
+
+            frame.streamIndex = pkt.stream_index();
 
             // Is this a packet from the video stream?
             if (doVideo && video_st != null && pkt.stream_index() == video_st.index()
@@ -1317,6 +1341,10 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                         frame.keyFrame = samples_frame.key_frame() != 0;
                     }
                 }
+            } else if (doData) {
+                // Export the stream byte data for non audio / video frames
+                frame.data = pkt.data().position(0).capacity(pkt.size()).asByteBuffer();
+                done = true;
             }
 
             if (pkt2.size() <= 0) {

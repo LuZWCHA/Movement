@@ -28,7 +28,6 @@ public class OBBox {
 
         private Vector3f directionVector;
 
-
         /**
          * @param facing The facing wants to be created
          * @param aabbounding The OBBOX must be a AABBOX-Create so the every point will map to minX minY minZ ...
@@ -125,7 +124,7 @@ public class OBBox {
 
         public Vector3f getCenter(){
             Vector3f res = Vector3f.add(v0,v2,new Vector3f());
-            return (Vector3f) res.scale(0.5f);
+            return res.scale(0.5f);
         }
     }
 

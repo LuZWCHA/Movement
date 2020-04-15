@@ -181,6 +181,12 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                                     }
                                 }
                             });
+                            else{
+                                Exception exception = player.getLastException();
+                                if(exception != null){
+                                    Movement.logger.warn(exception.getMessage());
+                                }
+                            }
                             return rs;
                         }
                     });

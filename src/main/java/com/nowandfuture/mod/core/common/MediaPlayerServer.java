@@ -48,6 +48,7 @@ public class MediaPlayerServer implements IMediaPlayer {
     @Override
     public void resume() {
         if(syncInfo.isPause()){
+            syncInfo.setDecodeFinished(false);
             syncInfo.setPause(false);
         }
     }
@@ -66,6 +67,11 @@ public class MediaPlayerServer implements IMediaPlayer {
     @Override
     public int getHeight() {
         return 0;
+    }
+
+    @Override
+    public Exception getLastException() {
+        return null;
     }
 
     @Override

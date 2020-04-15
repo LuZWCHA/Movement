@@ -7,6 +7,7 @@ import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
 import com.nowandfuture.mod.core.common.gui.custom.PairSlotsListVew;
 import com.nowandfuture.mod.core.common.gui.custom.PositionEditorView;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
+import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.Dialog;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyLabel;
@@ -45,6 +46,10 @@ public class GuiModule extends AbstractGuiContainer {
     private TextView title;
     private Button backBtn;
     private PairSlotsListVew pairSlotsListVew;
+
+    public GuiModule(){
+
+    }
 
     public GuiModule(InventoryPlayer inventorySlotsIn, TileEntityCoreModule tileEntityModule) {
         super(new ContainerModule(inventorySlotsIn,tileEntityModule));
@@ -357,12 +362,16 @@ public class GuiModule extends AbstractGuiContainer {
         List<GuiRegion> list = Lists.newArrayList();
         int left = guiLeft + xSize + 4;
         int top = guiTop + 4;
-        list.add(GuiRegion.of(left,top,left + 100,top + 120));
+        list.add(GuiRegion.of(left,top,left + 100,top + 140));
         return list;
     }
 
     @Override
     public long getId() {
         return GUI_ID;
+    }
+
+    public static JEIGuiHandler getJEIGuiHandler(){
+        return new GuiModule().createJEIGuiHandler();
     }
 }

@@ -178,7 +178,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             }
         }
 
-
     }
 
     private void uploadTextureUsePBO(TileEntitySimplePlayer te, MinecraftOpenGLDisplayHandler.ImageFrame frame, BufferedImage image){

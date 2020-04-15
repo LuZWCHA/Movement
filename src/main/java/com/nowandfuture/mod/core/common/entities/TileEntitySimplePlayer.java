@@ -5,13 +5,12 @@ import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenALSoundHandler;
 import com.nowandfuture.mod.core.client.renders.videorenderer.MinecraftOpenGLDisplayHandler;
-import com.nowandfuture.mod.core.client.renders.tiles.VideoRenderer;
 import com.nowandfuture.mod.core.common.MediaPlayerServer;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.utils.math.MathHelper;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
@@ -83,6 +82,10 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
 
     public boolean touchSource(String url) throws FrameGrabber.Exception {
        return simplePlayer.touchSource(url);
+    }
+
+    public Exception getLastException(){
+        return simplePlayer.getLastException();
     }
 
     public void play() throws Exception {

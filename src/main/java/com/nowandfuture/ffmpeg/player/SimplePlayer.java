@@ -13,6 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16;
 
 public class SimplePlayer implements IMediaPlayer{
+    private Exception lastException;
     private FFmpegFrameGrabber grabber;
     private int channels;
 
@@ -81,6 +82,10 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setHandler(audioHandler);
     }
 
+    public Exception getLastException() {
+        return lastException;
+    }
+
     public boolean touchSource(String url) {
         //check grabber
         if(grabber != null) {
@@ -88,8 +93,10 @@ public class SimplePlayer implements IMediaPlayer{
                 end();
             } catch (Exception e) {
                 e.printStackTrace();
+                lastException = e;
             }
             grabber = null;
+//            syncInfo.notifyAll();
             prepare();
         }
         cleanup();
@@ -99,6 +106,7 @@ public class SimplePlayer implements IMediaPlayer{
             grabber = FFmpegFrameGrabber.createDefault(url);
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
+            lastException = e;
             isLoading = false;
             return false;
         }
@@ -113,9 +121,11 @@ public class SimplePlayer implements IMediaPlayer{
             isLoading = false;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
+            lastException = e;
             isLoading = false;
             return false;
         }
+
         info(grabber);
         updateTotalTime(getTotalTime());
         return true;
@@ -132,6 +142,10 @@ public class SimplePlayer implements IMediaPlayer{
 
         displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
         displayThread.start();
+
+//        if(syncInfo.isPause()){
+//            syncInfo.setPause(false);
+//        }
     }
 
     public void info(FFmpegFrameGrabber grabber){
@@ -141,7 +155,13 @@ public class SimplePlayer implements IMediaPlayer{
     @Override
     public void end() throws Exception {
         if(syncInfo.isPause()){
+
+            syncInfo.setDecodeFinished(true);
             syncInfo.setPause(false);
+
+            synchronized (syncInfo) {
+                syncInfo.notifyAll();
+            }
         }
 
         if(audioPlayThread != null) {
@@ -212,6 +232,7 @@ public class SimplePlayer implements IMediaPlayer{
 
     @Override
     public void resume(){
+        syncInfo.setDecodeFinished(false);
         syncInfo.setPause(false);
         synchronized (syncInfo) {
             syncInfo.notifyAll();
@@ -252,6 +273,7 @@ public class SimplePlayer implements IMediaPlayer{
             return true;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
+            lastException = e;
         }
         return false;
     }

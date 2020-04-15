@@ -1,7 +1,5 @@
 package com.nowandfuture.ffmpeg;
 
-import com.nowandfuture.ffmpeg.player.PlayHandler;
-
 import java.util.Map;
 
 public interface IMediaPlayer {
@@ -26,6 +24,8 @@ public interface IMediaPlayer {
     int getHeight();
 
     boolean isLoading();
+
+    Exception getLastException();
 
     void getInfo(Map<String,String> metadata);
 

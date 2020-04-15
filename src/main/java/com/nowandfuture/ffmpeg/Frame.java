@@ -1,31 +1,31 @@
 package com.nowandfuture.ffmpeg;
+/*
+ * Copyright (C) 2015-2019 Samuel Audet
+ *
+ * Licensed either under the Apache License, Version 2.0, or (at your option)
+ * under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (subject to the "Classpath" exception),
+ * either version 2, or any later version (collectively, the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.gnu.org/licenses/
+ *     http://www.gnu.org/software/classpath/license.html
+ *
+ * or as provided in the LICENSE.txt file that accompanied this code.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
+import org.bytedeco.javacpp.*;
+import org.bytedeco.javacpp.indexer.*;
+
+import java.nio.*;
 import java.util.EnumSet;
-
-import org.bytedeco.javacpp.BytePointer;
-import org.bytedeco.javacpp.DoublePointer;
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.LongPointer;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.ShortPointer;
-import org.bytedeco.javacpp.indexer.ByteIndexer;
-import org.bytedeco.javacpp.indexer.DoubleIndexer;
-import org.bytedeco.javacpp.indexer.FloatIndexer;
-import org.bytedeco.javacpp.indexer.Indexable;
-import org.bytedeco.javacpp.indexer.Indexer;
-import org.bytedeco.javacpp.indexer.IntIndexer;
-import org.bytedeco.javacpp.indexer.LongIndexer;
-import org.bytedeco.javacpp.indexer.ShortIndexer;
-import org.bytedeco.javacpp.indexer.UByteIndexer;
-import org.bytedeco.javacpp.indexer.UShortIndexer;
 
 /**
  * A class to manage the data of audio and video frames. It it used by
@@ -54,6 +54,7 @@ public class Frame implements Indexable {
     public static enum Type {
         VIDEO,
         AUDIO,
+        DATA
     }
 
     /** Information associated with the {@link #image} field. */
@@ -71,6 +72,12 @@ public class Frame implements Indexable {
 
     /** Buffers to hold audio samples from multiple channels for an audio frame. */
     public Buffer[] samples;
+
+    /** Buffer to hold a data stream associated with a frame. */
+    public ByteBuffer data;
+
+    /** Stream number the audio|video|other data is associated with. */
+    public int streamIndex;
 
     /** The underlying data object, for example, Pointer, AVFrame, IplImage, or Mat. */
     public Object opaque;
@@ -97,6 +104,8 @@ public class Frame implements Indexable {
         this.imageChannels = channels;
         this.imageStride = imageStride;
         this.image = new Buffer[1];
+        this.data = null;
+        this.streamIndex = -1;
 
         Pointer pointer = new BytePointer(imageHeight * imageStride * pixelSize(depth));
         ByteBuffer buffer = pointer.asByteBuffer();
@@ -185,7 +194,8 @@ public class Frame implements Indexable {
         newFrame.imageChannels = imageChannels;
         newFrame.imageStride = imageStride;
         newFrame.keyFrame = keyFrame;
-        newFrame.opaque = new Pointer[2];
+        newFrame.streamIndex = streamIndex;
+        newFrame.opaque = new Pointer[3];
         if (image != null) {
             newFrame.image = new Buffer[image.length];
             ((Pointer[])newFrame.opaque)[0] = cloneBufferArray(image, newFrame.image);
@@ -197,6 +207,13 @@ public class Frame implements Indexable {
         if (samples != null) {
             newFrame.samples = new Buffer[samples.length];
             ((Pointer[])newFrame.opaque)[1] = cloneBufferArray(samples, newFrame.samples);
+        }
+
+        // Other data streams
+        if (data != null) {
+            ByteBuffer[] dst = new ByteBuffer[1];
+            ((Pointer[])newFrame.opaque)[2] = cloneBufferArray(new ByteBuffer[]{data}, dst);
+            newFrame.data = dst[0];
         }
 
         // Add timestamp
@@ -308,6 +325,7 @@ public class Frame implements Indexable {
         EnumSet<Type> type = EnumSet.noneOf(Type.class);
         if (image != null) type.add(Type.VIDEO);
         if (samples != null) type.add(Type.AUDIO);
+        if (data != null) type.add(Type.DATA);
         return type;
     }
 }

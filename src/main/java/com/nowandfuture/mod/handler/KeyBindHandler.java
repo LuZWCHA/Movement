@@ -1,22 +1,15 @@
 package com.nowandfuture.mod.handler;
 
-import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
-import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;
-import net.java.games.input.Component;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
 
 @SideOnly(Side.CLIENT)
 public class KeyBindHandler {
@@ -69,10 +62,11 @@ public class KeyBindHandler {
 
 
     @SubscribeEvent
-    public void keyDown(InputEvent.KeyInputEvent event){
-        for (IKeyListener kl :
-                listeners) {
-            kl.onKeyDown();
-        }
+    public void keyDown(TickEvent.ClientTickEvent event){
+        if(event.phase == TickEvent.Phase.START)
+            for (IKeyListener kl :
+                    listeners) {
+                kl.onKeyDown();
+            }
     }
 }
