@@ -3,7 +3,6 @@ package com.nowandfuture.mod.core.selection;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -180,6 +179,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 limitZ = new Vector3f(1,0,0);
                 pushAxis(limitZ);
             }
+
             int impactCount = impactAxises.size();
 
             if(impactCount > 2){
@@ -218,6 +218,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
             List<AxisAlignedBB> testList = world.getCollisionBoxes(impactEntity,
                    axisAlignedBB);
             x = newV.x;y = newV.y;z = newV.z;
+
             if(!testList.isEmpty()){
                 if (y != 0.0D)
                 {
@@ -282,6 +283,7 @@ public class AxisAlignedBBWrap extends AxisAlignedBB {
                 newV.set(x,y,z);
             }
 
+            impactAxises.clear();
 //            System.out.println(newV.toString());
 
             if(setX)

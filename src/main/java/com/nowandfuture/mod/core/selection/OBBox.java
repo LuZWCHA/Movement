@@ -426,6 +426,7 @@ public class OBBox {
 
         public static float satTest(OBBox moveOBB, OBBox staticOBB, Vector3f v, Vector3f ar){
             float maxTime = Float.MIN_VALUE;
+
             Vector3f axis = null;
             for (int i = 0; i <3; i++)
             {

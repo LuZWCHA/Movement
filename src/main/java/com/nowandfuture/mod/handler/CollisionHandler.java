@@ -1,6 +1,9 @@
 package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
+import com.nowandfuture.mod.core.selection.AxisAlignedBBWrap;
+import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
@@ -32,65 +35,65 @@ public class CollisionHandler {
             if(te instanceof TileEntityModule)
                 modules.add((TileEntityModule) te);
         }
-//
-//        for (TileEntityModule module:
-//                modules) {
-//
-//            if(!module.isEnable() || !module.isEnableCollision()) continue;
-//
-//            AxisAlignedBB moduleAABB = module.getModuleBase().getMinAABB();
-//            if(moduleAABB != null){
-//
-//                OBBox obBox = new OBBox(moduleAABB);
-//                Matrix4f matrix4f = module.getModuleBase().getTransMatrix();
-//                obBox.mulMatrix(matrix4f);
-//                module.setRenderBox(new OBBox(obBox));
-//
-//                obBox.translate(module.getModulePos());
-//                try {
-//
-//                    if(obBox.intersect(expanded)){
-//                        float impactTime = 0;
-//                        Vector3f v;
-//                        if(entity != null) {
-//                            AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
-//
-//                            v = calculateExpandValue(orgAABB,expanded);
-//
-//                            Vector3f axis = new Vector3f();
-//
-//                            float time = obBox.collisionDetermination(orgAABB, v,axis);
-//                            if(time >= 0) {
-//                                module.setImpactAxis(axis);
-//                                AxisAlignedBBWrap wrap = null;
-//                                for (AxisAlignedBB aabb :
-//                                        list) {
-//                                    if (aabb instanceof AxisAlignedBBWrap)
-//                                        wrap = (AxisAlignedBBWrap) aabb;
-//                                }
-//
-//                                if(wrap == null) {
-//                                    wrap = new AxisAlignedBBWrap(entity, impactTime, v);
-//                                    list.add(wrap);
-//                                }
-//                                wrap.pushAxis(axis);
-//                                wrap.setImpactTime(impactTime);
-//
-//                            }else{
-//                                module.setImpactAxis(null);
-//                            }
-//
-//                        }else{
-//                            //conclusion with particles or blocks
-//                        }
-//
-//                    }
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//        }
+
+        for (TileEntityModule module:
+                modules) {
+
+            if(!module.isEnable() || !module.isEnableCollision()) continue;
+
+            AxisAlignedBB moduleAABB = module.getModuleBase().getMinAABB();
+            if(moduleAABB != null){
+
+                OBBox obBox = new OBBox(moduleAABB);
+                Matrix4f matrix4f = module.getModuleBase().getTransMatrix();
+                obBox.mulMatrix(matrix4f);
+                module.setRenderBox(new OBBox(obBox));
+
+                obBox.translate(module.getModulePos());
+                try {
+
+                    if(obBox.intersect(expanded)){
+                        float impactTime = 0;
+                        Vector3f v;
+                        if(entity != null) {
+                            AxisAlignedBB orgAABB = entity.getEntityBoundingBox();
+
+                            v = calculateExpandValue(orgAABB,expanded);
+
+                            Vector3f axis = new Vector3f();
+
+                            float time = obBox.collisionDetermination(orgAABB, v,axis);
+                            if(time >= 0) {
+                                module.setImpactAxis(axis);
+                                AxisAlignedBBWrap wrap = null;
+                                for (AxisAlignedBB aabb :
+                                        list) {
+                                    if (aabb instanceof AxisAlignedBBWrap)
+                                        wrap = (AxisAlignedBBWrap) aabb;
+                                }
+
+                                if(wrap == null) {
+                                    wrap = new AxisAlignedBBWrap(entity, impactTime, v);
+                                    list.add(wrap);
+                                }
+                                wrap.pushAxis(axis);
+                                wrap.setImpactTime(impactTime);
+
+                            }else{
+                                module.setImpactAxis(null);
+                            }
+
+                        }else{
+                            //conclusion with particles or blocks
+                        }
+
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
+        }
 
     }
 
