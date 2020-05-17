@@ -66,6 +66,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);
     protected abstract void transform(final Matrix4f renderer, float p,T preKey,T key);
+    @Deprecated
     public abstract void transformMatrix(final Matrix4f renderer, float p,T preKey,T key);
     protected abstract void transformPost(final Matrix4f renderer, float p,T preKey,T key);
 

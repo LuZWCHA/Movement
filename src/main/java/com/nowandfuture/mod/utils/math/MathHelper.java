@@ -13,13 +13,12 @@ import java.util.List;
 
 public class MathHelper {
 
-    public static class Vec4{
+    public static class Vec4f {
         float x; float y; float z; float w;
-        public Vec4(){x=0;y=0;z=0;w=0;}
-        public Vec4(float x,float y,float z,float w){this.x = x; this.y = y; this.z = z; this.w = w;}
-        public Vec4(double x,double y,double z,double w){this.x = (float) x; this.y = (float) y; this.z = (float) z; this.w = (float) w;}
+        public Vec4f(){x=0;y=0;z=0;w=0;}
+        public Vec4f(float x, float y, float z, float w){this.x = x; this.y = y; this.z = z; this.w = w;}
+        public Vec4f(double x, double y, double z, double w){this.x = (float) x; this.y = (float) y; this.z = (float) z; this.w = (float) w;}
     }
-
 
     public static Quat4f to(final Quaternion from){
         return new Quat4f(from.x,from.y,from.z,from.w);
@@ -42,13 +41,13 @@ public class MathHelper {
         to.w = from.w;
     }
 
-    public static Quaternion interpolate(Quaternion var1, Quaternion var2, float var3) {
-        double var4 = var2.x * var1.x + var2.y * var1.y + var2.z * var1.z + var2.w * var1.w;
+    public static Quaternion interpolate(Quaternion q1, Quaternion q2, float t) {
+        double var4 = q2.x * q1.x + q2.y * q1.y + q2.z * q1.z + q2.w * q1.w;
         if (var4 < 0.0D) {
-            var1.x = -var1.x;
-            var1.y = -var1.y;
-            var1.z = -var1.z;
-            var1.w = -var1.w;
+            q1.x = -q1.x;
+            q1.y = -q1.y;
+            q1.z = -q1.z;
+            q1.w = -q1.w;
             var4 = -var4;
         }
 
@@ -57,17 +56,17 @@ public class MathHelper {
         if (1.0D - var4 > 1.0E-6D) {
             double var10 = Math.acos(var4);
             double var12 = net.minecraft.util.math.MathHelper.sin((float) var10);
-            var6 = net.minecraft.util.math.MathHelper.sin((float) ((1.0f - var3) * var10)) / var12;
-            var8 = net.minecraft.util.math.MathHelper.sin((float) (var3 * var10)) / var12;
+            var6 = net.minecraft.util.math.MathHelper.sin((float) ((1.0f - t) * var10)) / var12;
+            var8 = net.minecraft.util.math.MathHelper.sin((float) (t * var10)) / var12;
         } else {
-            var6 = 1.0D - (double)var3;
-            var8 = var3;
+            var6 = 1.0D - (double)t;
+            var8 = t;
         }
 
-        float w = (float)(var6 * (double)var1.w + var8 * (double)var2.w);
-        float x = (float)(var6 * (double)var1.x + var8 * (double)var2.x);
-        float y = (float)(var6 * (double)var1.y + var8 * (double)var2.y);
-        float z = (float)(var6 * (double)var1.z + var8 * (double)var2.z);
+        float w = (float)(var6 * (double)q1.w + var8 * (double)q2.w);
+        float x = (float)(var6 * (double)q1.x + var8 * (double)q2.x);
+        float y = (float)(var6 * (double)q1.y + var8 * (double)q2.y);
+        float z = (float)(var6 * (double)q1.z + var8 * (double)q2.z);
 
         return new Quaternion(x,y,z,w);
     }
@@ -94,7 +93,7 @@ public class MathHelper {
 
     public static double clamp(double a)
     {
-        return a>1d?1d:(a<-1d?-1d:a);
+        return a>1d?1d:(Math.max(a, -1d));
     }
 
     public static float wrap(float a)
@@ -113,22 +112,22 @@ public class MathHelper {
                                            double axisx, double axisy, double axisz, float radian)
     {
         radian *= 0.5;
-        Vec4 Qsrc = new Vec4(0,x,y,z);
-        Vec4 Q1 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian), axisx* net.minecraft.util.math.MathHelper.sin(radian), axisy*Math.sin(radian), axisz* net.minecraft.util.math.MathHelper.sin(radian));
-        Vec4 Q2 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian),-axisx*Math.sin(radian),-axisy* net.minecraft.util.math.MathHelper.sin(radian),-axisz* net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Qsrc = new Vec4f(0,x,y,z);
+        Vec4f Q1 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian), axisx* net.minecraft.util.math.MathHelper.sin(radian), axisy*Math.sin(radian), axisz* net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Q2 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian),-axisx*Math.sin(radian),-axisy* net.minecraft.util.math.MathHelper.sin(radian),-axisz* net.minecraft.util.math.MathHelper.sin(radian));
 
-        Vec4 ans = MulQuaternion(MulQuaternion(Q2, Qsrc), Q1);
+        Vec4f ans = mulQuaternion(mulQuaternion(Q2, Qsrc), Q1);
         return new Vec3d(ans.y, ans.z, ans.w);
     }
 
     public static Vec3d rotateAroundVector(Vec3d vecIn, double x, double y, double z, float radian)
     {
         radian *= 0.5;
-        Vec4 Qsrc = new Vec4(0d,vecIn.x,vecIn.y,vecIn.z);
-        Vec4 Q1 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian), x*net.minecraft.util.math.MathHelper.sin(radian), y*net.minecraft.util.math.MathHelper.sin(radian), z*net.minecraft.util.math.MathHelper.sin(radian));
-        Vec4 Q2 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian),-x*net.minecraft.util.math.MathHelper.sin(radian),-y*net.minecraft.util.math.MathHelper.sin(radian),-z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Qsrc = new Vec4f(0d,vecIn.x,vecIn.y,vecIn.z);
+        Vec4f Q1 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian), x*net.minecraft.util.math.MathHelper.sin(radian), y*net.minecraft.util.math.MathHelper.sin(radian), z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Q2 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian),-x*net.minecraft.util.math.MathHelper.sin(radian),-y*net.minecraft.util.math.MathHelper.sin(radian),-z*net.minecraft.util.math.MathHelper.sin(radian));
 
-        Vec4 ans = MulQuaternion(MulQuaternion(Q2, Qsrc), Q1);
+        Vec4f ans = mulQuaternion(mulQuaternion(Q2, Qsrc), Q1);
 
         return new Vec3d(ans.y,ans.z,ans.w);
 
@@ -137,17 +136,17 @@ public class MathHelper {
     public static Vec3d rotateAroundVector(Vec3d rotPos, Vec3d axis, float radian)
     {
         radian *= 0.5;
-        Vec4 Qsrc = new Vec4(0,rotPos.x,rotPos.y,rotPos.z);
-        Vec4 Q1 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian), axis.x*net.minecraft.util.math.MathHelper.sin(radian), axis.y*net.minecraft.util.math.MathHelper.sin(radian), axis.z*net.minecraft.util.math.MathHelper.sin(radian));
-        Vec4 Q2 = new Vec4(net.minecraft.util.math.MathHelper.cos(radian),-axis.x*net.minecraft.util.math.MathHelper.sin(radian),-axis.y*net.minecraft.util.math.MathHelper.sin(radian),-axis.z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Qsrc = new Vec4f(0,rotPos.x,rotPos.y,rotPos.z);
+        Vec4f Q1 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian), axis.x*net.minecraft.util.math.MathHelper.sin(radian), axis.y*net.minecraft.util.math.MathHelper.sin(radian), axis.z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f Q2 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian),-axis.x*net.minecraft.util.math.MathHelper.sin(radian),-axis.y*net.minecraft.util.math.MathHelper.sin(radian),-axis.z*net.minecraft.util.math.MathHelper.sin(radian));
 
-        Vec4 ans = MulQuaternion(MulQuaternion(Q2, Qsrc), Q1);
+        Vec4f ans = mulQuaternion(mulQuaternion(Q2, Qsrc), Q1);
         return new Vec3d(ans.y, ans.z, ans.w);
     }
 
-    private static Vec4 MulQuaternion(Vec4 q1, Vec4 q2)
+    private static Vec4f mulQuaternion(Vec4f q1, Vec4f q2)
     {
-        return new Vec4(
+        return new Vec4f(
                 q1.x*q2.x - (q1.y*q2.y+q1.z*q2.z+q1.w*q2.w),
                 q1.x*q2.y + q2.x*q1.y + (q1.z*q2.w - q1.w*q2.z),
                 q1.x*q2.z + q2.x*q1.z + (q1.w*q2.y - q1.y*q2.w),
@@ -164,7 +163,7 @@ public class MathHelper {
         return new Quaternion(-quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
     }
 
-    public static Vector3f mult(Vector3f v, Quaternion quaternion) {
+    public static Vector3f mul(Vector3f v, Quaternion quaternion) {
         if (v.x == 0 && v.y == 0 && v.z == 0) {
             return new Vector3f(0, 0, 0);
         } else {
@@ -180,7 +179,12 @@ public class MathHelper {
         }
     }
 
-    public static Matrix4f mult(Matrix4f org, Quaternion quaternion) {
+    /**
+     * @param org the original matrix
+     * @param quaternion the quaternion that will be applied in the original matrix
+     * @return the matrix after rotation
+     */
+    public static Matrix4f mul(Matrix4f org, Quaternion quaternion) {
         float x = quaternion.x;
         float y = quaternion.y;
         float z = quaternion.z;
@@ -212,7 +216,13 @@ public class MathHelper {
     }
 
 
-    public static Vec3d Slerp(float t, Vec3d base, Vec3d goal)
+    /**
+     * @param t factor from 0-1
+     * @param base the Vector base
+     * @param goal the Vector goal
+     * @return return the middle state of base and goal
+     */
+    public static Vec3d slerp(float t, Vec3d base, Vec3d goal)
     {
         float theta = (float) Math.acos(clamp(base.dotProduct(goal)));
         if(theta == 0 || theta == 1d)return base;
@@ -283,7 +293,7 @@ public class MathHelper {
     //z+
     public static int getRelativePos2D(BlockPos fixedPos,BlockPos observerPos,Quaternion q){
         BlockPos pos = observerPos.subtract(fixedPos);
-        Vector3f v = MathHelper.mult(new Vector3f(pos),q);
+        Vector3f v = MathHelper.mul(new Vector3f(pos),q);
         int x = (int) v.getX();
         int z = (int) v.getZ();
         int y = (int) v.getY();
@@ -306,6 +316,26 @@ public class MathHelper {
     public static double invSqrt(float x)
     {
         return net.minecraft.util.math.MathHelper.fastInvSqrt(x);
+    }
+
+    public static double fastBigPow(double x, int n) {
+        if (n < 0) {
+            x = 1d / x;
+        }
+        n = Math.abs(n);
+        return fastPow(x, n);
+    }
+
+    private static double fastPow(double x, int n) {
+        if (n == 0) {
+            return 1.0d;
+        }
+        double half = fastPow(x, n >> 1);
+        if ((n & 1) == 0) {
+            return half * half;
+        } else {
+            return half * half * x;
+        }
     }
 
     public static double fastSigmoid(double x){

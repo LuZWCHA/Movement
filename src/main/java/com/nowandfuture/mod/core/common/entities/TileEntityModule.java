@@ -41,6 +41,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public final static String NBT_ENABLE = "Enable";
     public final static String NBT_ENABLE_COLLISION = "EnableCollision";
     private final static String NBT_RENDER_REALTIME = "RenderRealtime";
+    private final static String NBT_NODE_TYPES = "NodeTypes";
 
     private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;
@@ -52,7 +53,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     protected ModuleBase moduleBase;
 
-    //---------------CLIENT_DEBUG----------------
+    //----------------------------------------CLIENT_DEBUG------------------------------------
     private Vector3f impactAxis;
     private OBBox renderBox;
 
@@ -83,14 +84,11 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         //fix pos
         newModuleBase.setModulePos(getPos());
         moduleBase = newModuleBase;
-    }
-
-    public ModuleBase getModuleBase() {
-        return moduleBase;
+        if(moduleBase.getTransformerHead() == null)
+            moduleBase.createDefaultTransformer();
     }
 
     public void setPrefab(@Nonnull AbstractPrefab prefab) {
-        //fix pos
         prefab.setBaseLocation(getPos());
         moduleBase.setPrefab(prefab);
     }
@@ -250,7 +248,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
             getLine().setEnable(nbtGet.getBoolean(NBT_ENABLE));
             getLine().setTick(nbtGet.getLong(NBT_TICK));
         }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
-            getModuleBase().getLine().deserializeNBT(nbtGet);
+            getLine().deserializeNBT(nbtGet);
         }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){
             enableCollision = nbtGet.getBoolean(NBT_ENABLE_COLLISION);
         }

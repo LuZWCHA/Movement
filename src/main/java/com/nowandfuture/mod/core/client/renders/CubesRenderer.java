@@ -208,7 +208,7 @@ public class CubesRenderer implements IRender{
                 Minecraft.getMinecraft().entityRenderer.disableLightmap();
             }
 
-            dispatcher.render(tileEntry.getValue(),
+            renderer.render(tileEntry.getValue(),
                     tileEntry.getKey().getX(),
                     tileEntry.getKey().getY(),
                     tileEntry.getKey().getZ(),

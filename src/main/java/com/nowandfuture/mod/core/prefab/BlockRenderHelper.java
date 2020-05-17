@@ -1,18 +1,18 @@
 package com.nowandfuture.mod.core.prefab;
 
-import com.nowandfuture.mod.Movement;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexBuffer;
-import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.opengl.GL11;
-
-import java.util.concurrent.locks.Lock;
 
 public class BlockRenderHelper {
     private int perListSize = 1 << 12;
@@ -156,8 +156,25 @@ public class BlockRenderHelper {
         {
             if(i + lastIndexInRenderList >= size) break;
             LocalWorld.LocalBlock wrapBlock = localWorld.getRenderBlocks().get(i + lastIndexInRenderList);
-
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             dispatcher.renderBlock(wrapBlock.blockState,wrapBlock.pos,localWorld,bufferBuilder);
+
+            TileEntity tileEntity = localWorld.getTileEntity(wrapBlock.pos);
+            if(tileEntity != null) {
+                BlockPos blockPos = tileEntity.getPos();
+
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                TileEntitySpecialRenderer renderer = TileEntityRendererDispatcher.instance.getRenderer(tileEntity.getClass());
+
+                renderer.render(tileEntity,
+                        blockPos.getX(),
+                        blockPos.getY(),
+                        blockPos.getZ(),
+                        (float) 0, -1, 1);
+            }
+
         }
         lastIndexInRenderList += i;
 
@@ -170,9 +187,7 @@ public class BlockRenderHelper {
     }
 
     private void renderWithLight(){
-//        Minecraft.getMinecraft().entityRenderer.enableLightmap();
         render2();
-//        Minecraft.getMinecraft().entityRenderer.disableLightmap();
     }
 
     private void render2(){
@@ -188,7 +203,24 @@ public class BlockRenderHelper {
             if(wrapBlock.blockState.getRenderType() == EnumBlockRenderType.INVISIBLE)
                 continue;
 
+            Minecraft.getMinecraft().getTextureManager()
+                    .bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             dispatcher.renderBlock(wrapBlock.blockState,wrapBlock.pos,localWorld,bufferBuilder);
+            TileEntity tileEntity = localWorld.getTileEntity(wrapBlock.pos);
+
+            if(tileEntity != null) {
+                BlockPos blockPos = tileEntity.getPos();
+
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+                TileEntitySpecialRenderer renderer = TileEntityRendererDispatcher.instance.getRenderer(tileEntity.getClass());
+
+                renderer.render(tileEntity,
+                        blockPos.getX(),
+                        blockPos.getY(),
+                        blockPos.getZ(),
+                        (float) 0, -1, 1);
+            }
         }
 
         bufferBuilder.finishDrawing();
@@ -233,6 +265,7 @@ public class BlockRenderHelper {
         }
     }
 
+    @Deprecated
     static class RenderThread extends Thread{
 
         private BlockRenderHelper helper;

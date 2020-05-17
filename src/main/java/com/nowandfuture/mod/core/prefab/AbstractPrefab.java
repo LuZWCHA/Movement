@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.api.Unstable;
 import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
 import com.nowandfuture.mod.utils.ByteZip;
 import joptsimple.internal.Strings;
@@ -11,11 +12,13 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -127,6 +130,45 @@ public abstract class AbstractPrefab implements ITickable {
 
     public LocalWorldWrap getWorldWrap() {
         return worldWrap;
+    }
+
+    @Unstable(description = "this method only be used as replacement of OBBs")
+    public void collectAABBs(@Nonnull List<AxisAlignedBB> list,AxisAlignedBB area){
+        int minX = MathHelper.floor(area.minX);
+        int maxX = MathHelper.ceil(area.maxX);
+        int minY = MathHelper.floor(area.minY);
+        int maxY = MathHelper.ceil(area.maxY);
+        int minZ = MathHelper.floor(area.minZ);
+        int maxZ = MathHelper.ceil(area.maxZ);
+
+        BlockPos.PooledMutableBlockPos mutableBlockPos = BlockPos.PooledMutableBlockPos.retain();
+        for (int i = minX; i < maxX; i++) {
+            for (int j = minY; j < maxY; j++) {
+                for (int k = minZ ; k < maxZ; k++) {
+                    IBlockState state = localWorld.getBlockState(mutableBlockPos.setPos(i,j,k));
+                    if(state.getBlock().isCollidable()){
+                        AxisAlignedBB axisAlignedBB = state.getCollisionBoundingBox(localWorld,mutableBlockPos.setPos(i,j,k));
+
+                        state.addCollisionBoxToList(getWorldWrap(),mutableBlockPos.setPos(i,j,k),area,list,null,false);
+//                        if(axisAlignedBB != null && axisAlignedBB != Block.NULL_AABB)
+//                            list.add(axisAlignedBB);
+                    }
+                }
+            }
+        }
+        mutableBlockPos.release();
+
+//        localWorld.stream(new LocalWorld.LocalWorldSearch() {
+//            @Override
+//            public void search(BlockPos blockPos, IBlockState state, TileEntity tileEntity) {
+//                if(state.getBlock().isCollidable()){
+//                    AxisAlignedBB axisAlignedBB = new AxisAlignedBB(0,0,0,1,1,1);
+////                        state.addCollisionBoxToList(getWorldWrap(),mutableBlockPos.setPos(i,j,k),area,list,null,false);
+//                    if(axisAlignedBB != null && axisAlignedBB != Block.NULL_AABB)
+//                        list.add(axisAlignedBB.offset(getBasePos()));
+//                }
+//            }
+//        });
     }
 
     @Override
@@ -339,7 +381,7 @@ public abstract class AbstractPrefab implements ITickable {
     public void decompressLocalBlocks(@Nonnull NBTTagCompound nbt) {
 
         //blockid  x x x x\x x x x\x x x x\x x x x  ;
-        //          meta        blocks    id
+        //          meta        block's    id
         final int decompressSize = nbt.getInteger(NBT_DECOMPRESS_SIZE);
         if (decompressSize <= 0) return;
 

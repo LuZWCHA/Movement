@@ -36,7 +36,7 @@ public class RotationTransformNode extends AbstractTransformNode<RotationTransfo
             res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX, preKey.rotY, preKey.rotZ),
                     MathHelper.eulerAnglesToQuaternion(key.rotX, key.rotY, key.rotZ), p);
         }
-        MathHelper.mult(renderer, res);
+        MathHelper.mul(renderer, res);
 
         renderer.translate(vector3f.negate());
     }

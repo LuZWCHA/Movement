@@ -48,8 +48,6 @@ configurations {
     compile.extendsFrom(shade)
 }
 
-
-
 dependencies {
     shade files('libs/ffmpeg.jar')
 //    shade files('libs/ffmpeg-windows-x86_64.jar')

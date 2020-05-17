@@ -22,7 +22,6 @@ import org.lwjgl.util.Color;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -167,10 +166,10 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                                 @Override
                                 public void run() {
                                     player.setUrl(url);
-                                    String sendUrl = new String(url.getBytes(), StandardCharsets.UTF_8);
+
                                     LMessage.StringDataSyncMessage message =
-                                            new LMessage.StringDataSyncMessage(LMessage.StringDataSyncMessage.GUI_PLAYER_URL,
-                                                    sendUrl);
+                                            new LMessage.StringDataSyncMessage(
+                                                    LMessage.StringDataSyncMessage.GUI_PLAYER_URL, url);
                                     message.setPos(player.getPos());
                                     NetworkHandler.INSTANCE.sendMessageToServer(message);
                                     try {

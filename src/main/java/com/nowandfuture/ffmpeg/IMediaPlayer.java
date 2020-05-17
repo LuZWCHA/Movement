@@ -57,14 +57,14 @@ public interface IMediaPlayer {
         private boolean isPause;
         private boolean decodeFinished;
 
-        public static long MAX_AUDIO_DIFF = 10;
-        public static long MAX_VIDEO_DIFF = 100;
+        public static volatile long MAX_AUDIO_DIFF = 10;
+        public static volatile long MAX_VIDEO_DIFF = 100;
 
         public long getRealAudioClock(long curSysTime) {
             return lastTime == -1 ? 0 : (audioClock + ((curSysTime - lastTime)) * 1000 + offset);
         }
 
-        public void end(){
+        public synchronized void end(){
             sysStartTime = -1;
             audioClock = 0;
             lastTime = -1;
@@ -79,7 +79,7 @@ public interface IMediaPlayer {
             this.audioClock = audioClock;
         }
 
-        public synchronized long getAudioClock() {
+        public long getAudioClock() {
             return audioClock;
         }
 
@@ -87,11 +87,11 @@ public interface IMediaPlayer {
             this.lastTime = lastTime;
         }
 
-        public synchronized long getLastTime() {
+        public long getLastTime() {
             return lastTime;
         }
 
-        public synchronized boolean isPause() {
+        public boolean isPause() {
             return isPause;
         }
 
@@ -99,7 +99,7 @@ public interface IMediaPlayer {
             isPause = pause;
         }
 
-        public synchronized boolean isDecodeFinished() {
+        public boolean isDecodeFinished() {
             return decodeFinished;
         }
 

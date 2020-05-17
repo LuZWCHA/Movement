@@ -19,7 +19,7 @@ public enum TransformNodeManager {
     private void registerDefault(){
         register(RootTransformNode.class);//0
 
-        register(LinearTransformNode.class);//1
+        register(LocationTransformNode.class);//1
         register(RotationTransformNode.class);//2
         register(ScaleTransformNode.class);//3
     }

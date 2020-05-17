@@ -20,7 +20,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
 
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -328,7 +327,7 @@ public class PreviewView extends View {
 
         Vector3f p1 = new Vector3f(x, y, z);
         Quaternion inverseQ = MathHelper.inverse(trackball.curquat);
-        p1 = MathHelper.mult(p1,inverseQ);
+        p1 = MathHelper.mul(p1,inverseQ);
 
         GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
         GlStateManager.enableDepth();
@@ -364,8 +363,29 @@ public class PreviewView extends View {
             GlStateManager.disableLighting();
             TextureManager textureManager = getRoot().context.renderEngine;
             textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-            blockRenderHelper.setLightChanging(true);
+//            blockRenderHelper.setLightChanging(true);
             blockRenderHelper.doRender();
+//
+//            prefab.getLocalWorld().getRenderBlocks().forEach(new Consumer<LocalWorld.LocalBlock>() {
+//                @Override
+//                public void accept(LocalWorld.LocalBlock localBlock) {
+//                    TileEntity tileEntity = prefab.getLocalWorld().getTileEntity(localBlock.pos);
+//                    if(tileEntity != null) {
+//                        BlockPos blockPos = tileEntity.getPos();
+//
+//                        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+//
+//                        TileEntitySpecialRenderer renderer = TileEntityRendererDispatcher.instance.getRenderer(tileEntity.getClass());
+//
+//                        renderer.render(tileEntity,
+//                                blockPos.getX(),
+//                                blockPos.getY(),
+//                                blockPos.getZ(),
+//                                (float) 0, -1, 1);
+//                    }
+//                }
+//            });
+
         }
 
         GlStateManager.popMatrix();

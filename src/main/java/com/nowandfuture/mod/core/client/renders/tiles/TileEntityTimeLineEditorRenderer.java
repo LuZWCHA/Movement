@@ -20,7 +20,7 @@ public class TileEntityTimeLineEditorRenderer extends TileEntityModuleRenderer<T
 
         super.render(te,x + 1,y,z,partialTicks,destroyStage,alpha);
 
-        if(te.isEnable() && te.getModuleBase().getPrefab() != null) {
+        if(te.isEnable() && te.getPrefab() != null) {
             GlStateManager.pushMatrix();
             GlStateManager.translate(x + 1,y,z);
             GlStateManager.enableBlend();

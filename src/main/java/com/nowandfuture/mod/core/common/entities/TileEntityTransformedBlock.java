@@ -84,6 +84,7 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
 
         if(world.isRemote)
             KeyBindHandler.register(this);
+
         super.validate();
     }
 
@@ -238,6 +239,8 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
         super.invalidate();
     }
 
+    //-----------------------------------Client Only-----------------------------------------
+
     @SideOnly(Side.CLIENT)
     public void clearGLBuffer(){
         TransformedBlockRenderMap.INSTANCE.removeRender(getPos());
@@ -246,7 +249,6 @@ public class TileEntityTransformedBlock extends TileEntity implements ITickable,
     @SideOnly(Side.CLIENT)
     @Override
     public void onKeyDown() {
-        if(!world.isRemote) return;
         if(isInvalid()){
             KeyBindHandler.unregister(this);
             return;

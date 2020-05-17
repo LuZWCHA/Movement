@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+//never used
 public class AnchorList {
     private List<Anchor> list;
 

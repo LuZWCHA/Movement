@@ -3,7 +3,7 @@ package com.nowandfuture.mod.core.common.gui.custom;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.transformers.LinearTransformNode;
+import com.nowandfuture.mod.core.transformers.LocationTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
@@ -52,7 +52,7 @@ public class TimeLineView extends View {
     @Override
     public void onDraw(int mouseX, int mouseY, float partialTicks) {
         this.timeLineOffsetY = this.getHeight() / 3;
-        this.linearLine = KeyFrame.KeyFrameType.LINEAR.ordinal() * distance + timeLineOffsetY;
+        this.linearLine = KeyFrame.KeyFrameType.LOCATION.ordinal() * distance + timeLineOffsetY;
         this.rotationLine = KeyFrame.KeyFrameType.ROTATION.ordinal() * distance + timeLineOffsetY;
         this.scaleLine = KeyFrame.KeyFrameType.SCALE.ordinal() * distance + timeLineOffsetY;
 
@@ -195,12 +195,12 @@ public class TimeLineView extends View {
             if(MathHelper.approximate(linearLine,mouseY,keyFrameSize)){
 
                 Optional<KeyFrame> optionalKeyFrame =
-                        keyFrameLine.getKeyFrame(KeyFrame.KeyFrameType.LINEAR,time);
+                        keyFrameLine.getKeyFrame(KeyFrame.KeyFrameType.LOCATION,time);
 
                 if(optionalKeyFrame.isPresent())
                     setSelectFrame(optionalKeyFrame.get());
                 else
-                    keyFrameLine.addKeyFrame(KeyFrame.KeyFrameType.LINEAR,new LinearTransformNode.LinearKeyFrame(),time);
+                    keyFrameLine.addKeyFrame(KeyFrame.KeyFrameType.LOCATION,new LocationTransformNode.LocationKeyFrame(),time);
 
             }else if(MathHelper.approximate(rotationLine,mouseY,keyFrameSize)){
                 Optional<KeyFrame> optionalKeyFrame =
@@ -230,14 +230,14 @@ public class TimeLineView extends View {
             final long time = getSelectTime(mouseX);
 
             if(MathHelper.approximate(linearLine,mouseY,keyFrameSize)){
-                keyFrameLine.getKeyFrame(KeyFrame.KeyFrameType.LINEAR,time)
+                keyFrameLine.getKeyFrame(KeyFrame.KeyFrameType.LOCATION,time)
                         .ifPresent(new Consumer<KeyFrame>() {
                             @Override
                             public void accept(KeyFrame keyFrame) {
                                 if(keyFrame == selectFrame){
                                     setSelectFrame(null);
                                 }
-                                keyFrameLine.deleteKeyFrame(KeyFrame.KeyFrameType.LINEAR,keyFrame);
+                                keyFrameLine.deleteKeyFrame(KeyFrame.KeyFrameType.LOCATION,keyFrame);
                             }
                         });
             }else if(MathHelper.approximate(rotationLine,mouseY,keyFrameSize)){

@@ -9,7 +9,6 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-// TODO: 2020/2/2 Optimize，Gjk arithmetic may be considered
 public class OBBox {
     private Vector3f xyz000;
     private Vector3f xyz001;
@@ -72,9 +71,8 @@ public class OBBox {
             }
         }
 
-
         /**
-         * @param output the out put of the Face's geometry parameters,the form:ax+by+cz+d=0
+         * @param output the output of the Face's geometry parameters,the form:ax+by+cz+d=0
          */
         public void getPlane(float[] output){
             final float a = (v2.y - v1.y) * (v3.z - v1.z) - (v2.z -v1.z) * (v3.y - v1.y);
@@ -82,7 +80,10 @@ public class OBBox {
             final float c = (v2.x - v1.x) * (v3.y - v1.y) - (v2.y - v1.y) * (v3.x - v1.x);
             final float d = - (a * v1.x + b * v1.y + c * v1.z);
 
-            output = new float[]{a,b,c,d};
+            output[0] = a;
+            output[1] = b;
+            output[2] = c;
+            output[3] = d;
         }
 
         //not finished
@@ -128,49 +129,6 @@ public class OBBox {
         }
     }
 
-    //unused
-    @Deprecated
-    public enum ROOM{
-        INSIDE(0x3f),
-
-        UP(0x3d),
-        DOWN(0x3e),
-        NORTH(0x3b),
-        SOUTH(0x3c),
-        WEST(0x2f),
-        EAST(0x1f),
-
-        UP_NORTH(0x3a),
-        UP_SOUTH(0x36),
-        UP_WEST(0x2e),
-        UP_EAST(0x1e),
-
-        DOWN_NORTH(0x39),
-        DOWN_SOUTH(0x35),
-        DOWN_WEST(0x2d),
-        DOWN_EAST(0x1d),
-
-        EAST_SOUTH(0x16),
-        SOUTH_WEST(0x26),
-        WEST_NORTH(0x2b),
-        NORTH_EAST(0x1b),
-
-        UP_EAST_SOUTH(0x15),
-        UP_SOUTH_WEST(0x25),
-        UP_WEST_NORTH(0x2a),
-        UP_NORTH_EAST(0x1a),
-        DOWN_EAST_SOUTH(0x14),
-        DOWN_SOUTH_WEST(0x24),
-        DOWN_WEST_NORTH(0x29),
-        DOWN_NORTH_EAST(0x19);
-
-        public final int mark;
-
-        ROOM(int mark) {
-            this.mark = mark;
-        }
-    }
-
     public OBBox(AxisAlignedBB axisAlignedBB){
         this(new Vector3f((float) axisAlignedBB.minX,(float) axisAlignedBB.minY,(float) axisAlignedBB.minZ),
                 new Vector3f((float) axisAlignedBB.minX,(float) axisAlignedBB.minY,(float) axisAlignedBB.maxZ),
@@ -200,6 +158,54 @@ public class OBBox {
 
     public Vector3f getCenter(){
         return new Vector3f((xyz000.x + xyz111.x) * .5f,(xyz000.y + xyz111.y) * .5f,(xyz000.z + xyz111.z) * .5f);
+    }
+
+
+    /**
+     * @return if this OBB is also a AABB, return true,or return false.
+     * @see #asAxisAlignedBB() to turn this bounding box to a AABB.
+     */
+    public boolean isAxisAlignedBB(){
+        Vector3f[] corners = asArray();
+        Vector3f a = corners[0];
+
+        int num = 0;
+        for (Vector3f c:
+             corners) {
+            if(a.x == c.x){
+                num ++;
+            }
+
+            if(a.y == c.y){
+                num ++;
+            }
+        }
+
+        return num >= 8;
+    }
+
+
+    /**
+     * @return turn the OBB to AABB by the corners' value,return the possible AABB.
+     *
+     * To make sure this method return current result,do check by{@link OBBox#isAxisAlignedBB()}
+     */
+    public AxisAlignedBB asAxisAlignedBB(){
+        Vector3f[] corners = asArray();
+        double minX = Double.POSITIVE_INFINITY,minY = Double.POSITIVE_INFINITY,minZ = Double.POSITIVE_INFINITY,
+                maxX = Double.NEGATIVE_INFINITY,maxY = Double.NEGATIVE_INFINITY,maxZ = Double.NEGATIVE_INFINITY;
+
+        for (Vector3f c:
+                corners) {
+            if(c.x < minX) minX = c.x;
+            if(c.y < minY) minY = c.y;
+            if(c.z < minZ) minZ = c.z;
+            if(c.x > maxX) maxX = c.x;
+            if(c.y > maxY) maxY = c.y;
+            if(c.z > maxZ) maxZ = c.z;
+        }
+
+        return new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
     }
 
     public Vector3f[] asArray(){
@@ -397,7 +403,7 @@ public class OBBox {
     }
 
     public float collisionDetermination(OBBox other, Vector3f v, Vector3f a){
-        return Collision.satTest(other,this,v,a);
+        return Collision.SATTest(other,this,v,a);
     }
 
     public boolean intersect(OBBox other){
@@ -424,10 +430,11 @@ public class OBBox {
 
     public static class Collision{
 
-        public static float satTest(OBBox moveOBB, OBBox staticOBB, Vector3f v, Vector3f ar){
-            float maxTime = Float.MIN_VALUE;
+        public static float SATTest(OBBox moveOBB, OBBox staticOBB, Vector3f v, Vector3f ar){
+            float maxTime = Float.NEGATIVE_INFINITY;
 
             Vector3f axis = null;
+            boolean flag = true;
             for (int i = 0; i <3; i++)
             {
                 Vector3f axis0 = getFaceDirection(moveOBB,i).normalise();
@@ -437,14 +444,16 @@ public class OBBox {
                     float[] res1 = getInterval(moveOBB, axis0);
                     float[] res2 = getInterval(staticOBB, axis0);
                     if (res1[1] <= res2[0]) {
+
                         float a = (res2[0] - res1[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a > maxTime) {
                             maxTime = a;
                             axis = axis0;
                         }
                     } else if (res2[1] <= res1[0]) {
+
                         float a = (-res2[1] + res1[0]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a > maxTime) {
                             maxTime = a;
                             axis = axis0;
                         }
@@ -458,14 +467,16 @@ public class OBBox {
                     float[] res3 = getInterval(moveOBB, axis1);
                     float[] res4 = getInterval(staticOBB, axis1);
                     if (res3[1] <= res4[0]) {
+
                         float a = (res4[0] - res3[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a > maxTime) {
                             maxTime = a;
                             axis = axis1;
                         }
                     } else if (res3[0] >= res4[1]) {
+
                         float a = (res3[0] - res4[1]) / length;
-                        if (a > maxTime && a <= 1) {
+                        if (a > maxTime) {
                             maxTime = a;
                             axis = axis1;
                         }
@@ -479,22 +490,27 @@ public class OBBox {
                 {
                     Vector3f axis2 = new Vector3f();
                     Vector3f.cross(getEdgeDirection(moveOBB,i), getEdgeDirection(staticOBB,j),axis2);
-                    if(axis2.lengthSquared() == 0) continue;
+                    if(axis2.lengthSquared() == 0){
+                        continue;
+                    }
                     axis2.normalise();
                     float length = Math.abs(Vector3f.dot(axis2,v));
                     float[] res1 = getInterval(moveOBB, axis2);
                     float[] res2 = getInterval(staticOBB, axis2);
-                    if (res1[1] <= res2[0]){
-                        float a = (res2[0] - res1[1])/length;
-                        if(a > maxTime && a <= 1) {
-                            maxTime = a;
-                            axis = axis2;
-                        }
-                    }else if(res2[1] <= res1[0]){
-                        float a = (-res2[1] + res1[0])/length;
-                        if(a > maxTime && a <= 1) {
-                            maxTime = a;
-                            axis = axis2;
+
+                    if(length > 0){
+                        if (res1[1] <= res2[0]){
+                            float a = (res2[0] - res1[1])/length;
+                            if(a > maxTime) {
+                                maxTime = a;
+                                axis = axis2;
+                            }
+                        }else if(res2[1] <= res1[0]){
+                            float a = (-res2[1] + res1[0])/length;
+                            if(a > maxTime) {
+                                maxTime = a;
+                                axis = axis2;
+                            }
                         }
                     }
                 }

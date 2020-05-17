@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.movecontrol;
 
+import com.nowandfuture.mod.api.Unstable;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
@@ -11,6 +12,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.IInventorySlotChangedListe
 import com.nowandfuture.mod.core.common.gui.mygui.api.SerializeWrapper;
 import com.nowandfuture.mod.core.prefab.ModuleNodeMap;
 import com.nowandfuture.mod.core.prefab.ModuleUtils;
+import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.inventory.IInventory;
@@ -18,11 +20,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap>, IInventorySlotChangedListener, ModuleNodeMap.ModuleMapChangedListener {
@@ -43,12 +47,12 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     private static String NBT_TIMELINE_ID = "TimelineId";
 
     //temp value
-    private Matrix4f matrix4f;
+//    private Matrix4f matrix4f;
 
     public ModuleNode(){
         super();
         map = new ModuleNodeMap();
-        matrix4f = new Matrix4f();
+//        matrix4f = new Matrix4f();
         dynamicInventory.setCreator(new IDynamicInventory.SlotCreator() {
             @Override
             public AbstractContainer.ProxySlot create(IDynamicInventory inventory, long index, int type) {
@@ -109,14 +113,15 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
         Matrix4f matrix = new Matrix4f();
         super.doTransform(p, matrix);
         //copy result
-        Matrix4f.mul(parentMatrix.translate(new Vector3f(offset)),matrix,this.matrix4f);
+        Matrix4f.mul(parentMatrix.translate(new Vector3f(offset)),matrix,getMatrix4f());
 
         if(isPrefabRenderEnable())
             for (ModuleNode node:
                     map.getModules()) {
-                node.doTransform(p, new Matrix4f(this.matrix4f));
+                node.doTransform(p, new Matrix4f(getMatrix4f()));
                 node.setModulePos(getModulePos());
             }
+
     }
 
     protected boolean isPrefabRenderEnable(){
@@ -144,7 +149,7 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
 
     @Override
     public void update() {
-        moduleBase.updateLine();
+//        moduleBase.updateLine();
         moduleBase.update();
 
         for (ModuleNode node:
@@ -393,7 +398,7 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     }
 
     public Matrix4f getMatrix4f() {
-        return matrix4f;
+        return moduleBase.getTransMatrix();
     }
 
     public static class PrefabSlot extends AbstractContainer.ProxySlot{
@@ -450,6 +455,55 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
        }
 
        return posList;
+   }
+
+   public void collectOBBoxs(@Nonnull List<OBBox> list){
+       AxisAlignedBB aabb = getMinAABB();
+
+       if(aabb != null) {
+           OBBox obBox = new OBBox(aabb);
+           Matrix4f matrix4f = getMatrix4f();
+           obBox.mulMatrix(matrix4f);
+
+           obBox.translate(getModulePos());
+           list.add(obBox);
+       }
+
+       for (ModuleNode node:
+               map.getModules()) {
+           node.collectOBBoxs(list);
+       }
+   }
+
+   @Unstable
+   public void collectAABBs(@Nonnull List<AxisAlignedBB> list,AxisAlignedBB area){
+       AxisAlignedBB aabb = getMinAABB();
+       Matrix4f invertMatrix = Matrix4f.invert(getMatrix4f(),new Matrix4f());
+       List<AxisAlignedBB> moduleAABBs = new LinkedList<>();
+       AxisAlignedBB laabb = area.offset(-getModulePos().getX(),-getModulePos().getY(),-getModulePos().getZ());
+       OBBox transOBB = new OBBox(laabb).transform(invertMatrix);
+
+       //if transformed AABB is still a AABB
+       if(transOBB.isAxisAlignedBB()){
+           AxisAlignedBB transAABB = transOBB.asAxisAlignedBB();
+           if(aabb.intersects(transAABB)) {
+               AxisAlignedBB intersectArea = aabb.intersect(transAABB);
+               moduleBase.collectAABBsWithin(moduleAABBs,intersectArea);
+               for (AxisAlignedBB module :
+                       moduleAABBs) {
+                   OBBox obBox = new OBBox(module).transform(getMatrix4f());
+                   if(obBox.isAxisAlignedBB()) {
+                       AxisAlignedBB temp = obBox.asAxisAlignedBB();
+                       list.add(temp.offset(getModulePos()));
+                   }
+               }
+           }
+       }
+
+       for (ModuleNode node:
+               map.getModules()) {
+           node.collectAABBs(list,area);
+       }
    }
 
 }

@@ -5,7 +5,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
 import com.nowandfuture.mod.core.movecontrol.ModuleNode;
 import com.nowandfuture.mod.core.prefab.ModuleUtils;
-import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.core.selection.OBBox;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -130,11 +130,18 @@ public class TileEntityCoreModule extends ModuleNode {
     @Override
     public void update() {
         boolean isUpdate = moduleBase.updateLine();
-        moduleBase.update();
+
+        super.update();
+
         if(isUpdate){
             setTick(getLine().getTick());
             syncToClients();
         }
+    }
+
+    @Override
+    public void collectOBBoxs(@Nonnull List<OBBox> list) {
+        super.collectOBBoxs(list);
     }
 
     public Stack<ModuleNode> getNodeStack() {
@@ -200,7 +207,7 @@ public class TileEntityCoreModule extends ModuleNode {
     }
 
     public void offsetPrefab(int x, int y, int z){
-        getModuleBase().getPrefab().setBaseLocation(getModuleBase().getModulePos().add(x,y,z));
+        setModulePos(getModulePos().add(x,y,z));
     }
 
     @Override
@@ -224,11 +231,6 @@ public class TileEntityCoreModule extends ModuleNode {
 
     public void setShowBlock(boolean showBlock) {
         this.showBlock = showBlock;
-    }
-
-    @Override
-    public void doTransform(double p, Matrix4f parentMatrix) {
-        super.doTransform(p, parentMatrix);
     }
 
     public void createModuleNode(BlockPos pos){

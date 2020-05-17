@@ -37,7 +37,7 @@ public class ModuleUtils {
                 prefab.readFromNBT(prefabData, world);
             }
             module.setPrefab(prefab);
-            module.getModuleBase().enable();
+            module.enable();
         }
 
         if(timelineStack != null) {
@@ -61,7 +61,7 @@ public class ModuleUtils {
 
     public static void removePrefab(TileEntityModule module){
         if(module == null) return;
-        module.getModuleBase().setPrefab(new NormalPrefab());
+        module.setPrefab(new NormalPrefab());
     }
 
     public static void removeTimeline(TileEntityModule module){

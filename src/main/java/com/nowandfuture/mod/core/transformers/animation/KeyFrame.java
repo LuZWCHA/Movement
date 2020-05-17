@@ -1,6 +1,6 @@
 package com.nowandfuture.mod.core.transformers.animation;
 
-import com.nowandfuture.mod.core.transformers.LinearTransformNode;
+import com.nowandfuture.mod.core.transformers.LocationTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,7 +11,7 @@ public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Comparable<
     public final static String NBT_ATTRIBUTE_TICK = "BeginTick";
 
     public enum KeyFrameType{
-        LINEAR(0),
+        LOCATION(0),
         ROTATION(1),
         SCALE(2);
 
@@ -77,7 +77,7 @@ public abstract class KeyFrame<T extends IKeyFarmVisitor> implements Comparable<
     public static class Factory{
         public static KeyFrame create(KeyFrameType keyFrameType,NBTTagCompound compound){
             switch (keyFrameType){
-                case LINEAR:return LinearTransformNode.LinearKeyFrame.create(compound);
+                case LOCATION:return LocationTransformNode.LocationKeyFrame.create(compound);
                 case ROTATION:return RotationTransformNode.RotationKeyFrame.create(compound);
                 case SCALE:return ScaleTransformNode.ScaleKeyFrame.create(compound);
             }

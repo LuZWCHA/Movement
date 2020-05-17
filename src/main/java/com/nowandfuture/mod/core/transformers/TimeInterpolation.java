@@ -5,6 +5,7 @@ import net.minecraft.util.math.MathHelper;
 import java.io.Serializable;
 
 //0-1 interpolation
+//never used
 public abstract class TimeInterpolation {
     public abstract Type getType();
     public abstract double interpolate(double progress);
@@ -90,7 +91,6 @@ public abstract class TimeInterpolation {
         public static TimeInterpolation build(Type type){
             switch (type){
                 case SIN:return new SinInterpolation();
-                case LINEAR:return new LinearInterpolation();
                 case SMOOTH_STEP:return new SmoothStepInterpolation();
                 case HIGHER_POWER_UP:return new HigherPowerInterpolationUp();
                 case HIGHER_POWER_DOWN:return new HigherPowerInterpolationDown();

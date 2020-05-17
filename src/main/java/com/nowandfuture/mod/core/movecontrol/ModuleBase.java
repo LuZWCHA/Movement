@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.movecontrol;
 
 import com.nowandfuture.mod.api.IModule;
+import com.nowandfuture.mod.api.Unstable;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.NormalPrefab;
 import com.nowandfuture.mod.core.transformers.*;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class ModuleBase implements IModule {
 
@@ -49,11 +51,15 @@ public class ModuleBase implements IModule {
         //all animation only create on client
     }
 
+    // TODO: 2020/5/15 create different transformer
+    public void createTransformer(){
+
+    }
+
     public void createDefaultTransformer(){
-        LinearTransformNode node2 = new LinearTransformNode();
+        LocationTransformNode node2 = new LocationTransformNode();
         RotationTransformNode node1 = new RotationTransformNode();
         ScaleTransformNode node = new ScaleTransformNode();
-
 
         node.setInterpolation(TimeInterpolation.Type.HIGHER_POWER_DOWN);
 
@@ -64,6 +70,10 @@ public class ModuleBase implements IModule {
                 .build();
 
         setTransformNode(node);
+    }
+
+    public AbstractTransformNode getTransformerHead() {
+        return transformerHead;
     }
 
     public void setPrefab(AbstractPrefab prefab) {
@@ -182,6 +192,11 @@ public class ModuleBase implements IModule {
 
     public AxisAlignedBB getMinAABB(){
         return prefab.getMinAABB();
+    }
+
+    @Unstable
+    public void collectAABBsWithin(List<AxisAlignedBB> list,AxisAlignedBB area){
+        prefab.collectAABBs(list,area);
     }
 
     public boolean updateLine(){

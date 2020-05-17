@@ -1,11 +1,11 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.api.IModule;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Objects;
 
+//never used
 public class AnchorObj{
     public Type type;
     //point of world or module

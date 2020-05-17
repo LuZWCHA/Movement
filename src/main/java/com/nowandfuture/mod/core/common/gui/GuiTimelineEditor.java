@@ -18,7 +18,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.ComboBox;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
-import com.nowandfuture.mod.core.transformers.LinearTransformNode;
+import com.nowandfuture.mod.core.transformers.LocationTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
@@ -520,14 +520,14 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
             switch (keyFrame.getType()){
                 case 0://linear
-                    LinearTransformNode.LinearKeyFrame linearKeyFrame = (LinearTransformNode.LinearKeyFrame) keyFrame;
+                    LocationTransformNode.LocationKeyFrame locationKeyFrame = (LocationTransformNode.LocationKeyFrame) keyFrame;
                     numLabel0.setFirst(R.name(R.id.text_module_lab_value_x_id));
                     numLabel1.setFirst(R.name(R.id.text_module_lab_value_y_id));
                     numLabel2.setFirst(R.name(R.id.text_module_lab_value_z_id));
 
-                    numBox0.setText(String.valueOf(linearKeyFrame.curPos.x));
-                    numBox1.setText(String.valueOf(linearKeyFrame.curPos.y));
-                    numBox2.setText(String.valueOf(linearKeyFrame.curPos.z));
+                    numBox0.setText(String.valueOf(locationKeyFrame.curPos.x));
+                    numBox1.setText(String.valueOf(locationKeyFrame.curPos.y));
+                    numBox2.setText(String.valueOf(locationKeyFrame.curPos.z));
 
                     keyTitle.setFirst(R.name(R.id.text_module_lab_key_title1_id) + String.valueOf(keyFrame.getBeginTick()));
 
@@ -684,14 +684,14 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private void submitValue(){
         KeyFrame keyFrame = timelineView.getSelectFrame();
-        if(currentType == KeyFrame.KeyFrameType.LINEAR.ordinal()){
-            if(keyFrame instanceof LinearTransformNode.LinearKeyFrame){
+        if(currentType == KeyFrame.KeyFrameType.LOCATION.ordinal()){
+            if(keyFrame instanceof LocationTransformNode.LocationKeyFrame){
                 double x,y,z;
                 try {
                     x = Double.parseDouble(numBox0.getText());
                     y = Double.parseDouble(numBox1.getText());
                     z = Double.parseDouble(numBox2.getText());
-                    ((LinearTransformNode.LinearKeyFrame) keyFrame).curPos =
+                    ((LocationTransformNode.LocationKeyFrame) keyFrame).curPos =
                             new Vec3d(x,y,z);
                 }catch (NumberFormatException e){
                     onError();

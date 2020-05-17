@@ -11,11 +11,11 @@ import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 
 public class JavaSoundHandler implements PlayHandler {
-    SourceDataLine dataLine;
-    Mixer mixer;
-    SimplePlayer simplePlayer;
-    int sampleFormat;
-    ChannelJavaSound channelJavaSound;
+    private SourceDataLine dataLine;
+    private Mixer mixer;
+    private SimplePlayer simplePlayer;
+    private int sampleFormat;
+    private ChannelJavaSound channelJavaSound;
 
     public JavaSoundHandler(IMediaPlayer player){
         simplePlayer = (SimplePlayer) player;

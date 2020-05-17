@@ -57,7 +57,7 @@ public class LightWorld implements IBlockAccess {
                     Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(vector3f.x, vector3f.y, vector3f.z);
                     BlockPos ap = pos.subtract(this.pos);
 
-                    Vector3f transPos = MathHelper.mult(new Vector3f(ap), quaternion);
+                    Vector3f transPos = MathHelper.mul(new Vector3f(ap), quaternion);
                     BlockPos newPos = this.pos.add(transPos.x + 0.5 ,transPos.y + 0.5,transPos.z + 0.5);
                     int light = realWorld.getCombinedLight(newPos,lightValue);
 
@@ -87,7 +87,7 @@ public class LightWorld implements IBlockAccess {
                     Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(vector3f.x, vector3f.y, vector3f.z);
                     BlockPos ap = pos.subtract(this.pos);
 
-                    Vector3f transPos = MathHelper.mult(new Vector3f(ap), quaternion);
+                    Vector3f transPos = MathHelper.mul(new Vector3f(ap), quaternion);
                     BlockPos newPos = this.pos.add(transPos.x + 0.5 ,transPos.y + 0.5,transPos.z + 0.5);
                     return realWorld.getBlockState(newPos);
                 }

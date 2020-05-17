@@ -293,17 +293,17 @@ public class LocalWorld implements IBlockAccess {
             {
                 return type.defaultLightValue;
             }
-            else if (!parentWorld.isBlockLoaded(np) && type == EnumSkyBlock.SKY)
+            else if (!parentWorld.isBlockLoaded(np))
             {
                 return type.defaultLightValue;
             }
             else if (this.getBlockState(pos).useNeighborBrightness())
             {
-                int i1 = this.getLightFor(type, pos.up());
-                int i = this.getLightFor(type, pos.east());
-                int j = this.getLightFor(type, pos.west());
-                int k = this.getLightFor(type, pos.south());
-                int l = this.getLightFor(type, pos.north());
+                int i1 = this.getLightFor(type, pos.up(),matrix4f);
+                int i = this.getLightFor(type, pos.east(),matrix4f);
+                int j = this.getLightFor(type, pos.west(),matrix4f);
+                int k = this.getLightFor(type, pos.south(),matrix4f);
+                int l = this.getLightFor(type, pos.north(),matrix4f);
 
                 if (i > i1)
                 {
@@ -334,12 +334,12 @@ public class LocalWorld implements IBlockAccess {
                     return chunk.getLightFor(type, np);
                 }
 
-                return getLightFor(type,pos);
+                return getLightFor(type,pos,matrix4f);
             }
         }
     }
 
-    public int getLightFor(EnumSkyBlock type, BlockPos pos)
+    public int getLightFor(EnumSkyBlock type, BlockPos pos, Matrix4f matrix4f)
     {
         if (!this.isValid(pos) && type == EnumSkyBlock.BLOCK)
         {
@@ -347,7 +347,17 @@ public class LocalWorld implements IBlockAccess {
         }
         else
         {
-            return getLight(pos);
+            Vec3d transPos = OBBox.transformCoordinate(matrix4f,new Vec3d(pos));
+            BlockPos np = new BlockPos(transPos.x + parentWorldPos.getX(),
+                    transPos.y + parentWorldPos.getY(),
+                    transPos.z + parentWorldPos.getZ());
+
+            if(type == EnumSkyBlock.BLOCK){
+                return getLight(pos);
+            }else{
+                Chunk chunk = parentWorld.getChunk(np);
+                return chunk.getLightFor(type, np);
+            }
         }
     }
 
