@@ -48,7 +48,6 @@ public class ModuleBase implements IModule {
         prefab = new NormalPrefab();
         line = new KeyFrameLine();
         transMatrix = new Matrix4f();
-        //all animation only create on client
     }
 
     // TODO: 2020/5/15 create different transformer

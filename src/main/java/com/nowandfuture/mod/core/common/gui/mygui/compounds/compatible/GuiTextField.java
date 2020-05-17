@@ -746,6 +746,10 @@ public class GuiTextField extends Gui
         this.isEnabled = enabled;
     }
 
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
     /**
      * the side of the selection that is not the cursor, may be the same as the cursor
      */

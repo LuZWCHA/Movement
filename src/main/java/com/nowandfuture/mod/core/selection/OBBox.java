@@ -172,11 +172,11 @@ public class OBBox {
         int num = 0;
         for (Vector3f c:
              corners) {
-            if(a.x == c.x){
+            if(isSame(c.x,a.x)){
                 num ++;
             }
 
-            if(a.y == c.y){
+            if(isSame(c.y,a.y)){
                 num ++;
             }
         }
@@ -184,6 +184,9 @@ public class OBBox {
         return num >= 8;
     }
 
+    private boolean isSame(float a,float b){
+        return Math.abs(a - b) < 1E-6;
+    }
 
     /**
      * @return turn the OBB to AABB by the corners' value,return the possible AABB.

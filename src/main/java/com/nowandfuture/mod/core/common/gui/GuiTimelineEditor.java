@@ -593,9 +593,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                     numBox0.setEnabled(false);
                     numBox1.setEnabled(false);
                     numBox2.setEnabled(false);
-                    numBox3.setEnabled(false);
-                    numBox4.setEnabled(false);
-                    numBox5.setEnabled(false);
+//                    numBox3.setEnabled(false);
+//                    numBox4.setEnabled(false);
+//                    numBox5.setEnabled(false);
 
                     setVisible(true,
                             numLabel3,numLabel4,numLabel5,numLabel0,numLabel1,numLabel2,
@@ -669,6 +669,17 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 ((MyTextField) gui).setFocused(false);
                 if (((MyTextField) gui).getText() == null || ((MyTextField) gui).getText().isEmpty())
                     ((MyTextField) gui).setText("0");
+
+                if(rightLayout.isVisible()){
+                    final float value = Float.parseFloat(((MyTextField) gui).getText());
+                    if(gui == numBox3){
+                       xSliderView.setProgress(value);
+                    }else if(gui == numBox4){
+                        ySliderView.setProgress(value);
+                    }else if(gui == numBox5){
+                        zSliderView.setProgress(value);
+                    }
+                }
                 submitValue();
             } else {
                 long time = timeLine.getTotalTick();
