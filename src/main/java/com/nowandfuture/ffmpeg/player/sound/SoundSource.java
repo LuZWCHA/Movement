@@ -20,14 +20,9 @@ public class SoundSource {
         if (relative) {
             alSourcei(sourceId, AL_SOURCE_RELATIVE, AL_TRUE);
         }
-
-//        alSourcef(sourceId, AL_GAIN,1);
-//        alSourcef(sourceId, AL_ROLLOFF_FACTOR, 1 );
-//        alSourcef(sourceId,AL_INVERSE_DISTANCE_CLAMPED ,6);
     }
 
     public void setBuffer(int bufferId) {
-//        stop();
         alSourcei(sourceId, AL_BUFFER, bufferId);
     }
 
@@ -41,6 +36,10 @@ public class SoundSource {
 
     public void setGain(float gain) {
         alSourcef(sourceId, AL_GAIN, gain);
+    }
+
+    public float getMaxGain(){
+       return AL10.alGetSourcef(sourceId, AL10.AL_MAX_GAIN);
     }
 
     public void setProperty(int param, float value) {

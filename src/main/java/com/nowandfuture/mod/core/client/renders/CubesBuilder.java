@@ -189,7 +189,7 @@ public class CubesBuilder {
                     BlockPos nextCubePos = cube.getPos().offset(to);
                     RenderCube nextCube = cubes.get(nextCubePos);
 
-                    if(nextCube != null && nextCube.setRenderFrame(renderFrame) && filter.apply(nextCube)) {
+                    if(nextCube != null && nextCube.setRenderFrame(renderFrame) && (filter == null || filter.apply(nextCube))) {
                         CubesRenderer.RenderCubeInformation nextInformation =
                                 new CubesRenderer.RenderCubeInformation(nextCube, to,cubeInformation.routerCount + 1);
                         nextInformation.setDirection(cubeInformation.setFacing,to);
@@ -246,11 +246,10 @@ public class CubesBuilder {
     //do faces cull
     public static Set<EnumFacing> getVisibleFaces(Vector3f visitorPos, CubesRenderer renderer){
         final Set<EnumFacing> set = Sets.newHashSet();
-        final OBBox bounding = new OBBox(new AxisAlignedBB(0,0,0,renderer.getSize().getX(),renderer.getSize().getY(),renderer.getSize().getZ()));
+        final OBBox bounding = new OBBox(new AxisAlignedBB(0,0,0,renderer.getPrefab().getSize().getX(),renderer.getPrefab().getSize().getY(),renderer.getPrefab().getSize().getZ()));
         Vector3f temp;
         OBBox.Facing face;
 
-        AbstractPrefab prefab = renderer.getPrefab();
         for (EnumFacing enumFacing :
                 EnumFacing.values()) {
 
@@ -258,13 +257,15 @@ public class CubesBuilder {
             if(face != null){
                 face.mulMatrix(renderer.getModelMatrix());
                 temp = new Vector3f(face.getV0());
+
                 Vector3f lookVec = Vector3f.sub(
-                        temp.translate(prefab.getBasePos().getX(),prefab.getBasePos().getY(),prefab.getBasePos().getZ()),
+                        temp.translate(renderer.getBasePos().getX(),renderer.getBasePos().getY(),renderer.getBasePos().getZ()),
                         visitorPos,
                         new Vector3f()
                 );
-                if(face.isFrontBy(lookVec))
+                if(face.isFrontBy(lookVec)) {
                     set.add(enumFacing);
+                }
             }
         }
         return set;
@@ -284,6 +285,7 @@ public class CubesBuilder {
         float f3 = MathHelper.sin(-f1 * 0.017453292F - (float)Math.PI);
         float f4 = -MathHelper.cos(-f * 0.017453292F);
         float f5 = MathHelper.sin(-f * 0.017453292F);
+
         return new Vector3f(f3 * f4, f5, f2 * f4);
     }
 

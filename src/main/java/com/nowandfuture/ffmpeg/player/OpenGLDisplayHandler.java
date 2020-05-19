@@ -4,7 +4,7 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import net.minecraft.client.renderer.GlStateManager;
 
-public class OpenGLDisplayHandler implements PlayHandler {
+public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
     protected int id;
     private Frame frame;
 
@@ -35,5 +35,10 @@ public class OpenGLDisplayHandler implements PlayHandler {
     @Override
     public Object getFrameObj() {
         return frame;
+    }
+
+    @Override
+    public void setGamma(float gamma) {
+
     }
 }

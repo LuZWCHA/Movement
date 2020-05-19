@@ -46,9 +46,6 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     private static String NBT_PREFAB_ID = "PrefabId";
     private static String NBT_TIMELINE_ID = "TimelineId";
 
-    //temp value
-//    private Matrix4f matrix4f;
-
     public ModuleNode(){
         super();
         map = new ModuleNodeMap();
@@ -492,11 +489,13 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
                for (AxisAlignedBB module :
                        moduleAABBs) {
                    OBBox obBox = new OBBox(module).transform(getMatrix4f());
-                   if(obBox.isAxisAlignedBB()) {
+//                   if(obBox.isAxisAlignedBB()) {
                        AxisAlignedBB temp = obBox.asAxisAlignedBB();
-                       list.add(temp.offset(getModulePos()));
-                   }
+                       if(temp.intersects(laabb))
+                            list.add(temp.offset(getModulePos()));
+//                   }
                }
+
            }
        }
 

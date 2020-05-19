@@ -18,8 +18,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 
+import java.util.Random;
+
 @SideOnly(Side.CLIENT)
 public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<TileEntityCoreModule>{
+    private static Random RANDOM = new Random();
 
     @Override
     public void render(TileEntityCoreModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
@@ -34,43 +37,46 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
         }
     }
 
-
     @SideOnly(Side.CLIENT)
     public void renderModuleTree(ModuleNode node, double x, double y, double z, float partialTicks){
-        CubesRenderer renderer = ModuleRenderManager.INSTANCE.getRenderer(node.getPrefab());
+        if(node.getPrefab() != null) {
 
-        if(renderer != null){
-            if(renderer.isBuilt()) {
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(x, y, z);
+            CubesRenderer renderer = ModuleRenderManager.INSTANCE.getRenderer(node.getPrefab());
 
-                renderer.getModelMatrix().load(node.getMatrix4f());
-                renderer.renderTileEntity(partialTicks);
-                //RenderHook render it later
-                ModuleRenderManager.INSTANCE.getRenderQueue().add(renderer);
+            if (renderer != null) {
 
-                if(Minecraft.getMinecraft().gameSettings.showDebugInfo) {
-                    OBBox obBox = new OBBox(node.getMinAABB().grow(0.002));
-
-                    DrawHelper.preDraw();
-                    DrawHelper.drawOutlinedBoundingBox(obBox);
-                    DrawHelper.postDraw();
-
-//                    if(te.getImpactAxis() != null){
-//                        DrawHelper.drawLine(0,0,0,
-//                                te.getImpactAxis().x,te.getImpactAxis().y,te.getImpactAxis().z,1,0,0);
-//                    }
-
-                }
-                GlStateManager.popMatrix();
-
-                for (ModuleNode moduleNode :
-                        node.getModuleMap().getModules()) {
-                    renderModuleTree(moduleNode,x,y,z,partialTicks);
+                if(node.getRenderRealtime() >= 0 && RANDOM.nextInt(node.getRenderRealtime() + 1) == 0){
+                    renderer.forceUpdateAll();
                 }
 
-            }else {
-                renderer.build();
+                if (renderer.isBuilt()) {
+                    GlStateManager.pushMatrix();
+                    GlStateManager.translate(x, y, z);
+
+                    renderer.resetMatrix();
+                    renderer.getModelMatrix().load(node.getMatrix4f());
+                    renderer.renderTileEntity(partialTicks);
+                    //RenderHook render it later
+                    ModuleRenderManager.INSTANCE.getRenderQueue().add(renderer);
+
+                    if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+                        OBBox obBox = new OBBox(node.getMinAABB().grow(0.002));
+
+                        DrawHelper.preDraw();
+                        DrawHelper.drawOutlinedBoundingBox(obBox);
+                        DrawHelper.postDraw();
+
+                    }
+                    GlStateManager.popMatrix();
+
+                    for (ModuleNode moduleNode :
+                            node.getModuleMap().getModules()) {
+                        renderModuleTree(moduleNode, x, y, z, partialTicks);
+                    }
+                } else {
+                    renderer.build();
+                }
+
             }
         }
 
@@ -105,5 +111,10 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
         GlStateManager.popMatrix();
         Minecraft.getMinecraft().entityRenderer.disableLightmap();
 
+    }
+
+    @Override
+    public boolean isGlobalRenderer(TileEntityCoreModule te) {
+        return true;
     }
 }

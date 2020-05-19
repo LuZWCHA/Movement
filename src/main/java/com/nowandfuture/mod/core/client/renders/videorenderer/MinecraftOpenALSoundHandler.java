@@ -8,6 +8,7 @@ import com.nowandfuture.ffmpeg.player.sound.SoundListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.lwjgl.util.vector.Vector3f;
 
 public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
@@ -25,9 +26,6 @@ public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
     @Override
     protected void initSoundManager() {
         //do nothing
-//        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-//        SoundManager soundManager = ReflectionHelper.getPrivateValue(SoundHandler.class,soundHandler,"sndManager");
-//        soundSystem = ReflectionHelper.getPrivateValue(SoundManager.class,soundManager,"sndSystem");
     }
 
     @Override
@@ -41,11 +39,17 @@ public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
         super.handle(frame);
     }
 
+    private final Vector3f up = new Vector3f(0,1,0);
+    private final Vector3f pos = new Vector3f(),orientation = new Vector3f(),motion = new Vector3f();
+
     public void updateListener(){
-        Vector3f pos = new Vector3f(((float) entity.posX), ((float) entity.posY), ((float) entity.posZ));
-        Vector3f motion = new Vector3f(((float) entity.motionX), ((float) entity.motionY), ((float) entity.motionZ));
+        pos.set(((float) entity.posX), ((float) entity.posY), ((float) entity.posZ));
+        motion.set(((float) entity.motionX), ((float) entity.motionY), ((float) entity.motionZ));
+        Vec3d lookAt = entity.getLookVec();
+        orientation.set(((float) lookAt.x), ((float) lookAt.y), ((float) lookAt.z));
         soundManager.getListener().setPosition(pos);
         soundManager.getListener().setSpeed(motion);
+        soundManager.getListener().setOrientation(orientation,up);
     }
 
     @Override

@@ -10,7 +10,7 @@ import paulscode.sound.libraries.ChannelJavaSound;
 import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 
-public class JavaSoundHandler implements PlayHandler {
+public class JavaSoundHandler implements PlayHandler.SoundPlayHandler {
     private SourceDataLine dataLine;
     private Mixer mixer;
     private SimplePlayer simplePlayer;
@@ -46,11 +46,6 @@ public class JavaSoundHandler implements PlayHandler {
         return v;
     }
 
-    protected void setGain(float gain){
-        if(channelJavaSound != null && channelJavaSound.sourceDataLine.isOpen())
-            channelJavaSound.setGain(gain);
-    }
-
     @Override
     public void flush() {
         if(channelJavaSound != null && channelJavaSound.sourceDataLine != null)
@@ -78,5 +73,11 @@ public class JavaSoundHandler implements PlayHandler {
     @Override
     public Object getFrameObj() {
         return null;
+    }
+
+    @Override
+    public void setVolume(float volume) {
+        if(channelJavaSound != null && channelJavaSound.sourceDataLine.isOpen())
+            channelJavaSound.setGain(volume);
     }
 }

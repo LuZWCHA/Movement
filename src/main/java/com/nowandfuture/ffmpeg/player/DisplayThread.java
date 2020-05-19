@@ -68,6 +68,7 @@ public class DisplayThread extends Thread{
         if(playHandler != null){
             playHandler.destroy();
         }
+        curFrame = null;
     }
 
     private void checkDiff(Frame frame,long time) throws InterruptedException {

@@ -46,11 +46,6 @@ public class TileEntityModuleRenderer<T extends TileEntityModule> extends TileEn
                         DrawHelper.drawOutlinedBoundingBox(obBox);
                         DrawHelper.postDraw();
 
-                        if(te.getImpactAxis() != null){
-                            DrawHelper.drawLine(0,0,0,
-                                    te.getImpactAxis().x,te.getImpactAxis().y,te.getImpactAxis().z,1,0,0);
-                        }
-
                     }
 
                     GlStateManager.popMatrix();

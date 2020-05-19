@@ -12,10 +12,10 @@ public class AudioPlayThread extends Thread {
     private BlockingQueue<Frame> audioCache;
     private FFmpegFrameGrabber grabber;
 
-    private PlayHandler playHandler;
+    private PlayHandler.SoundPlayHandler playHandler;
     private long baseDelay;
 
-    float vol = 1;//音量
+    float vol = 1;
 
     private long factor = 0;
 
@@ -130,7 +130,7 @@ public class AudioPlayThread extends Thread {
         }
     }
 
-    public void setHandler(PlayHandler audioHandler) {
+    public void setHandler(PlayHandler.SoundPlayHandler audioHandler) {
         if(audioHandler == null && this.playHandler != null) this.playHandler.destroy();
         this.playHandler = audioHandler;
     }
@@ -142,6 +142,8 @@ public class AudioPlayThread extends Thread {
 
     public void setVol(float vol){
         this.vol = vol;
+        if(playHandler != null)
+            playHandler.setVolume(vol);
     }
 
     public float getVol() {

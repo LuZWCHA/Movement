@@ -41,7 +41,6 @@ public class CollisionHandler {
             }
         }
 
-
         if(world.isRemote && entity instanceof EntityPlayer){
             ClientHandler.getAabbList().clear();
             ClientHandler.getAabbList().addAll(list);

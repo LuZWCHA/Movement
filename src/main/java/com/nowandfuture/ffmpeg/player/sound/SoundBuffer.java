@@ -29,9 +29,7 @@ public class SoundBuffer {
         this.bufferId = AL10.alGenBuffers();
         this.audioFormat = audioFormat;
 
-        int format = SoundUtils.getOpenALFormat(audioFormat);
         isStream = true;
-        //alBufferData(bufferId, format,byteBuffer, (int) audioFormat.getSampleRate());
     }
 
     public int getBufferId() {

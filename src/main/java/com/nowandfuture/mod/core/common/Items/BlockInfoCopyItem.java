@@ -1,10 +1,7 @@
 package com.nowandfuture.mod.core.common.Items;
 
-import com.nowandfuture.mod.core.client.renders.tiles.CopyItemStackRenderer;
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
-import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.prefab.LocalWorld;
-import joptsimple.internal.Strings;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
@@ -17,13 +14,14 @@ import net.minecraft.item.IItemPropertyGetter;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.*;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 
 import static com.nowandfuture.mod.Movement.MODID;
@@ -44,7 +42,6 @@ public class BlockInfoCopyItem extends Item {
                 return isEmpty(stack.getTagCompound()) ? 1:0;//1 - isReady
             }
         });
-        setTileEntityItemStackRenderer(new CopyItemStackRenderer());
     }
 
     @Override

@@ -9,7 +9,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
-public class Java2DDisplayHandler implements PlayHandler {
+public class Java2DDisplayHandler implements PlayHandler.DisplayHandler {
 
     JLabel label = new JLabel();
     JFrame jFrame = new JFrame();
@@ -33,7 +33,6 @@ public class Java2DDisplayHandler implements PlayHandler {
 
                 jFrame.setSize(label.getWidth(), label.getHeight());
             }
-
 
             BufferedImage image2 = scaleWithAffineTransformOp(image,jFrame.getWidth(),jFrame.getHeight(), AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
             image = null;
@@ -70,5 +69,10 @@ public class Java2DDisplayHandler implements PlayHandler {
                 affineTransform, renderingHints);
         return affineTransformOp.filter(
                 image, scaledImage);
+    }
+
+    @Override
+    public void setGamma(float gamma) {
+
     }
 }

@@ -9,4 +9,13 @@ public interface PlayHandler {
     void flush();
     void destroy();
     Object getFrameObj();
+
+    interface SoundPlayHandler extends PlayHandler{
+        void setVolume(float volume);
+    }
+
+    interface DisplayHandler extends PlayHandler{
+        void setGamma(float gamma);
+    }
+
 }

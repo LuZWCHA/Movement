@@ -363,6 +363,10 @@ public class MathHelper {
         return data & mark;
     }
 
+//    public static Matrix4f noSmallMatrix(Matrix4f matrix4f){
+//
+//    }
+
     public static int getIntMiddleBits(int data,int bitStart ,int length){
         return getIntHighBits(data << bitStart,length);
     }

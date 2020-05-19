@@ -53,6 +53,7 @@ public interface R {
         public static final String text_player_btn_play_id = "movement.player.btn.play";
         public static final String text_player_btn_stop_id = "movement.player.btn.stop";
         public static final String text_player_btn_screen_rotate_id = "movement.player.btn.rotate";
+        public static final String text_player_tv_channeltip_id = "movement.player.tv.channeltip";
 
     }
 

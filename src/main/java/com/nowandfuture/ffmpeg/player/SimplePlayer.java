@@ -25,8 +25,8 @@ public class SimplePlayer implements IMediaPlayer{
     private AudioPlayThread audioPlayThread;
     private final IMediaPlayer.SyncInfo syncInfo;
 
-    private PlayHandler videoHandler;
-    private PlayHandler audioHandler;
+    private PlayHandler.DisplayHandler videoHandler;
+    private PlayHandler.SoundPlayHandler audioHandler;
 
     private boolean isLoading;
     private float volume;
@@ -35,11 +35,11 @@ public class SimplePlayer implements IMediaPlayer{
         imageCache = new LinkedBlockingQueue<>(100);
         audioCache = new LinkedBlockingQueue<>(100);
         syncInfo = new IMediaPlayer.SyncInfo();
-        channels = 2;
+        channels = 1;
         volume = 1;
     }
 
-    public void setHandlers(PlayHandler videoHandler, PlayHandler audioHandler){
+    public void setHandlers(PlayHandler.DisplayHandler videoHandler, PlayHandler.SoundPlayHandler audioHandler){
         this.videoHandler = videoHandler;
         this.audioHandler = audioHandler;
     }
@@ -245,6 +245,10 @@ public class SimplePlayer implements IMediaPlayer{
         if(grabber != null){
             grabber.setAudioChannels(channels);
         }
+    }
+
+    public int getChannels() {
+        return channels;
     }
 
     public Object getCurImageObj(){

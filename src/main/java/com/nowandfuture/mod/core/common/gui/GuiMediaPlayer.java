@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.gui;
 
+import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
@@ -8,10 +9,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.FileViewerView;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.NumberBox;
-import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.*;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
@@ -38,6 +36,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     private SliderView volumeView;
     private NumberBox widthBox,heightBox;
     private FrameLayout btnLayout;
+    private NumberBox channelNum;
+    private TextView channelsTv;
 
     public GuiMediaPlayer(TileEntitySimplePlayer player) {
         super(new ContainerSimplePlayer());
@@ -50,6 +50,8 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         volumeView = new SliderView(getRootView(),btnLayout);
         widthBox = new NumberBox(getRootView(),btnLayout);
         heightBox = new NumberBox(getRootView(),btnLayout);
+        channelNum = new NumberBox(getRootView(),btnLayout);
+        channelsTv = new TextView(getRootView(),btnLayout);
 
         xSize = 200;
         ySize = 100;
@@ -104,7 +106,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
 
         addGuiCompounds(fileBowerBtn);
 
-        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,volumeView,widthBox,heightBox);
+        btnLayout.addChildren(stopBtn, playBtn, rotateBtn,channelNum,channelsTv,volumeView,widthBox,heightBox);
 
         btnLayout.setX(20);
         btnLayout.setY(40);
@@ -127,6 +129,26 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         volumeView.setWidth(50);
         volumeView.setHeight(10);
         volumeView.setRange(1,0,0);
+
+
+        channelsTv.setX(120);
+        channelsTv.setY(0);
+        channelsTv.setWidth(30);
+        channelsTv.setHeight(14);
+        channelsTv.setText(R.name((R.id.text_player_tv_channeltip_id)));
+        channelNum.setX(156);
+        channelNum.setY(0);
+        channelNum.setWidth(48);
+        channelNum.setHeight(14);
+        channelNum.setMin(1);
+        channelNum.setMax(2);
+        channelNum.setCurValue(1);
+        channelNum.setValueChangedListener(new Consumer<Integer>() {
+            @Override
+            public void accept(Integer integer) {
+                ((SimplePlayer)player.getSimplePlayer()).setChannels(integer);
+            }
+        });
 
         playBtn.setText(R.name(R.id.text_player_btn_play_id));
         stopBtn.setText(R.name(R.id.text_player_btn_stop_id));
@@ -266,6 +288,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         }
 
         volumeView.setProgress(player.getVolume());
+        channelNum.setCurValue((((SimplePlayer) player.getSimplePlayer()).getChannels()));
         widthBox.setCurValue(player.getWidth());
         heightBox.setCurValue(player.getHeight());
     }

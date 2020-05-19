@@ -2,15 +2,11 @@ package com.nowandfuture.ffmpeg.player.sound;
 
 import com.nowandfuture.ffmpeg.player.SoundUtils;
 import com.nowandfuture.mod.Movement;
+import com.nowandfuture.mod.api.Unstable;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector3f;
-import paulscode.sound.SoundSystemConfig;
-import paulscode.sound.SoundSystemException;
-import paulscode.sound.SoundSystemLogger;
-import paulscode.sound.libraries.LibraryLWJGLOpenAL;
 
 import javax.sound.sampled.AudioFormat;
 import java.nio.Buffer;
@@ -34,7 +30,7 @@ public class SoundManager {
 
     private final Matrix4f cameraMatrix;
 
-    private LibraryLWJGLOpenAL libraryLWJGLOpenAL;
+//    private LibraryLWJGLOpenAL libraryLWJGLOpenAL;
 
     private Logger logger;
     private float millisPreviouslyPlayed = 0;
@@ -46,11 +42,11 @@ public class SoundManager {
         logger = Logger.getLogger(getClass().getSimpleName());
     }
 
-    public void init() throws LWJGLException, SoundSystemException {
-        SoundSystemConfig.setLogger(new SoundSystemLogger());
-        libraryLWJGLOpenAL = new LibraryLWJGLOpenAL();
-        libraryLWJGLOpenAL.init();
-    }
+//    public void init() throws LWJGLException, SoundSystemException {
+//        SoundSystemConfig.setLogger(new SoundSystemLogger());
+//        libraryLWJGLOpenAL = new LibraryLWJGLOpenAL();
+//        libraryLWJGLOpenAL.init();
+//    }
 
     public void add(String name, Buffer buffer, Vector3f position, AudioFormat af){
         SoundSource soundSource = new SoundSource(false,false);
@@ -65,6 +61,7 @@ public class SoundManager {
     public void addStream(String name, Vector3f position){
         SoundSource soundSource = new SoundSource(false,false);
         soundSource.setPosition(position);
+        soundSource.setGain(1f);
         soundSourceMap.put(name,soundSource);
     }
 
@@ -131,20 +128,6 @@ public class SoundManager {
         return -1;
     }
 
-    public boolean unqueueBuffers(String name,IntBuffer buffer){
-        SoundSource soundSource = getSoundSource(name);
-        if(soundSource == null)
-            return false;
-        int sourceId = soundSource.getSourceId();
-
-//        alGenBuffers(buffer);
-        if (!checkALError()) {
-            alSourceUnqueueBuffers(sourceId,buffer);
-            return !checkALError();
-        }
-        return false;
-    }
-
     public int feedRawData(String name, byte[] bytes, AudioFormat af) throws InterruptedException {
         SoundSource soundSource = getSoundSource(name);
         if(soundSource == null) return -1;
@@ -203,6 +186,7 @@ public class SoundManager {
         return processed;
     }
 
+    @Unstable(description = "to be honest, this method has bug! don't use it")
     public boolean queueBuffer(String name, byte[] buffer,IntBuffer intBuffer,AudioFormat format)
     {
        SoundSource soundSource = getSoundSource(name);

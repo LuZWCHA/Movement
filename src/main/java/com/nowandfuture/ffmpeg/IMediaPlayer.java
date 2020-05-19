@@ -49,7 +49,7 @@ public interface IMediaPlayer {
         public boolean isVideoFrameGet;
         public boolean isAudioFrameGet;
 
-        public long offset;
+        public volatile long offset;
 
         private long audioClock;
         private long lastTime;

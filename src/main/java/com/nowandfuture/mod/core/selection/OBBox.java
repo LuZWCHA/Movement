@@ -185,7 +185,7 @@ public class OBBox {
     }
 
     private boolean isSame(float a,float b){
-        return Math.abs(a - b) < 1E-6;
+        return Math.abs(a - b) < 1E-8;
     }
 
     /**
@@ -195,8 +195,8 @@ public class OBBox {
      */
     public AxisAlignedBB asAxisAlignedBB(){
         Vector3f[] corners = asArray();
-        double minX = Double.POSITIVE_INFINITY,minY = Double.POSITIVE_INFINITY,minZ = Double.POSITIVE_INFINITY,
-                maxX = Double.NEGATIVE_INFINITY,maxY = Double.NEGATIVE_INFINITY,maxZ = Double.NEGATIVE_INFINITY;
+        float minX = Float.POSITIVE_INFINITY,minY = Float.POSITIVE_INFINITY,minZ = Float.POSITIVE_INFINITY,
+                maxX = Float.NEGATIVE_INFINITY,maxY = Float.NEGATIVE_INFINITY,maxZ = Float.NEGATIVE_INFINITY;
 
         for (Vector3f c:
                 corners) {
@@ -207,6 +207,16 @@ public class OBBox {
             if(c.y > maxY) maxY = c.y;
             if(c.z > maxZ) maxZ = c.z;
         }
+
+        //server transmit the serverPos with the particle size 1/4096=0.000244140625‬
+        //do normalization for your aabb to avoid penetrate
+
+        minX = (float) ((long) (minX * 4096)) / 4096;
+        minY = (float) ((long) (minY * 4096)) / 4096;
+        minZ = (float) ((long) (minZ * 4096)) / 4096;
+        maxX = (float) ((long) (maxX * 4096)) / 4096;
+        maxY = (float) ((long) (maxY * 4096)) / 4096;
+        maxZ = (float) ((long) (maxZ * 4096)) / 4096;
 
         return new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
     }

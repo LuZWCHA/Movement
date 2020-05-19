@@ -410,7 +410,6 @@ public class CubesRenderer implements IRender{
 //        }
 //    }
 
-
     private int lastSize = 0;//just for test
     private void render(BlockRenderLayer layer){
         if(!isBuilt()) return;

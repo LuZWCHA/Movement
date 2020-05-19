@@ -13,30 +13,14 @@ import java.nio.*;
 public class SoundUtils {
 
     public static void cloneFrameDeallocate(@Nonnull Frame frame){
-        if(frame.image != null){
-            for (Buffer b :
-                    frame.image) {
-                if(b.isDirect()){
-                    b.clear();
-                }
-            }
-        }
-
-        if(frame.samples != null){
-            for (Buffer b :
-                    frame.samples) {
-                if(b.isDirect()){
-                    b.clear();
-                }
-            }
-        }
-
         if(frame.opaque != null) {
             Pointer[] pointers = (Pointer[]) frame.opaque;
-            if(pointers[0] != null)
-                pointers[0].deallocate();
-            if(pointers[1] != null)
-                pointers[1].deallocate();
+            for (Pointer p :
+                    pointers) {
+                if(p != null && !p.isNull()){
+                    p.deallocate();
+                }
+            }
         }
     }
 
