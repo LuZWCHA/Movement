@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
 import com.nowandfuture.mod.core.movecontrol.ModuleNode;
 import com.nowandfuture.mod.core.prefab.ModuleUtils;
 import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -131,7 +132,7 @@ public class TileEntityCoreModule extends ModuleNode {
     public void update() {
         boolean isUpdate = moduleBase.updateLine();
 
-        super.update();
+        doTransform(0,new Matrix4f());
 
         if(isUpdate){
             setTick(getLine().getTick());

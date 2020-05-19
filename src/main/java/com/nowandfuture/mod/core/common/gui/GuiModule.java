@@ -120,6 +120,9 @@ public class GuiModule extends AbstractGuiContainer {
         removeBtn.setText("-");
         addBtn.setText("+");
 
+        removeBtn.setVanillaStyle(false);
+        addBtn.setVanillaStyle(false);
+
         removeBtn.setActionListener(new View.ActionListener() {
             @Override
             public void onClicked(View v) {
@@ -134,7 +137,7 @@ public class GuiModule extends AbstractGuiContainer {
             public void onClicked(View v) {
 
                 FrameLayout frameLayout = new FrameLayout(getRootView());
-                frameLayout.setBackgroundColor(new Color(255,255,255,255));
+                frameLayout.setBackgroundColor(new Color(100,100,100,255));
                 frameLayout.setWidth(108);
                 frameLayout.setHeight(80);
                 PositionEditorView positionEditorView = new PositionEditorView(getRootView());
@@ -145,14 +148,16 @@ public class GuiModule extends AbstractGuiContainer {
                 positionEditorView.setHeight(16);
 
                 Button confirmBtn = new Button(getRootView());
-                confirmBtn.setX(34);
+                confirmBtn.setVanillaStyle(false);
+                confirmBtn.setX(30);
                 confirmBtn.setY(52);
                 confirmBtn.setWidth(32);
                 confirmBtn.setHeight(16);
                 confirmBtn.setText("confirm");
 
                 Button cancelBtn = new Button(getRootView());
-                cancelBtn.setX(72);
+                cancelBtn.setVanillaStyle(false);
+                cancelBtn.setX(68);
                 cancelBtn.setY(52);
                 cancelBtn.setWidth(32);
                 cancelBtn.setHeight(16);
@@ -334,7 +339,7 @@ public class GuiModule extends AbstractGuiContainer {
         updateCollisionEnableBtn();
 
         BlockPos pos = tileEntityCoreModule.getCurModuleNode().getOffset();
-        title.setText(Vec3iString(pos));
+        title.setText(tileEntityCoreModule.getCurModuleNode().getPrefab().getName() + "@" + Vec3iString(pos));
     }
 
     @Override

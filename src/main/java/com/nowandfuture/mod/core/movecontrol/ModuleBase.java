@@ -185,8 +185,7 @@ public class ModuleBase implements IModule {
     private void updateBox(){
         transMatrix.setIdentity();
 
-        transformPre(0, transMatrix);
-        transformPost(0, transMatrix);
+        doTransform(0,transMatrix);
     }
 
     public AxisAlignedBB getMinAABB(){

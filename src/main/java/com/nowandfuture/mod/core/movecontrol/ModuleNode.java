@@ -15,6 +15,7 @@ import com.nowandfuture.mod.core.prefab.ModuleUtils;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
+import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -475,27 +476,30 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
    @Unstable
    public void collectAABBs(@Nonnull List<AxisAlignedBB> list,AxisAlignedBB area){
        AxisAlignedBB aabb = getMinAABB();
-       Matrix4f invertMatrix = Matrix4f.invert(getMatrix4f(),new Matrix4f());
-       List<AxisAlignedBB> moduleAABBs = new LinkedList<>();
-       AxisAlignedBB laabb = area.offset(-getModulePos().getX(),-getModulePos().getY(),-getModulePos().getZ());
-       OBBox transOBB = new OBBox(laabb).transform(invertMatrix);
+       if(aabb != Block.NULL_AABB) {
 
-       //if transformed AABB is still a AABB
-       if(transOBB.isAxisAlignedBB()){
-           AxisAlignedBB transAABB = transOBB.asAxisAlignedBB();
-           if(aabb.intersects(transAABB)) {
-               AxisAlignedBB intersectArea = aabb.intersect(transAABB);
-               moduleBase.collectAABBsWithin(moduleAABBs,intersectArea);
-               for (AxisAlignedBB module :
-                       moduleAABBs) {
-                   OBBox obBox = new OBBox(module).transform(getMatrix4f());
+           Matrix4f invertMatrix = Matrix4f.invert(getMatrix4f(), new Matrix4f());
+           List<AxisAlignedBB> moduleAABBs = new LinkedList<>();
+           AxisAlignedBB laabb = area.offset(-getModulePos().getX(), -getModulePos().getY(), -getModulePos().getZ());
+           OBBox transOBB = new OBBox(laabb).transform(invertMatrix);
+
+           //if transformed AABB is still a AABB
+           if (transOBB.isAxisAlignedBB()) {
+               AxisAlignedBB transAABB = transOBB.asAxisAlignedBB();
+               if (aabb.intersects(transAABB)) {
+                   AxisAlignedBB intersectArea = aabb.intersect(transAABB);
+                   moduleBase.collectAABBsWithin(moduleAABBs, intersectArea);
+                   for (AxisAlignedBB module :
+                           moduleAABBs) {
+                       OBBox obBox = new OBBox(module).transform(getMatrix4f());
 //                   if(obBox.isAxisAlignedBB()) {
                        AxisAlignedBB temp = obBox.asAxisAlignedBB();
-                       if(temp.intersects(laabb))
-                            list.add(temp.offset(getModulePos()));
+                       if (temp.intersects(laabb))
+                           list.add(temp.offset(getModulePos()));
 //                   }
-               }
+                   }
 
+               }
            }
        }
 

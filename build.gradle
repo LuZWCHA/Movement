@@ -1,0 +1,106 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "mirror"
+            url = "http://lss233.littleservice.cn/repositories/minecraft"
+        }
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = 'sponge'
+            url = 'https://repo.spongepowered.org/maven'
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
+        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.4"
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+version = "0.2"
+group = "com.nowandfurure.movement"
+archivesBaseName = "Movement"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.5.2836"
+    runDir = "run"
+    clientJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
+//    serverJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
+
+    mappings = "stable_39"
+//    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+}
+
+configurations {
+    shade
+    compile.extendsFrom(shade)
+}
+
+dependencies {
+    shade files('libs/ffmpeg.jar')
+    shade files('libs/ffmpeg-windows-x86_64.jar')
+    shade files('libs/javacpp.jar')
+//    shade files('libs/javacpp-windows-x86_64.jar')
+
+    provided('org.spongepowered:mixin:0.8') {
+        exclude module: 'guava'
+        exclude module: 'commons-io'
+        exclude module: 'gson'
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+mixin {
+    add sourceSets.main, "mixins.movement.refmap.json"
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                "FMLCorePlugin": "com.nowandfuture.mod.MovementCore",
+                "FMLCorePluginContainsFMLMod": true
+        ])
+    }
+
+    from configurations.provided.asFileTree.files.collect {
+        zipTree(it)
+    }
+
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+}
