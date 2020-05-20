@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.movecontrol;
 
+import com.google.common.base.Objects;
 import com.nowandfuture.mod.api.Unstable;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
@@ -31,10 +32,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap>, IInventorySlotChangedListener, ModuleNodeMap.ModuleMapChangedListener {
-    public final static String NBT_OFFSET_X = "OffsetX";
-    public final static String NBT_OFFSET_Y = "OffsetY";
-    public final static String NBT_OFFSET_Z = "OffsetZ";
-    public final static int INVENTORY_CHANGED_PACKET = 0x16;
+    private final static String NBT_OFFSET_X = "OffsetX";
+    private final static String NBT_OFFSET_Y = "OffsetY";
+    private final static String NBT_OFFSET_Z = "OffsetZ";
+    private final static int INVENTORY_CHANGED_PACKET = 0x16;
     public final static int OFFSET_PACKET = 0x15;
 
     private ModuleNode parent;
@@ -44,6 +45,7 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     private long timelineId;
     protected DynamicInventory dynamicInventory = new DynamicInventory();
     private ModuleNodeMap map;
+
     private static String NBT_PREFAB_ID = "PrefabId";
     private static String NBT_TIMELINE_ID = "TimelineId";
 
@@ -427,16 +429,22 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
         return map;
     }
 
+    @Unstable(description = "may cause list bug")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ModuleNode node = (ModuleNode) o;
-        return prefabId == node.prefabId &&
-                timelineId == node.timelineId;
+        return offset.equals(node.offset) &&
+                parent == node.parent;
     }
 
-   public String getId(){
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(parent, offset);
+    }
+
+    public String getId(){
         if(parent != null){
             return parent.getId() + "," + offset.toLong();
         }

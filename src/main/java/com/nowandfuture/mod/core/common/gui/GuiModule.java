@@ -37,13 +37,13 @@ public class GuiModule extends AbstractGuiContainer {
     private SliderView tickSlider;
     //just as an example
     private MyLabel tickLabel;
-    private TextView tipLabel;
+    private TextView tipTv;
     private Button addBtn,removeBtn;
     private Button startBtn;
     private Button hideBlockBtn;
     private Button useClientCollisionBtn;//not finished
 
-    private TextView title;
+    private TextView titleTv;
     private Button backBtn;
     private PairSlotsListVew pairSlotsListVew;
 
@@ -92,9 +92,9 @@ public class GuiModule extends AbstractGuiContainer {
         tickLabel = createMyLabel(130,70,20,12,-1);
         tickLabel.setFirst(String.valueOf(tick)).setBackColor(0).setBorderColor(0);
 
-        tipLabel = new TextView(getRootView())
+        tipTv = new TextView(getRootView())
                 .setText(R.name(R.id.text_module_lab_collision_tip_id));
-        tipLabel = GuiBuilder.wrap(tipLabel)
+        tipTv = GuiBuilder.wrap(tipTv)
                 .setWidth(100).setHeight(14).setX(8).setY(16).build();
 
         tickSlider.setProgress(tick);
@@ -230,9 +230,8 @@ public class GuiModule extends AbstractGuiContainer {
             setVisible(true,tickLabel, tickSlider);
         }
 
-        title = new GuiBuilder<>(new TextView(getRootView()))
+        titleTv = new GuiBuilder<>(new TextView(getRootView()))
                 .setX(getXSize() + 6).setY(4).setWidth(60).setHeight(16).build();
-        title.setText(tileEntityCoreModule.getCurModuleNode().getId());
 
         backBtn = new GuiBuilder<>(new Button(getRootView()))
                 .setX(getXSize() + 72).setY(4).setWidth(32).setHeight(14).build();
@@ -261,14 +260,14 @@ public class GuiModule extends AbstractGuiContainer {
         updateShowOrHideBtn();
 
         addGuiCompoundsRelative(
-                title,
+                titleTv,
                 backBtn,
                 addBtn,
                 removeBtn,
                 useClientCollisionBtn,
                 hideBlockBtn,
                 tickLabel,
-                tipLabel,
+                tipTv,
                 startBtn,
                 pairSlotsListVew);
     }
@@ -339,7 +338,7 @@ public class GuiModule extends AbstractGuiContainer {
         updateCollisionEnableBtn();
 
         BlockPos pos = tileEntityCoreModule.getCurModuleNode().getOffset();
-        title.setText(tileEntityCoreModule.getCurModuleNode().getPrefab().getName() + "@" + Vec3iString(pos));
+        titleTv.setText(tileEntityCoreModule.getCurModuleNode().getPrefab().getName() + "@" + Vec3iString(pos));
     }
 
     @Override

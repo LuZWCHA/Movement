@@ -24,9 +24,8 @@ import net.minecraft.util.math.Vec3i;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
 public abstract class AbstractGuiContainer extends MCGuiContainer {
 
@@ -205,6 +204,59 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
         drawDialog(mouseX, mouseY, partialTicks);
+        drawTopTip(mouseX, mouseY, partialTicks);
+    }
+
+    interface GuiEvent extends Comparable<GuiEvent> {
+        void draw(int mouseX, int mouseY, float partialTicks);
+        boolean isDied(int mouseX, int mouseY, float partialTicks);
+        void destroy(int mouseX, int mouseY, float partialTicks);
+        int getPriority();
+        void create(RootView rootView);
+    }
+
+    public static abstract class AbstractGuiEvent implements GuiEvent{
+
+        @Override
+        public int compareTo(GuiEvent o) {
+            return this.getPriority() - o.getPriority();
+        }
+
+        @Override
+        public int getPriority() {
+            return 0;
+        }
+
+        @Override
+        public boolean isDied(int mouseX, int mouseY, float partialTicks) {
+            return true;
+        }
+    }
+
+    private final PriorityBlockingQueue<GuiEvent> tipList = new PriorityBlockingQueue<>();
+
+    public void post(GuiEvent event){
+        tipList.add(event);
+    }
+
+    public void clearAll(){
+        tipList.clear();
+    }
+
+    protected void drawTopTip(int mouseX, int mouseY, float partialTicks){
+        Iterator<GuiEvent> iterator = tipList.iterator();
+
+        while (iterator.hasNext()){
+            GuiEvent event = iterator.next();
+
+            event.create(rootView);
+            event.draw(mouseX, mouseY, partialTicks);
+
+            if(event.isDied(mouseX, mouseY, partialTicks)){
+                event.destroy(mouseX, mouseY, partialTicks);
+                iterator.remove();
+            }
+        }
     }
 
     private void drawDialog(int mouseX, int mouseY, float partialTicks){
@@ -432,6 +484,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
 
     public void onDestroy(){
         rootView.clear();
+        tipList.clear();
     }
 
     @Override

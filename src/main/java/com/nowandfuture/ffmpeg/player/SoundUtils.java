@@ -45,8 +45,7 @@ public class SoundUtils {
             f = arr.get(i)*v;//Ref：https://stackoverflow.com/questions/15087668/how-to-convert-pcm-samples-in-byte-array-as-floating-point-numbers-in-the-range
             if(f>v) f = v;
             if(f<-v) f = v;
-            //默认转为大端序
-            res.putShort(i*2,(short)f);//注意乘以2，因为一次写入两个字节。
+            res.putShort(i*2,(short)f);
         }
         return res;
     }
@@ -172,9 +171,6 @@ public class SoundUtils {
                 ILData = (ShortBuffer)buf[0];
                 short[] mono = new short[ILData.capacity()/2];
                 for(int i = 0; i < mono.length;i++){
-//                    if(i >= mono.length - 2)
-//                        mono[i] = 0;
-//                    else
                         mono[i] = (short) (((int)ILData.get(2 * i) + ILData.get(2 * i + 1))/2);
                 }
                 ByteBuffer mono2 = shortToByteValue(ShortBuffer.wrap(mono),vol);

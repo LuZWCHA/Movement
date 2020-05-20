@@ -341,5 +341,15 @@ public class TileEntityCoreModule extends ModuleNode {
         return node.getTimelineId() == getTimelineId() && node.getPrefabId() == getPrefabId();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        return getPos().equals(((TileEntityCoreModule)(o)).getPos());
+    }
 
+    @Override
+    public int hashCode() {
+        return getPos().hashCode();
+    }
 }

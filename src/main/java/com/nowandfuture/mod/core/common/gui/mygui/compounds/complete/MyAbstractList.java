@@ -430,10 +430,15 @@ public abstract class MyAbstractList<T extends MyAbstractList.ViewHolder> extend
             return index;
         }
 
+        protected void onHover(MyAbstractList list,int mouseX, int mouseY, float partialTicks){
+
+        }
+
         @Override
         protected void onDraw(int mouseX, int mouseY, float partialTicks) {
             if(isMouseover(true)){
                 setBackgroundColor(list.hoverBackground);
+                onHover(list,mouseX,mouseY,partialTicks);
             }else{
                 if(list.isSelected(this.index)){
                     setBackgroundColor(list.selectedBackground);

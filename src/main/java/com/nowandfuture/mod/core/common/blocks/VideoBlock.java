@@ -1,35 +1,27 @@
 package com.nowandfuture.mod.core.common.blocks;
 
-import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
-import com.nowandfuture.mod.core.common.gui.GuiConstructor;
 import com.nowandfuture.mod.core.common.gui.GuiMediaPlayer;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDirectional;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
-public class SimplePlayerBlock extends BlockDirectional {
-    public SimplePlayerBlock(){
+public class VideoBlock extends BlockDirectional {
+    public VideoBlock(){
         this(Material.SAND);
         setTranslationKey("SimplePlayerBlock");
     }
-
 
     @Override
     public IBlockState getStateFromMeta(int meta) {
@@ -54,7 +46,7 @@ public class SimplePlayerBlock extends BlockDirectional {
     }
 
 
-    public SimplePlayerBlock(Material materialIn) {
+    public VideoBlock(Material materialIn) {
         super(materialIn);
     }
 

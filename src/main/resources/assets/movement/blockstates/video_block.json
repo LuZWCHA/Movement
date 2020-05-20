@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "model": "movement:video_block"
+  },
+  "variants": {
+    "normal": { "model": "movement:video_block" },
+    "facing=up": { "model": "movement:video_block"},
+    "facing=down": { "model": "movement:video_block"},
+    "facing=north": { "model": "movement:video_block"},
+    "facing=south": { "model": "movement:video_block", "y": 180 },
+    "facing=west": { "model": "movement:video_block", "y": 270 },
+    "facing=east": { "model": "movement:video_block", "y": 90 }
+  }
+}

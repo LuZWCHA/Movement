@@ -405,4 +405,29 @@ public class RootView implements MyGui{
     public ViewGroup getHoverView() {
         return hoverView;
     }
+
+    public static class TextTipEvent extends AbstractGuiContainer.AbstractGuiEvent{
+
+        private String text;
+        private RootView rootView;
+
+        public TextTipEvent(String text){
+            this.text = text;
+        }
+
+        @Override
+        public void create(RootView rootView) {
+            this.rootView = rootView;
+        }
+
+        @Override
+        public void draw(int mouseX, int mouseY, float partialTicks) {
+            rootView.getGuiContainer().drawHoveringText(text,mouseX,mouseY);
+        }
+
+        @Override
+        public void destroy(int mouseX, int mouseY, float partialTicks) {
+
+        }
+    }
 }

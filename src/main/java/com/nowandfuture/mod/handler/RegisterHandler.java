@@ -52,7 +52,7 @@ public final class RegisterHandler {
         anmEditorBlock = new ModuleTimelineEditorBlock();
         moduleBlock = new ModuleCoreBlock();
         transformedBlock = new TransformedBlock();
-        videoBlock = new SimplePlayerBlock();
+        videoBlock = new VideoBlock();
 
         blockRegister.getRegistry().register(
                 constructorBlock.setRegistryName(MODID,"constructor_block")

@@ -42,12 +42,6 @@ public class SoundManager {
         logger = Logger.getLogger(getClass().getSimpleName());
     }
 
-//    public void init() throws LWJGLException, SoundSystemException {
-//        SoundSystemConfig.setLogger(new SoundSystemLogger());
-//        libraryLWJGLOpenAL = new LibraryLWJGLOpenAL();
-//        libraryLWJGLOpenAL.init();
-//    }
-
     public void add(String name, Buffer buffer, Vector3f position, AudioFormat af){
         SoundSource soundSource = new SoundSource(false,false);
         soundSource.setPosition(position);

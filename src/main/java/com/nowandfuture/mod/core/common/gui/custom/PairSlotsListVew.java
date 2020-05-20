@@ -20,6 +20,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import org.lwjgl.util.Color;
 
 import javax.annotation.Nonnull;
@@ -41,6 +42,7 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
     }
 
     static class SlotsViewHolder extends ViewHolder{
+        private BlockPos blockPos;
         final TextView indexTv;
         final SlotView psv;
         final SlotView tlv;
@@ -88,6 +90,14 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
         }
 
         @Override
+        protected void onHover(MyAbstractList list, int mouseX, int mouseY, float partialTicks) {
+            if(indexTv.isHovering())
+                getRoot().getGuiContainer().post(
+                        new RootView.TextTipEvent(AbstractGuiContainer.Vec3iString(blockPos))
+                );
+        }
+
+        @Override
         protected boolean onPressed(int mouseX, int mouseY, int state) {
             return true;
         }
@@ -106,6 +116,13 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
             indexTv.setText(String.valueOf(index));
         }
 
+        public BlockPos getBlockPos() {
+            return blockPos;
+        }
+
+        public void setBlockPos(BlockPos blockPos) {
+            this.blockPos = blockPos;
+        }
     }
 
     public static class SlotsAdapter extends Adapter<SlotsViewHolder> {
@@ -145,7 +162,10 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
             AbstractContainer.ProxySlot prefabSlot = inventory.getSlots().get(id);
             id = entry1.getKey();
             AbstractContainer.ProxySlot timelineSlot = inventory.getSlots().get(id);
+            ModuleNode curNode = coreModule.getCurModuleNode();
+            ModuleNode node = curNode.getModuleMap().timelineToModule(id);
 
+            viewHolder.setBlockPos(node.getOffset());
             if(prefabSlot != null && timelineSlot != null){
                 viewHolder.setSlots(prefabSlot,timelineSlot);
                 viewHolder.removeBtn.setActionListener(new View.ActionListener() {
@@ -181,6 +201,8 @@ public class PairSlotsListVew extends MyAbstractList<MyAbstractList.ViewHolder> 
                 });
 
                 viewHolder.setIndex(index);
+
+
             }
 
 

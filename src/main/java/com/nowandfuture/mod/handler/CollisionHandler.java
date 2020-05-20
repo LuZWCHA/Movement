@@ -22,7 +22,6 @@ import java.util.function.Predicate;
 //use the aabb at the aligned-matrix(the matrix transform the aabb to a aabb,too) instead of obb
 @Unstable
 public class CollisionHandler {
-//    public static Queue<TileEntityCoreModule> modules = new ConcurrentLinkedQueue<>();
 
     @SubscribeEvent
     public void handleCollision(GetCollisionBoxesEvent event){
