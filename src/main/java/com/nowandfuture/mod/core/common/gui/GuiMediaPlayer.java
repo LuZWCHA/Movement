@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
 import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
+import com.nowandfuture.mod.core.common.gui.mygui.compounds.Dialog;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.RootView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyTextField;
@@ -91,16 +92,20 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
                 view.setY(0);
                 view.setWidth(160);
                 view.setHeight(100);
+                RootView.DialogBuilder builder = getRootView().createDialogBuilder(view);
+                Dialog dialog = builder.build().setCenter();
                 view.setActionListener(new FileViewerView.AcceptFile() {
                     @Override
                     public void onAcceptFile(List<File> files) {
                         if(files != null && !files.isEmpty()){
-                            urlTextField.setText(files.get(0).getAbsolutePath());
+                            if(files.get(0).isFile()) {
+                                urlTextField.setText(files.get(0).getAbsolutePath());
+                                dialog.dispose();
+                            }
                         }
                     }
                 });
-                RootView.DialogBuilder builder = getRootView().createDialogBuilder(view);
-                builder.build().setCenter().show();
+                dialog.show();
             }
         });
 

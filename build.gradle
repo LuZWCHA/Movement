@@ -52,7 +52,7 @@ dependencies {
     shade files('libs/ffmpeg.jar')
     shade files('libs/ffmpeg-windows-x86_64.jar')
     shade files('libs/javacpp.jar')
-//    shade files('libs/javacpp-windows-x86_64.jar')
+    shade files('libs/javacpp-windows-x86_64.jar')
 
     provided('org.spongepowered:mixin:0.8') {
         exclude module: 'guava'
@@ -80,11 +80,11 @@ mixin {
     add sourceSets.main, "mixins.movement.refmap.json"
 }
 
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
-    }
-}
+//sourceSets {
+//    main {
+//        output.resourcesDir = output.classesDir
+//    }
+//}
 
 jar {
     manifest {

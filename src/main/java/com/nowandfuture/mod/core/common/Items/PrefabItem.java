@@ -77,7 +77,7 @@ public class PrefabItem extends Item {
             if(nbt.hasKey(AbstractPrefab.NBT_PREFAB_NAME)){
                 name = nbt.getString(AbstractPrefab.NBT_PREFAB_NAME);
             }
-            tooltip.add(name.isEmpty() ? "NoName" : name);
+            tooltip.add(name.isEmpty() ? I18n.format("movement.constructor.rename.hint") : name);
 
             if(nbt.hasKey(AbstractPrefab.NBT_SIZE_X)) {
                 Vec3i size = new Vec3i(
@@ -86,7 +86,6 @@ public class PrefabItem extends Item {
                         nbt.getInteger(AbstractPrefab.NBT_SIZE_Z)
                 );
                 tooltip.add(I18n.format("movement.tooltip.prefab.size")+
-                        ":"+
                         size.getX() + "x" + size.getY() + "x" + size.getZ());
             }
         }

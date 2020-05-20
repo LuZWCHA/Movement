@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.common.Items;
 
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
@@ -35,7 +36,8 @@ public class TimelineItem extends Item {
                 tooltip.add(I18n.format("movement.tooltip.timeline.duration") + compound.getLong(Timeline.NBT_ANM_LINE_TOTAL));
             if(compound.hasKey(Timeline.NBT_ANM_LINE_STEP))
                 tooltip.add(I18n.format("movement.tooltip.timeline.step") + compound.getInteger(Timeline.NBT_ANM_LINE_STEP));
-
+            if(compound.hasKey(KeyFrameLine.NBT_KEY_NUM))
+                tooltip.add(I18n.format("movement.tooltip.timeline.key.num") + compound.getInteger(KeyFrameLine.NBT_KEY_NUM));
         }
     }
 

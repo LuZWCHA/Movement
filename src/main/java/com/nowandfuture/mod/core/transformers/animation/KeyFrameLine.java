@@ -11,6 +11,7 @@ public class KeyFrameLine extends Timeline {
     //sorted
     public final static String NBT_KEY_FRAMES = "KeyFrames";
     public final static String NBT_KEY_TYPE = "KeyFrameType";
+    public final static String NBT_KEY_NUM = "KeyFrameNumber";
 
     private Map<KeyFrame.KeyFrameType,SortedSet<KeyFrame>> keyFrames;
 
@@ -234,6 +235,7 @@ public class KeyFrameLine extends Timeline {
 
         NBTTagCompound map = new NBTTagCompound();
 
+        int num = 0;
         for (KeyFrame.KeyFrameType kt :
                 KeyFrame.KeyFrameType.values()) {
 
@@ -244,10 +246,12 @@ public class KeyFrameLine extends Timeline {
                     keyFrames) {
                 tagList.appendTag(kf.writeParametersToNBT(new NBTTagCompound()));
             }
+            num += tagList.tagCount();
             map.setTag(NBT_KEY_TYPE.concat(kt.name()),tagList);
         }
 
         compound.setTag(NBT_KEY_FRAMES,map);
+        compound.setInteger(NBT_KEY_NUM,num);
 
         return super.serializeNBT(compound);
     }

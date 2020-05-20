@@ -4,17 +4,21 @@ import com.google.common.collect.Lists;
 import com.mojang.realmsclient.util.Pair;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.handler.RegisterHandler;
+import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.utils.math.Quaternion;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockShulkerBox;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.client.model.IModel;
@@ -28,10 +32,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Consumer;
 
 public class CopyBlockItemModel implements IBakedModel{
@@ -94,17 +98,15 @@ public class CopyBlockItemModel implements IBakedModel{
                 if(nbt != null && nbt.hasKey(BlockInfoCopyItem.NBT_BLOCK_ID)){
                     IBlockState storedBlk = (Block.getStateById(nbt.getInteger(BlockInfoCopyItem.NBT_BLOCK_ID)));
                     IBakedModel storedBlkModel;
-
-                    if(storedBlk.getBlock().getRenderType(storedBlk) ==
-                            EnumBlockRenderType.ENTITYBLOCK_ANIMATED){
-                        Item item = storedBlk.getBlock().getItemDropped(storedBlk,new Random(),1);
-
+                    Item item = Item.getItemFromBlock(storedBlk.getBlock());
+                    if(isRenderByItemStackRenderer(item)){
                         ItemStack itemStack = new ItemStack(item,1);
 //                        itemStack.setItemDamage(storedBlk.getBlock().getMetaFromState(storedBlk));
-                        storedBlkModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(itemStack);
+                        storedBlkModel = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(itemStack,world,entity);
                     }
-                    else
+                    else {
                         storedBlkModel = Minecraft.getMinecraft().getBlockRendererDispatcher().getModelForState(storedBlk);
+                    }
                     builder.putModel(storedBlk, storedBlkModel);
                     upperModel = storedBlkModel;
                 }else {
@@ -113,6 +115,10 @@ public class CopyBlockItemModel implements IBakedModel{
                 return builder.makeMultipartModel();
             }
         };
+    }
+
+    private boolean isRenderByItemStackRenderer(Item item){
+        return item == Items.BANNER || item == Items.BED || item == Items.SHIELD || item == Items.SKULL || item == Item.getItemFromBlock(Blocks.ENDER_CHEST) || item == Item.getItemFromBlock(Blocks.TRAPPED_CHEST) || Block.getBlockFromItem(item) instanceof BlockShulkerBox || Block.getBlockFromItem(item) == Blocks.CHEST;
     }
 
     @SideOnly(Side.CLIENT)
@@ -161,21 +167,22 @@ public class CopyBlockItemModel implements IBakedModel{
             return list;
         }
 
-
         private BakedQuad transform(BakedQuad quad) {
             UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(quad.getFormat());
-
             Matrix4f matrix4f = new Matrix4f();
             matrix4f.setIdentity();
-            matrix4f.setScale(.4f);
+            Quaternion quaternion = MathHelper.eulerAnglesToQuaternion(45,45,33f);
+            matrix4f.set(new Quat4d(quaternion.x,quaternion.y,quaternion.z,quaternion.w));
+            matrix4f.setScale(.3f);
             matrix4f.setTranslation(new Vector3f(.5f,.36f,1));
+
             final TRSRTransformation trsrTransformation = new TRSRTransformation(matrix4f);
 
             final IVertexConsumer consumer = new BakedQuadVertexTransformer(builder,
                     new BakedQuadVertexTransformer.ColorTransformation() {
                         @Override
                         public void transform(float[] colors) {
-                            colors[3] *= 0.6;
+                            colors[3] *= 0.8;
                         }
                     }, trsrTransformation);
 

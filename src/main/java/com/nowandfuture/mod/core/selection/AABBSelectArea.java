@@ -1,12 +1,8 @@
 package com.nowandfuture.mod.core.selection;
 
-import com.nowandfuture.mod.utils.DrawHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 public class AABBSelectArea {
     public final String NBT_AABB_MIN_X = "AxisAlignedBBMinX";
@@ -19,7 +15,6 @@ public class AABBSelectArea {
 
     private AxisAlignedBB box;
     private boolean show;
-//    private Minecraft mc = Minecraft.getMinecraft();
 
     public AABBSelectArea(){
         show = true;
