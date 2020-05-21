@@ -37,7 +37,7 @@ public class AudioPlayThread extends Thread {
 
                     synchronized (syncInfo) {
 
-                        if (syncInfo.isPause()) {
+                        while (syncInfo.isPause()) {
                             syncInfo.wait();
                         }
                     }

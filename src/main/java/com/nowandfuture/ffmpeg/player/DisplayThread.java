@@ -37,7 +37,7 @@ public class DisplayThread extends Thread{
         try {
             while (!isInterrupted()){
                 synchronized (syncInfo) {
-                    if (syncInfo.isPause()) {
+                    while (syncInfo.isPause()) {
                         syncInfo.wait();
                     }
                 }

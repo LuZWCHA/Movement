@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.bytedeco.ffmpeg.global.avutil.AV_SAMPLE_FMT_S16;
-
 public class SimplePlayer implements IMediaPlayer{
     private Exception lastException;
     private FFmpegFrameGrabber grabber;
@@ -96,7 +94,6 @@ public class SimplePlayer implements IMediaPlayer{
                 lastException = e;
             }
             grabber = null;
-//            syncInfo.notifyAll();
             prepare();
         }
         cleanup();
@@ -114,7 +111,6 @@ public class SimplePlayer implements IMediaPlayer{
         grabber.setAudioOption("threads", "0");
         grabber.setOption("hwaccel", "videotoolbox");
         grabber.setAudioChannels(channels);
-        grabber.setSampleFormat(AV_SAMPLE_FMT_S16);
 
         try {
             grabber.start();
@@ -134,6 +130,9 @@ public class SimplePlayer implements IMediaPlayer{
     @Override
     public void play() throws FrameGrabber.Exception {
 
+        syncInfo.setDecodeFinished(false);
+        resume();
+
         decodeThread.setGrabber(grabber);
         decodeThread.start();
 
@@ -142,10 +141,6 @@ public class SimplePlayer implements IMediaPlayer{
 
         displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
         displayThread.start();
-
-//        if(syncInfo.isPause()){
-//            syncInfo.setPause(false);
-//        }
     }
 
     public void info(FFmpegFrameGrabber grabber){
@@ -154,15 +149,8 @@ public class SimplePlayer implements IMediaPlayer{
 
     @Override
     public void end() throws Exception {
-        if(syncInfo.isPause()){
-
-            syncInfo.setDecodeFinished(true);
-            syncInfo.setPause(false);
-
-            synchronized (syncInfo) {
-                syncInfo.notifyAll();
-            }
-        }
+        syncInfo.setDecodeFinished(true);
+        resume();
 
         if(audioPlayThread != null) {
             audioPlayThread.interrupt();
@@ -232,11 +220,13 @@ public class SimplePlayer implements IMediaPlayer{
 
     @Override
     public void resume(){
-        syncInfo.setDecodeFinished(false);
-        syncInfo.setPause(false);
         synchronized (syncInfo) {
-            syncInfo.notifyAll();
-            syncInfo.sysStartTime = -1;
+            if(syncInfo.isPause()) {
+                syncInfo.setDecodeFinished(false);
+                syncInfo.setPause(false);
+                syncInfo.notifyAll();
+                syncInfo.sysStartTime = -1;
+            }
         }
     }
 

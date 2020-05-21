@@ -80,11 +80,11 @@ mixin {
     add sourceSets.main, "mixins.movement.refmap.json"
 }
 
-//sourceSets {
-//    main {
-//        output.resourcesDir = output.classesDir
-//    }
-//}
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
+}
 
 jar {
     manifest {

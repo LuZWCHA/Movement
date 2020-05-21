@@ -50,7 +50,7 @@ public class DecodeThread extends Thread {
                 }
 
                 synchronized (syncInfo) {
-                    if (syncInfo.isPause()) {
+                    while (syncInfo.isPause()) {
                         syncInfo.wait();
                     }
                 }
@@ -75,6 +75,7 @@ public class DecodeThread extends Thread {
                 }else{
                     frame = frame.clone();
                 }
+
 
                 if(grabber.hasVideo() && frame.image != null) {
                     if(!syncInfo.isVideoFrameGet){

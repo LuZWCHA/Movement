@@ -25,7 +25,6 @@ import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.PriorityBlockingQueue;
 
 public abstract class AbstractGuiContainer extends MCGuiContainer {
 
@@ -233,28 +232,34 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         }
     }
 
-    private final PriorityBlockingQueue<GuiEvent> tipList = new PriorityBlockingQueue<>();
+    private final PriorityQueue<GuiEvent> tipList = new PriorityQueue<>();
 
     public void post(GuiEvent event){
-        tipList.add(event);
+        synchronized (tipList) {
+            tipList.add(event);
+        }
     }
 
     public void clearAll(){
-        tipList.clear();
+        synchronized (tipList) {
+            tipList.clear();
+        }
     }
 
     protected void drawTopTip(int mouseX, int mouseY, float partialTicks){
-        Iterator<GuiEvent> iterator = tipList.iterator();
+        synchronized (tipList) {
+            Iterator<GuiEvent> iterator = tipList.iterator();
 
-        while (iterator.hasNext()){
-            GuiEvent event = iterator.next();
+            while (iterator.hasNext()) {
+                GuiEvent event = iterator.next();
 
-            event.create(rootView);
-            event.draw(mouseX, mouseY, partialTicks);
+                event.create(rootView);
+                event.draw(mouseX, mouseY, partialTicks);
 
-            if(event.isDied(mouseX, mouseY, partialTicks)){
-                event.destroy(mouseX, mouseY, partialTicks);
-                iterator.remove();
+                if (event.isDied(mouseX, mouseY, partialTicks)) {
+                    event.destroy(mouseX, mouseY, partialTicks);
+                    iterator.remove();
+                }
             }
         }
     }
