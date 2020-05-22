@@ -28,17 +28,16 @@ public class BigNBTTagSplitPacketTool {
     }
 
     private boolean combineNBT(int divNum) throws IOException {
-        ByteArrayOutputStream allByteArray = new ByteArrayOutputStream();
 
-        for(int i=0; i<divNum; ++i)
-        {
-            if(bytes[i] != null)
-                allByteArray.write(bytes[i], 0, bytes[i].length);
-        }
+        try (ByteArrayOutputStream allByteArray = new ByteArrayOutputStream();
+                ByteArrayInputStream ips = new ByteArrayInputStream(allByteArray.toByteArray())){
 
-        ByteArrayInputStream ips = new ByteArrayInputStream(allByteArray.toByteArray());
+            for(int i=0; i<divNum; ++i)
+            {
+                if(bytes[i] != null)
+                    allByteArray.write(bytes[i], 0, bytes[i].length);
+            }
 
-        try {
             nbt = CompressedStreamTools.readCompressed(ips);
 
         } catch (IOException e) {
@@ -50,9 +49,6 @@ public class BigNBTTagSplitPacketTool {
             {
                 bytes = null;
             }
-            ips.close();
-            allByteArray.close();
-
         }
         return true;
     }
@@ -68,8 +64,8 @@ public class BigNBTTagSplitPacketTool {
 
     public static byte[] NBTToByteArray(NBTTagCompound nbt){
         byte[] temp = null;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
+
+        try(ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             CompressedStreamTools.writeCompressed(nbt,outputStream);
             temp = outputStream.toByteArray();
         }catch (IOException e) {

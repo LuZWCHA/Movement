@@ -224,7 +224,6 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
         return new SPacketUpdateTileEntity(getPos(),TIMELINE_UPDATE_PACKET,nbtTagCompound);
     }
 
-    // TODO: 2020/2/27
     public SPacketUpdateTileEntity getTimelineModifyPacket(){
         NBTTagCompound nbtTagCompound = new NBTTagCompound();
         getLine().serializeNBT(nbtTagCompound);
@@ -238,6 +237,7 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
         return new SPacketUpdateTileEntity(getPos(),ENABLE_COLLISION_PACKET,nbtTagCompound);
     }
+
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {

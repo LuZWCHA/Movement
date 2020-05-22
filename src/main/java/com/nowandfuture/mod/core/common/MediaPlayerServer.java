@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class MediaPlayerServer implements IMediaPlayer {
 
-    SyncInfo syncInfo;
+    private SyncInfo syncInfo;
     private long totalTime;
     private boolean enable;
 

@@ -206,7 +206,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         drawTopTip(mouseX, mouseY, partialTicks);
     }
 
-    interface GuiEvent extends Comparable<GuiEvent> {
+    public interface GuiEvent extends Comparable<GuiEvent> {
         void draw(int mouseX, int mouseY, float partialTicks);
         boolean isDied(int mouseX, int mouseY, float partialTicks);
         void destroy(int mouseX, int mouseY, float partialTicks);

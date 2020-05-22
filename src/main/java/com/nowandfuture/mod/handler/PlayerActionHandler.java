@@ -2,11 +2,13 @@ package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.core.common.entities.IClickableTile;
 import com.nowandfuture.mod.core.common.entities.TileEntityRayResult;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
@@ -98,13 +100,22 @@ public class PlayerActionHandler {
                 if(tileEntity instanceof IClickableTile){
                     Vec3d vec3d = look.scale(((IClickableTile) tileEntity).getReachedDistance());
                     final Vec3d end = start.add(vec3d.x,vec3d.y,vec3d.z);
-                    RayTraceResult rayTraceResult =
-                            ((IClickableTile) tileEntity).getClickBox().calculateIntercept(start,end);
+
+                    AxisAlignedBB aabb = ((IClickableTile) tileEntity).getClickBox(start,end,event.getEntity().getEntityBoundingBox());
+
+                    RayTraceResult rayTraceResult = null;
+                    if(aabb != Block.NULL_AABB){
+                        rayTraceResult = aabb.calculateIntercept(start,end);
+                    }
+
+                    if(rayTraceResult == null) return;
+
                     Vec3d d = ((IClickableTile) tileEntity).getClickableFaceNormal();
+
                     double dot = look.normalize().dotProduct(d);
                     double factor = - Math.min(0,dot);
 
-                    if(factor <= 0) return;
+                    if(factor <= 0 && !d.equals(Vec3d.ZERO)) return;
 
                     if(rayTraceResult != null) {
                         float ls = (float) rayTraceResult.hitVec.squareDistanceTo(start);

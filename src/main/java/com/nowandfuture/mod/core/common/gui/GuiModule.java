@@ -110,7 +110,6 @@ public class GuiModule extends AbstractGuiContainer {
         useClientCollisionBtn = GuiBuilder.wrap(new Button(getRootView()))
                 .setX(8).setY(30).setWidth(90).setHeight(16).build();
         useClientCollisionBtn.setText(R.name(R.id.text_module_btn_collision_enable_id));
-//        useClientCollisionBtn.setEnable(false);
 
         addBtn = GuiBuilder.wrap(new Button(getRootView()))
                 .setX(xSize + 4).setY(140).setWidth(16).setHeight(16).build();
@@ -298,7 +297,7 @@ public class GuiModule extends AbstractGuiContainer {
 
     @SuppressWarnings("Duplicates")
     private void startOrStop(){
-        LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.GUI_START_FLAG);
+        LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.START_FLAG);
         voidMessage.setPos(tileEntityCoreModule.getPos());
         if(tileEntityCoreModule.getLine().isEnable()){
             tileEntityCoreModule.getLine().setEnable(false);

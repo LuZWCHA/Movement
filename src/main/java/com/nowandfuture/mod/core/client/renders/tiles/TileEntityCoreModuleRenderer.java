@@ -29,7 +29,15 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
 
         Matrix4f matrix4f = new Matrix4f();
         matrix4f.setIdentity();
-        te.doTransform(partialTicks,matrix4f);
+
+        if(!Minecraft.getMinecraft().isGamePaused()) {
+            if (te.getLine().isEnable()) {
+                te.doTransform(partialTicks, matrix4f);
+            } else {
+                te.doTransform(1, matrix4f);
+            }
+        }
+
         renderModuleTree(te,x, y, z, partialTicks);
 
         if(te.isShowBlock()) {

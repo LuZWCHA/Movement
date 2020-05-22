@@ -12,7 +12,7 @@ public interface IClickableTile {
     //the distance the entities can reach this tileEntity
     float getReachedDistance();
     //AABB
-    AxisAlignedBB getClickBox();
+    AxisAlignedBB getClickBox(Vec3d start,Vec3d end,AxisAlignedBB area);
     //other box may used
     IBox getExtentBox();
 

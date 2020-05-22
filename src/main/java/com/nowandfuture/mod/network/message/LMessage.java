@@ -30,6 +30,10 @@ import java.util.Stack;
 
 import static com.nowandfuture.mod.utils.math.MathHelper.getIntLowBits;
 
+
+/**
+ * For any entities can be located（unique） at minecraft by BlockPos
+ */
 public abstract class LMessage implements IMessage {
     private int x,y,z;
     private int tag;
@@ -212,7 +216,7 @@ public abstract class LMessage implements IMessage {
 
         public static final short GUI_RESTART_FLAG = 0x00;
         public static final short GUI_EXPORT_TIMELINE_FLAG = 0x01;
-        public static final short GUI_START_FLAG = 0x02;
+        public static final short START_FLAG = 0x02;
         public static final short GUI_SHOW_OR_HIDE_BLOCK_FLAG = 0x03;
         public static final short GUI_ENABLE_COLLISION_FLAG = 0x04;
         public static final short GUI_VIDEO_PLAYER_STATE_FLAG = 0x05;
@@ -281,10 +285,14 @@ public abstract class LMessage implements IMessage {
                                                 .setTagCompound(compound);
 
                                         NetworkHandler.syncToTrackingClients(ctx, tileEntity);
+
+                                        NBTTagCompound nbtTagCompound = new NBTTagCompound();
+                                        nbtTagCompound.setString("content","导出成功");
+                                        NetworkHandler.INSTANCE.sendMessageToPlayer(new GuiResponseMessage(nbtTagCompound),player);
                                     }
                                 }
                                 break;
-                            case GUI_START_FLAG:
+                            case START_FLAG:
                                 if (tileEntity instanceof TileEntityModule) {
 
                                     if (!((TileEntityModule) tileEntity).getLine().isEnable()) {
@@ -741,7 +749,7 @@ public abstract class LMessage implements IMessage {
                 switch (message.flag){
                     case GUI_TICK_SLIDE:
                         if(tileEntity instanceof TileEntityCoreModule) {
-                            ((TileEntityCoreModule) tileEntity).setTick(message.data);
+                            ((TileEntityCoreModule) tileEntity).driveLine(message.data);
                             NetworkHandler.syncToTrackingClients(ctx,tileEntity,((TileEntityCoreModule) tileEntity).getTimelineUpdatePacket(message.data,((TileEntityCoreModule) tileEntity).getLine().isEnable()));
                         }
                         break;

@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<DynamicInventory, SerializeWrapper.BlockPosWrap>, IInventorySlotChangedListener, ModuleNodeMap.ModuleMapChangedListener {
     private final static String NBT_OFFSET_X = "OffsetX";
@@ -131,30 +132,54 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
         return false;
     }
 
-    public void setTick(long tick){
-        getLine().setTick(tick);
+    public void driveLine(long tick){
+        getLine().driveLine(tick);
+
         for (ModuleNode node:
                 map.getModules()) {
-            node.setTick(tick);
+            node.getLine().setEnable(getLine().isEnable());
+
+            node.driveLine(tick);
         }
     }
+
+    public void debugTraversal(Consumer<ModuleNode> consumer){
+
+        consumer.accept(this);
+
+        for (ModuleNode node:
+                map.getModules()) {
+            node.debugTraversal(consumer);
+        }
+    }
+
+//    public void setChildrenStep(boolean positive){
+//        System.out.println(getLine().getStep());
+//
+//        for (ModuleNode node:
+//                map.getModules()) {
+//            if(!positive)
+//                node.getLine().reverse();
+//            node.setChildrenStep(node.getLine().getStep() > 0);
+//        }
+//    }
 
     public void setTimelineEnable(boolean enable){
         getLine().setEnable(enable);
         for (ModuleNode node:
                 map.getModules()) {
-            node.getLine().setEnable(enable);
+            node.setTimelineEnable(enable);
         }
     }
 
     @Override
     public void update() {
 //        moduleBase.updateLine();
-        moduleBase.update();
+//        moduleBase.update();
+        moduleBase.updateEntities();
 
         for (ModuleNode node:
                 map.getModules()) {
-            node.getLine().setEnable(getLine().isEnable());
             node.update();
         }
     }
@@ -248,7 +273,7 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
             this.readFromNBT(nbtGet);
         }else if(pkt.getTileEntityType() == TIMELINE_UPDATE_PACKET){
             this.setTimelineEnable(nbtGet.getBoolean(NBT_ENABLE));
-            this.setTick(nbtGet.getLong(NBT_TICK));
+            this.driveLine(nbtGet.getLong(NBT_TICK));
         }else if(pkt.getTileEntityType() == TIMELINE_MODIFY_PACKET){
             this.getLine().deserializeNBT(nbtGet);
         }else if(pkt.getTileEntityType() == ENABLE_COLLISION_PACKET){

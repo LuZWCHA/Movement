@@ -413,7 +413,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
     }
 
     @Override
-    public AxisAlignedBB getClickBox() {
+    public AxisAlignedBB getClickBox(Vec3d s,Vec3d e,AxisAlignedBB area) {
         return getScreenAABB().offset(getPos());
     }
 

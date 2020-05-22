@@ -2,6 +2,7 @@ package com.nowandfuture.mod.network;
 
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.network.message.DivBytesMessage;
+import com.nowandfuture.mod.network.message.GuiResponseMessage;
 import com.nowandfuture.mod.network.message.LMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -38,6 +39,7 @@ public enum NetworkHandler {
         channel.registerMessage(LMessage.VoidMessage.class, LMessage.VoidMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(LMessage.NBTMessage.class, LMessage.NBTMessage.class,baseId++,Side.SERVER);
         channel.registerMessage(LMessage.LongDataMessage.class, LMessage.LongDataMessage.class,baseId++,Side.SERVER);
+        channel.registerMessage(GuiResponseMessage.class, GuiResponseMessage.class, baseId++,Side.CLIENT);
     }
 
     @SideOnly(Side.CLIENT)

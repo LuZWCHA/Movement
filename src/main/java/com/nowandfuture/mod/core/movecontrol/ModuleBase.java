@@ -143,9 +143,9 @@ public class ModuleBase implements IModule {
 
                 section = line.getSection(kt);
 
-                transformerHead.prepare(line);
-
                 if(section == null || section.isEmpty()) continue;
+
+                transformerHead.prepare(line);
 
                 transformerHead.transformStart(matrix4f, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
@@ -174,18 +174,22 @@ public class ModuleBase implements IModule {
 
     @Override
     public void update() {
-        if(!isEnable()) return;
-
-        if(prefab != null && line != null) {
-            prefab.update();
-            updateBox();
+        if(line != null) {
+            updateEntities();
+            updateMatrix();
         }
     }
 
-    private void updateBox(){
-        transMatrix.setIdentity();
+    public void updateEntities(){
+        if(isEnable() && prefab != null)
+            prefab.update();
+    }
 
-        doTransform(0,transMatrix);
+    public void updateMatrix(){
+        if(isEnable()) {
+            transMatrix.setIdentity();
+            doTransform(0, transMatrix);
+        }
     }
 
     public AxisAlignedBB getMinAABB(){

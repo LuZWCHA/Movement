@@ -5,8 +5,10 @@ import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
 import com.nowandfuture.mod.core.movecontrol.ModuleNode;
 import com.nowandfuture.mod.core.prefab.ModuleUtils;
-import com.nowandfuture.mod.core.selection.OBBox;
+import com.nowandfuture.mod.network.NetworkHandler;
+import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.math.Matrix4f;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -19,12 +21,14 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class TileEntityCoreModule extends ModuleNode {
+public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
 
     private NonNullList<ItemStack> moduleItemStacks =
             NonNullList.withSize(2, ItemStack.EMPTY);
@@ -132,17 +136,15 @@ public class TileEntityCoreModule extends ModuleNode {
     public void update() {
         boolean isUpdate = moduleBase.updateLine();
 
+
         doTransform(0,new Matrix4f());
+        super.update();
+
+        driveLine(getLine().getTick());
 
         if(isUpdate){
-            setTick(getLine().getTick());
             syncToClients();
         }
-    }
-
-    @Override
-    public void collectOBBoxs(@Nonnull List<OBBox> list) {
-        super.collectOBBoxs(list);
     }
 
     public Stack<ModuleNode> getNodeStack() {
@@ -351,5 +353,67 @@ public class TileEntityCoreModule extends ModuleNode {
     @Override
     public int hashCode() {
         return getPos().hashCode();
+    }
+
+    @Override
+    public boolean onRightClick(Vec3d hit) {
+        if(world.isRemote) {
+            LMessage.VoidMessage voidMessage = new LMessage.VoidMessage(LMessage.VoidMessage.START_FLAG);
+            voidMessage.setPos(getPos());
+            if (getLine().isEnable()) {
+                getLine().setEnable(false);
+            } else {
+                getLine().setEnable(true);
+            }
+            NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onLeftClick(Vec3d hit) {
+        return false;
+    }
+
+    @Override
+    public Vec3d getClickableFaceNormal() {
+        return new Vec3d(0,0,0);
+    }
+
+    @Override
+    public float getReachedDistance() {
+        return 5;
+    }
+
+    @Override
+    public AxisAlignedBB getClickBox(Vec3d start, Vec3d end,AxisAlignedBB area) {
+        List<AxisAlignedBB> list = new ArrayList<>();
+
+        collectAABBs(list,new AxisAlignedBB(start,end));
+
+        if(list.isEmpty()) return Block.NULL_AABB;
+        else{
+            AxisAlignedBB nearest = null;
+            double nearestDistance = Double.POSITIVE_INFINITY;
+            for (AxisAlignedBB aabb :
+                    list) {
+                RayTraceResult rayTraceResult = aabb.calculateIntercept(start, end);
+                if(rayTraceResult == null) continue;
+
+                double distance = rayTraceResult.hitVec.subtract(start).lengthSquared();
+                if(distance < nearestDistance){
+                    nearest = aabb;
+                    nearestDistance = distance;
+                }
+            }
+
+            return nearest;
+        }
+    }
+
+    @Override
+    public IBox getExtentBox() {
+        return null;
     }
 }

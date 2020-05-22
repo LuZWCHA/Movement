@@ -409,10 +409,26 @@ public class RootView implements MyGui{
     public static class TextTipEvent extends AbstractGuiContainer.AbstractGuiEvent{
 
         private String text;
+        private long lifeTime;
         private RootView rootView;
+        private int position;
 
         public TextTipEvent(String text){
             this.text = text;
+            this.lifeTime = 0;
+            this.position = 0;
+        }
+
+        public TextTipEvent(String text,long lifeTime){
+            this.text = text;
+            this.lifeTime = lifeTime;
+            this.position = 0;
+        }
+
+        public TextTipEvent(String text,long lifeTime,int position){
+            this.text = text;
+            this.lifeTime = lifeTime;
+            this.position = position;
         }
 
         @Override
@@ -422,12 +438,31 @@ public class RootView implements MyGui{
 
         @Override
         public void draw(int mouseX, int mouseY, float partialTicks) {
+            if(position == 1){
+                mouseX = 0;mouseY = 0;
+            }else if(position == 2){
+                mouseX = rootView.getGuiContainer().width;
+                mouseY = 0;
+            }else if(position == 3){
+                mouseX = 0;
+                mouseY = rootView.getGuiContainer().height;
+            }else if(position == 4){
+                mouseX = rootView.getGuiContainer().width;
+                mouseY = rootView.getGuiContainer().height;
+            }
+
             rootView.getGuiContainer().drawHoveringText(text,mouseX,mouseY);
+            lifeTime -= 1000f/Minecraft.getDebugFPS();
         }
 
         @Override
         public void destroy(int mouseX, int mouseY, float partialTicks) {
+            lifeTime = 0;
+        }
 
+        @Override
+        public boolean isDied(int mouseX, int mouseY, float partialTicks) {
+            return lifeTime < 0;
         }
     }
 }

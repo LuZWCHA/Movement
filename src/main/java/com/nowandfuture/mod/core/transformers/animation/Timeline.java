@@ -18,6 +18,7 @@ public class Timeline {
     public final static int DEFAULT_STEP = 1;
 
     private long totalTick;
+    private long preTick;
     private long tick;
     private int step;
     private Mode mode;//Cycle 0:restart 1:back || Not Cycle 2:once 3:one cycle 4:do nothing
@@ -64,6 +65,7 @@ public class Timeline {
         enable = false;
         step = DEFAULT_STEP;
         mode = Mode.CYCLE_RESTART;
+        preTick = 0;
         tick = 0;
         totalTick = 100;
     }
@@ -71,21 +73,21 @@ public class Timeline {
     public double getProgress(float p){
         if(mode == Mode.STOP || step == 0 || !enable) return (float)tick/(float)totalTick;
 
-        long nextTick = update(tick,totalTick,step,mode,true);
-        if(mode == Mode.CYCLE_RESTART && nextTick < tick)
-            nextTick += totalTick;
-        return (tick + (nextTick - tick) * p) / (float)totalTick;
+//        long nextTick = update(tick,totalTick,step,mode,true);
+//        if(mode == Mode.CYCLE_RESTART && nextTick < tick)
+//            nextTick += totalTick;
+        return (preTick + (tick - preTick) * p) / (float)totalTick;
     }
 
     public double getFixedTick(float p){
         if(mode == Mode.STOP || step == 0 || !enable) return tick;
 
-        long nextTick = update(tick,totalTick,step,mode,true);
+//        long nextTick = update(tick,totalTick,step,mode,true);
+//        System.out.println(nextTick);
+//        if(mode == Mode.CYCLE_RESTART && nextTick < tick)
+//            nextTick += totalTick;
 
-        if(mode == Mode.CYCLE_RESTART && nextTick < tick)
-            nextTick += totalTick;
-
-        return tick + (nextTick - tick) * p;
+        return preTick + (tick - preTick) * p;
     }
 
     public double getProgress(TimeInterpolation interpolation, float p){
@@ -101,14 +103,27 @@ public class Timeline {
         return temp != this.tick;
     }
 
+    public long getNextTick(){
+        return update(this.tick,totalTick,step,mode,true);
+    }
+
+    public long getPreTick() {
+        return preTick;
+    }
+
     private long update(long tick , long totalTick , int step, Mode mode, boolean test){
         if(mode == Mode.STOP || step == 0 || !enable) return tick;
 
+        if(!test)
+            this.preTick = this.tick;
+
         switch (mode){
             case CYCLE_RESTART:
-                if(tick + step >= totalTick)
+                if(tick + step > totalTick) {
                     tick += step - totalTick;
-                else{
+                    if(!test)
+                        this.preTick = tick;
+                } else{
                     tick += step;
                 }
                 break;
@@ -144,7 +159,7 @@ public class Timeline {
                 break;
             case ONE_CYCLE:
                 if(tick + step >= totalTick) {
-                    tick = 2 * totalTick - tick - step;
+                    tick = (totalTick << 1) - tick - step;
                     if(!test)
                         this.step = - step;
                 }else if(tick + step <= 0){
@@ -176,7 +191,17 @@ public class Timeline {
         return tick;
     }
 
+    public Timeline driveLine(long tick){
+        long preTick = this.tick;
+        setTick(tick);
+        if(Math.abs(this.tick - preTick) > Math.abs(step)){
+            this.preTick = this.tick > preTick ? this.totalTick : 0;
+        }
+        return this;
+    }
+
     public Timeline setTick(long tick) {
+        this.preTick = this.tick;
         if(tick < 0) tick = 0;
         else {
             switch (mode) {
@@ -188,10 +213,13 @@ public class Timeline {
                     else if (tick > totalTick) tick = (totalTick << 1) - tick;
                     break;
                 case CYCLE_RESTART:
-                    tick = tick % totalTick;
+                    if(tick > totalTick) {
+                        tick = tick % totalTick;
+                    }
                     break;
                 case CYCLE_BACK:
-                    tick = tick % (totalTick << 1);
+                    if(tick > totalTick << 1)
+                        tick = tick % ((totalTick << 1));
                     if (tick > totalTick) tick = (totalTick << 1) - tick;
                 case STOP:
                     break;
@@ -203,6 +231,7 @@ public class Timeline {
     }
 
     public void resetTick(){
+        this.preTick = 0;
         this.tick = 0;
     }
 
@@ -224,6 +253,10 @@ public class Timeline {
         }
         this.step = step;
         return this;
+    }
+
+    public void reverse(){
+        this.step = -this.step;
     }
 
     public int getStep() {
@@ -274,6 +307,7 @@ public class Timeline {
         step = compound.getInteger(NBT_ANM_LINE_STEP);
         enable = compound.getBoolean(NBT_ANM_LINE_ENABLE);
         mode = mode.getMode(compound.getInteger(NBT_ANM_LINE_MODE));
+        preTick = tick;
     }
 
     public NBTTagCompound serializeNBT(NBTTagCompound compound){
