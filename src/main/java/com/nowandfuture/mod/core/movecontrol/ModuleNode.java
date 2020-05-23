@@ -525,11 +525,11 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
                    for (AxisAlignedBB module :
                            moduleAABBs) {
                        OBBox obBox = new OBBox(module).transform(getMatrix4f());
-//                   if(obBox.isAxisAlignedBB()) {
-                       AxisAlignedBB temp = obBox.asAxisAlignedBB();
-                       if (temp.intersects(laabb))
-                           list.add(temp.offset(getModulePos()));
-//                   }
+                       if(obBox.isAxisAlignedBB()) {
+                           AxisAlignedBB temp = obBox.asAxisAlignedBB();
+                           if (temp.intersects(laabb))
+                               list.add(temp.offset(getModulePos()));
+                       }
                    }
 
                }

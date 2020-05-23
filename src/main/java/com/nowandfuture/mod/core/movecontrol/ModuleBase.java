@@ -50,25 +50,18 @@ public class ModuleBase implements IModule {
         transMatrix = new Matrix4f();
     }
 
-    // TODO: 2020/5/15 create different transformer
-    public void createTransformer(){
-
-    }
-
     public void createDefaultTransformer(){
-        LocationTransformNode node2 = new LocationTransformNode();
-        RotationTransformNode node1 = new RotationTransformNode();
-        ScaleTransformNode node = new ScaleTransformNode();
-
-        node.setInterpolation(TimeInterpolation.Type.HIGHER_POWER_DOWN);
+        LocationTransformNode first = new LocationTransformNode();
+        RotationTransformNode middle = new RotationTransformNode();
+        ScaleTransformNode last = new ScaleTransformNode();
 
         AbstractTransformNode.Builder.newBuilder()
-                .create(node)
-                .parent(node1)
-                .parent(node2)
+                .create(last)
+                .parent(middle)
+                .parent(first)
                 .build();
 
-        setTransformNode(node);
+        setTransformNode(last);
     }
 
     public AbstractTransformNode getTransformerHead() {
@@ -145,7 +138,7 @@ public class ModuleBase implements IModule {
 
                 if(section == null || section.isEmpty()) continue;
 
-                transformerHead.prepare(line);
+                transformerHead.initLine(line);
 
                 transformerHead.transformStart(matrix4f, (float) line.getSectionProgress(section, (float) p),
                         section.getBegin(),section.getEnd());
@@ -232,10 +225,14 @@ public class ModuleBase implements IModule {
                 prefab.readFromNBT(recNBT);
         }
 
-
         if(compound.hasKey(NBT_KEYFRAMES_LINE_TAG)){
             NBTTagCompound keysNBT = compound.getCompoundTag(NBT_KEYFRAMES_LINE_TAG);
             line.deserializeNBT(keysNBT);
+        }
+
+        if(compound.hasKey(NBT_TRANSFORMERS_TAG)){
+            NBTTagCompound tfNBT = compound.getCompoundTag(NBT_TRANSFORMERS_TAG);
+            transformerHead.readFromNBT(tfNBT);
         }
 
     }
@@ -258,6 +255,8 @@ public class ModuleBase implements IModule {
         compound.setTag(NBT_KEYFRAMES_LINE_TAG,
                 line.serializeNBT(new NBTTagCompound()));
 
+        compound.setTag(NBT_TRANSFORMERS_TAG,transformerHead.writeToNBT(new NBTTagCompound()));
+
         return compound;
     }
 
@@ -278,6 +277,45 @@ public class ModuleBase implements IModule {
 
     public KeyFrameLine getLine() {
         return line;
+    }
+
+
+    public void setInterpolationAlgorithm(int type,int algorithmId){
+        AbstractTransformNode temp = transformerHead;
+
+        while (temp != null){
+            if(temp.getTypeId() == type){
+                temp.setArithmeticId(algorithmId);
+                break;
+            }
+            temp = temp.getNext();
+        }
+    }
+
+    public int getInterpolationAlgorithm(int type){
+        AbstractTransformNode temp = transformerHead;
+
+        while (temp != null){
+            if(temp.getTypeId() == type){
+                return temp.getArithmeticId();
+            }
+            temp = temp.getNext();
+        }
+        return -1;
+    }
+
+    public void setTimeInterpolation(TimeInterpolation.Type type){
+        AbstractTransformNode temp = transformerHead;
+
+        while (temp != null){
+            temp.setInterpolation(type);
+            temp = temp.getNext();
+        }
+    }
+
+    public TimeInterpolation.Type getTimeInterpolation(){
+        if(transformerHead == null) return TimeInterpolation.Type.LINEAR;
+        return transformerHead.getInterpolation().getType();
     }
 
 }

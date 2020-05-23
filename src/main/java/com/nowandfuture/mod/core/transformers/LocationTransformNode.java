@@ -1,9 +1,9 @@
 package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.core.transformers.arithmetics.IInterpolationAlgorithm;
 import com.nowandfuture.mod.utils.math.Matrix4f;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -12,27 +12,27 @@ import javax.annotation.Nonnull;
 
 //default linear transform
 public class LocationTransformNode extends AbstractTransformNode<LocationTransformNode.LocationKeyFrame> {
-
-    private Vec3d temp;
+    private KeyFrameLine line;
 
     public LocationTransformNode(){
         super();
         setTypeId(1);
+        setArithmeticId(1);
     }
 
     @Override
     protected void transform(Matrix4f renderer, float p, LocationKeyFrame preKey, LocationKeyFrame key) {
-        transformMatrix(renderer, p, preKey, key);
-    }
-
-    @Override
-    public void transformMatrix(Matrix4f renderer, float p, LocationKeyFrame preKey, LocationKeyFrame key) {
-        temp = MathHelper.Lerp(p,preKey.curPos, key.curPos);
-        renderer.translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
+        IInterpolationAlgorithm<LocationKeyFrame> algorithm = getAlgorithm(getArithmeticId());
+        algorithm.calculate(renderer,line,p,preKey,key);
     }
 
     @Override
     protected void transformPost(Matrix4f renderer, float p, LocationKeyFrame preKey, LocationKeyFrame key) {
+    }
+
+    @Override
+    public void prepare(KeyFrameLine frameLine) {
+        this.line = frameLine;
     }
 
     @Override

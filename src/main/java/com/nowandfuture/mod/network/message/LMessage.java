@@ -111,7 +111,7 @@ public abstract class LMessage implements IMessage {
         public static final short TRANSFORMED_BLOCK_FLAG = 0x01;
         public static final short GUI_CHANGE_INVENTORY = 0x02;
         public static final short GUI_REMOVE_NODE = 0x03;
-
+        public static final short GUI_INTERPOLATION_FLAG = 0x04;
 
         public NBTTagCompound nbt;
 
@@ -199,6 +199,18 @@ public abstract class LMessage implements IMessage {
                                         NetworkHandler.syncToTrackingClients(ctx, tileEntity,
                                                 tileEntity.getUpdatePacket()
                                         );
+                                    }
+                                }
+                                break;
+                            case GUI_INTERPOLATION_FLAG:
+                                if(tileEntity instanceof TileEntityTimelineEditor){
+                                    NBTTagCompound nbtTagCompound = message.nbt;
+                                    if(nbtTagCompound != null) {
+                                        int ti = nbtTagCompound.getInteger("TimeInterpolation");
+                                        int li = nbtTagCompound.getInteger("LocationInterpolation");
+                                        ((TileEntityTimelineEditor) tileEntity).setTransformerNodeAg(1,li);
+                                        ((TileEntityTimelineEditor) tileEntity).setTimeInterpolation(TimeInterpolation.Type.values()[ti]);
+                                        NetworkHandler.syncToTrackingClients(ctx, tileEntity);
                                     }
                                 }
                                 break;
@@ -453,6 +465,7 @@ public abstract class LMessage implements IMessage {
         public static final short GUI_PLAYER_FACING_ROTATE = 0x0001;
         public static final short GUI_PLAYER_SIZE_X = 0x0002;
         public static final short GUI_PLAYER_SIZE_Y = 0x0003;
+//        public static final short GUI_NODE_TRANSFORM_AG = 0x0004;
 
         public int data;
 
@@ -553,6 +566,12 @@ public abstract class LMessage implements IMessage {
                                     NetworkHandler.syncToTrackingClients(ctx,tileEntity);
                                 }
                                 break;
+//                            case GUI_NODE_TRANSFORM_AG:
+//                                if(tileEntity instanceof TileEntityTimelineEditor){
+//                                    ((TileEntityTimelineEditor) tileEntity).setTransformerNodeAg(1,message.data);
+//                                    NetworkHandler.syncToTrackingClients(ctx,tileEntity);
+//                                }
+//                                break;
 
                         }
 

@@ -6,8 +6,8 @@ import com.nowandfuture.mod.core.common.entities.TileEntityTimelineEditor;
 import com.nowandfuture.mod.core.common.gui.custom.PreviewView;
 import com.nowandfuture.mod.core.common.gui.custom.TimeLineView;
 import com.nowandfuture.mod.core.common.gui.mygui.AbstractGuiContainer;
-import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.JEIGuiHandler;
+import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.common.gui.mygui.api.MyGui;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.View;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.compatible.MyButton;
@@ -21,6 +21,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.Fra
 import com.nowandfuture.mod.core.transformers.LocationTransformNode;
 import com.nowandfuture.mod.core.transformers.RotationTransformNode;
 import com.nowandfuture.mod.core.transformers.ScaleTransformNode;
+import com.nowandfuture.mod.core.transformers.TimeInterpolation;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.core.transformers.animation.Timeline;
@@ -66,7 +67,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     private MyButton reStartBtn;
 
-    private ComboBox comboBox;
+    private ComboBox modeCb,interpolationCb,timeIptCb;
 
     //for scale need one
     //for pos need three
@@ -106,7 +107,9 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         timeLine = new KeyFrameLine();
 
         timelineView = new TimeLineView(getRootView());
-        comboBox = new ComboBox(getRootView());
+        modeCb = new ComboBox(getRootView());
+        interpolationCb = new ComboBox(getRootView());
+        timeIptCb = new ComboBox(getRootView());
 
         rightLayout =new FrameLayout(getRootView());
 
@@ -290,28 +293,55 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         list.add(R.name(R.id.text_module_cmb_mode_one_id));
         list.add(R.name(R.id.text_module_cmb_mode_one_rcy_id));
         list.add(R.name(R.id.text_module_cmb_mode_stop_id));
-        comboBox.setContents(list);
-        comboBox.setX(46);
-        comboBox.setY(105);
-        comboBox.setWidth(40);
-        comboBox.setLabelHeight(12);
-        comboBox.setListHeight(30);
-        comboBox.setIndex(tileMovementModule.getLine().getMode().ordinal());
+        modeCb.setContents(list);
+        modeCb.setX(46);
+        modeCb.setY(87);
+        modeCb.setWidth(40);
+        modeCb.setLabelHeight(12);
+        modeCb.setListHeight(28);
+        modeCb.setIndex(tileMovementModule.getLine().getMode().ordinal());
 
-        addView(comboBox);
+        List<String> list1 = new ArrayList<>();
+        list1.add("线性插值");
+        list1.add("三次贝塞尔");
+        interpolationCb.setContents(list1);
+        interpolationCb.setX(12);
+        interpolationCb.setY(105);
+        interpolationCb.setWidth(80);
+        interpolationCb.setLabelHeight(12);
+        interpolationCb.setListHeight(28);
+        interpolationCb.setIndex(tileMovementModule.getTransformerNodeAg(1));
 
-        reStartBtn = createMyButton(12,100,26,20,R.name(R.id.text_module_btn_start_id));
-        applyBtn = createMyButton(72,130,26,20,R.name(R.id.text_module_btn_apply_id));
-        importBtn = createMyButton(12,130,26,20,R.name(R.id.text_module_btn_import_id));
-        exportBtn = createMyButton(42,130,26,20,R.name(R.id.text_module_btn_export_id));
+        List<String> list2 = new ArrayList<>();
+        for (TimeInterpolation.Type type :
+                TimeInterpolation.Type.values()) {
+            list2.add(type.name());
+        }
+        timeIptCb.setContents(list2);
+        timeIptCb.setX(12);
+        timeIptCb.setY(124);
+        timeIptCb.setWidth(80);
+        timeIptCb.setLabelHeight(12);
+        timeIptCb.setListHeight(28);
+        timeIptCb.setIndex(tileMovementModule.getTimeInterpolation().ordinal());
+
+        addView(timeIptCb);
+        addView(interpolationCb);
+        addView(modeCb);
+
+        reStartBtn = createMyButton(10,85,26,16,R.name(R.id.text_module_btn_start_id));
+
+        applyBtn = createMyButton(70,142,26,16,R.name(R.id.text_module_btn_apply_id));
+        importBtn = createMyButton(10,142,26,16,R.name(R.id.text_module_btn_import_id));
+        exportBtn = createMyButton(40,142,26,16,R.name(R.id.text_module_btn_export_id));
         keyTitle = createMyLabel(160,4,40,12,-1)
                 .enableBackDraw(false);
 
-        totalTimeLabel = createMyLabel(12,80,30,18,-1)
+        totalTimeLabel = createMyLabel(12,67,30,14,-1)
                 .setFirst(R.name(R.id.text_module_lab_total_time_id))
                 .enableBackDraw(false);
 
-        totalTimeBox = createMyTextField(50,80,26,18,"");
+        totalTimeBox = createMyTextField(50,67,26,14,"");
         totalTimeBox.setValidator(new Predicate<String>() {
             @Override
             public boolean apply(@Nullable String input) {
@@ -347,6 +377,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
             @Override
             public void clicked(MyGui gui, int button) {
                 applyTimeline();
+                applyTransformer();
             }
         });
 
@@ -477,8 +508,30 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
     }
 
+    private void applyTransformer(){
+        int index = interpolationCb.getSelectIndex();
+        int tid = timeIptCb.getSelectIndex();
+        int aid = 0;
+        if(index == 0){
+            tileMovementModule.setTransformerNodeAg(1,0);
+        }else if(index == 1){
+            tileMovementModule.setTransformerNodeAg(1,1);
+            aid = 1;
+        }
+
+        tileMovementModule.setTimeInterpolation(TimeInterpolation.Type.values()[tid]);
+
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("TimeInterpolation",tid);
+        compound.setInteger("LocationInterpolation",aid);
+        LMessage.NBTMessage nbtMessage =
+                new LMessage.NBTMessage(LMessage.NBTMessage.GUI_INTERPOLATION_FLAG,compound);
+        nbtMessage.setPos(tileMovementModule.getPos());
+        NetworkHandler.INSTANCE.sendMessageToServer(nbtMessage);
+    }
+
     private void applyTimeline(){
-        Timeline.Mode mode = Timeline.Mode.values()[comboBox.getSelectIndex()];
+        Timeline.Mode mode = Timeline.Mode.values()[modeCb.getSelectIndex()];
         long totalTime;
         if(!totalTimeBox.getText().isEmpty())
             totalTime = Long.parseLong(totalTimeBox.getText());
@@ -635,7 +688,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     @Override
     public void onDestroy() {
         tileMovementModule.setSlotChanged(null);
-        comboBox.setOnItemClicked(null);
+        modeCb.setOnItemClicked(null);
     }
 
     @Override
@@ -682,6 +735,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
                 }
                 submitValue();
             } else {
+                ((MyTextField) gui).setFocused(false);
                 long time = timeLine.getTotalTick();
                 try {
                     time = Long.parseLong(totalTimeBox.getText());

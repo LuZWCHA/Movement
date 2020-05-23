@@ -6,6 +6,7 @@ import com.nowandfuture.mod.core.movecontrol.ModuleNode;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
+import com.nowandfuture.mod.core.transformers.TimeInterpolation;
 import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.utils.math.Matrix4f;
@@ -41,14 +42,14 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public final static String NBT_ENABLE = "Enable";
     public final static String NBT_ENABLE_COLLISION = "EnableCollision";
     private final static String NBT_RENDER_REALTIME = "RenderRealtime";
-    private final static String NBT_NODE_TYPES = "NodeTypes";
+//    private final static String NBT_NODE_TYPES = "NodeTypes";
 
     private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;
     protected boolean enableCollision = false;
     //render light realtime
-    //0:disable
-    //>0:re-render with a probability of 1/(1+renderRealtime)
+    //<0:disable
+    //>=0:re-render with a probability of 1/(1+renderRealtime)
     private int renderRealtime = -1;
 
     protected ModuleBase moduleBase;
@@ -72,11 +73,6 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public double getMaxRenderDistanceSquared() {
         return (Minecraft.getMinecraft().gameSettings.renderDistanceChunks *
                 Minecraft.getMinecraft().gameSettings.renderDistanceChunks << 8);
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
     }
 
     public void setModuleBase(@Nonnull ModuleBase newModuleBase) {
@@ -123,6 +119,22 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
 
     public BlockPos getModulePos() {
         return moduleBase.getModulePos();
+    }
+
+    public int getTransformerNodeAg(int type){
+        return moduleBase.getInterpolationAlgorithm(type);
+    }
+
+    public void setTransformerNodeAg(int type, int a){
+        moduleBase.setInterpolationAlgorithm(type, a);
+    }
+
+    public void setTimeInterpolation(TimeInterpolation.Type type){
+        moduleBase.setTimeInterpolation(type);
+    }
+
+    public TimeInterpolation.Type getTimeInterpolation(){
+        return moduleBase.getTimeInterpolation();
     }
 
     @Override

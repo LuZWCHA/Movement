@@ -3,8 +3,12 @@ package com.nowandfuture.mod.core.transformers;
 import com.nowandfuture.mod.core.transformers.animation.IKeyFarmVisitor;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.core.transformers.arithmetics.*;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyFarmVisitor<T> {
     public static final String NBT_NEXT_TYPE = "NextType";
@@ -13,8 +17,10 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     public static final String NBT_TYPE = "Type";
 
     public static final String NBT_INTERPOLATION_TYPE = "Interpolation";
+    public static final String NBT_Arithmetic_ID = "ArithmeticID";
 
     private long typeId;
+    private int arithmeticId;
     private String name;
 
     //time line
@@ -60,14 +66,18 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
             getNext().transformEnd(renderer, p,(T)pre,(T)now);
     }
 
+    public final void initLine(KeyFrameLine frameLine){
+        prepare(frameLine);
+        if(getNext() != null)
+            getNext().initLine(frameLine);
+    }
+
     public void prepare(KeyFrameLine frameLine){
 
     }
 
     protected abstract boolean isAcceptKeyFarm(KeyFrame keyFrame);
     protected abstract void transform(final Matrix4f renderer, float p,T preKey,T key);
-    @Deprecated
-    public abstract void transformMatrix(final Matrix4f renderer, float p,T preKey,T key);
     protected abstract void transformPost(final Matrix4f renderer, float p,T preKey,T key);
 
     public void readFromNBT(NBTTagCompound compound){
@@ -81,10 +91,15 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
     public void readParametersFromNBT(NBTTagCompound compound){
         if(compound.isEmpty()) return;
         typeId = compound.getLong(NBT_TYPE);
+        arithmeticId = compound.getInteger(NBT_Arithmetic_ID);
 
         if (compound.hasKey(NBT_INTERPOLATION_TYPE)) {
             type = TimeInterpolation.Type.values()[compound.getInteger(NBT_INTERPOLATION_TYPE)];
             interpolation = TimeInterpolation.Factory.build(type);
+        }
+
+        if(compound.hasKey(NBT_Arithmetic_ID)){
+            arithmeticId = compound.getInteger(NBT_Arithmetic_ID);
         }
 
         //set parents params
@@ -105,6 +120,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         compound.setLong(NBT_TYPE, typeId);
 
         compound.setInteger(NBT_INTERPOLATION_TYPE,type.ordinal());
+        compound.setInteger(NBT_Arithmetic_ID,arithmeticId);
 
         if(next != null){
             compound.setLong(NBT_NEXT_TYPE, next.getTypeId());
@@ -145,9 +161,21 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         this.typeId = typeId;
     }
 
+    public void setArithmeticId(int arithmeticId) {
+        this.arithmeticId = arithmeticId;
+    }
+
+    public int getArithmeticId() {
+        return arithmeticId;
+    }
+
     public void setInterpolation(TimeInterpolation.Type type) {
         this.type = type;
-        interpolation = TimeInterpolation.Factory.build(type);
+        this.interpolation = TimeInterpolation.Factory.build(type);
+    }
+
+    public TimeInterpolation getInterpolation() {
+        return interpolation;
     }
 
     public static class Builder{
@@ -170,7 +198,7 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
             //set parents params
             long type = compound.getLong(NBT_NEXT_TYPE);
 
-            if(type < 0) {//set no next
+            if(type < 0) {//set no next transformer
                 node.next = null;
                 return node;
             }
@@ -200,5 +228,26 @@ public abstract class AbstractTransformNode<T extends KeyFrame> implements IKeyF
         public void build(){
             head.setNext(TransformNodeManager.INSTANCE.getDefaultAttributeNode());
         }
+    }
+
+    private final static Map<Integer,IInterpolationAlgorithm> algorithmList;
+    static {
+        algorithmList = new HashMap<>();
+
+        IInterpolationAlgorithm[] algorithms = new IInterpolationAlgorithm[]{
+                new LinearInterpolation(),
+                new CubicBezierInterpolation(),
+                new QuaternionSlerpInterpolation(),
+                new ScaleLinearInterpolation()
+        };
+
+        for (IInterpolationAlgorithm a :
+                algorithms) {
+            algorithmList.put(a.getID(), a);
+        }
+    }
+
+    protected <T extends KeyFrame> IInterpolationAlgorithm<T> getAlgorithm(int aid){
+        return algorithmList.get(aid);
     }
 }

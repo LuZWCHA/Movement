@@ -1,28 +1,26 @@
 package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.core.transformers.arithmetics.IInterpolationAlgorithm;
 import com.nowandfuture.mod.utils.math.Matrix4f;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 
 
 public class ScaleTransformNode extends AbstractTransformNode<ScaleTransformNode.ScaleKeyFrame> {
 
+    private KeyFrameLine line;
+
     public ScaleTransformNode(){
         super();
         setTypeId(3);
+        setArithmeticId(3);
     }
 
     @Override
     protected void transform(Matrix4f renderer, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
-        transformMatrix(renderer, p, preKey, key);
-    }
-
-    @Override
-    public void transformMatrix(Matrix4f renderer, float p, ScaleKeyFrame preKey, ScaleKeyFrame key) {
-        final float s = MathHelper.Lerp(p,preKey.scale,key.scale);
-        renderer.scale(new Vector3f(s,s,s));
+        IInterpolationAlgorithm<ScaleKeyFrame> algorithm = getAlgorithm(getArithmeticId());
+        algorithm.calculate(renderer,line,p,preKey,key);
     }
 
     @Override
@@ -32,6 +30,11 @@ public class ScaleTransformNode extends AbstractTransformNode<ScaleTransformNode
     @Override
     protected boolean isAcceptKeyFarm(KeyFrame keyFrame) {
         return keyFrame instanceof ScaleKeyFrame;
+    }
+
+    @Override
+    public void prepare(KeyFrameLine frameLine) {
+        this.line = frameLine;
     }
 
     @Override

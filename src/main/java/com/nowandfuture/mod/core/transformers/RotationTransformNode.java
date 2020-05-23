@@ -1,48 +1,36 @@
 package com.nowandfuture.mod.core.transformers;
 
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
-import com.nowandfuture.mod.utils.math.MathHelper;
+import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
+import com.nowandfuture.mod.core.transformers.arithmetics.IInterpolationAlgorithm;
 import com.nowandfuture.mod.utils.math.Matrix4f;
-import com.nowandfuture.mod.utils.math.Quaternion;
-import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
 public class RotationTransformNode extends AbstractTransformNode<RotationTransformNode.RotationKeyFrame> {
 
-    private final Vector3f vector3f = new Vector3f();
+
+    private KeyFrameLine line;
 
     public RotationTransformNode(){
         super();
         setTypeId(2);
+        setArithmeticId(2);
     }
 
     @Override
     protected void transform(Matrix4f renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
-        transformMatrix(renderer, p, preKey, key);
-    }
-
-    @Override
-    public void transformMatrix(Matrix4f renderer, float p, RotationKeyFrame preKey, RotationKeyFrame key) {
-        vector3f.set(key.center.getX() + .5f,key.center.getY() + .5f,key.center.getZ() + .5f);
-        renderer.translate(vector3f);
-
-        Quaternion res;
-
-        //prevent Quaternion's calculation error over 180 degrees which caused model's shaking
-        if(preKey.rotX == key.rotX && preKey.rotY == key.rotY && preKey.rotZ == key.rotZ){
-            res = MathHelper.eulerAnglesToQuaternion(key.rotX,key.rotY,key.rotZ);
-        }else {
-            res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX, preKey.rotY, preKey.rotZ),
-                    MathHelper.eulerAnglesToQuaternion(key.rotX, key.rotY, key.rotZ), p);
-        }
-        MathHelper.mul(renderer, res);
-
-        renderer.translate(vector3f.negate());
+        IInterpolationAlgorithm<RotationKeyFrame> algorithm = getAlgorithm(getArithmeticId());
+        algorithm.calculate(renderer,line,p,preKey,key);
     }
 
     @Override
     protected void transformPost(Matrix4f renderer, float p, RotationKeyFrame pre, RotationKeyFrame key) {
+    }
+
+    @Override
+    public void prepare(KeyFrameLine frameLine) {
+        this.line = frameLine;
     }
 
     @Override

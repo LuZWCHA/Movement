@@ -136,7 +136,6 @@ public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
     public void update() {
         boolean isUpdate = moduleBase.updateLine();
 
-
         doTransform(0,new Matrix4f());
         super.update();
 

@@ -1,30 +1,30 @@
-package com.nowandfuture.mod.core.transformers;
+package com.nowandfuture.mod.core.transformers.arithmetics;
 
+import com.nowandfuture.mod.core.transformers.LocationTransformNode;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrame;
 import com.nowandfuture.mod.core.transformers.animation.KeyFrameLine;
 import com.nowandfuture.mod.utils.math.Matrix4f;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.util.math.Vec3d;
 
+import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
-@Deprecated
-public final class BezierTransformNode extends LocationTransformNode {
+public class CubicBezierInterpolation implements IInterpolationAlgorithm<LocationTransformNode.LocationKeyFrame>{
 
     private KeyFrameLine line;
 
     @Override
-    protected void transform(Matrix4f renderer, float p, LocationKeyFrame preKey, LocationKeyFrame key) {
-        Vec3d[] controlPoints = getControlPoints(preKey,key);
-        Vec3d temp = calculateCubicBezier(preKey.curPos,controlPoints[0],controlPoints[1],key.curPos,p);
-        renderer.translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
+    public int getID() {
+        return 1;
     }
 
     @Override
-    public void prepare(KeyFrameLine frameLine){
-        if(this.line != frameLine) {
-            this.line = frameLine;
-        }
+    public void calculate(Matrix4f renderer, @Nonnull KeyFrameLine line, float p, LocationTransformNode.LocationKeyFrame preKey, LocationTransformNode.LocationKeyFrame key) {
+        this.line = line;
+        Vec3d[] controlPoints = getControlPoints(preKey,key);
+        Vec3d temp = calculateCubicBezier(preKey.curPos,controlPoints[0],controlPoints[1],key.curPos,p);
+        renderer.translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
     }
 
     //P = (1-t)^3 * P0 + 3 * t * (1-t) ^ 2 * P1 + 3 * t^2 * (1-t) * P2 + t^3 * P3
@@ -35,12 +35,12 @@ public final class BezierTransformNode extends LocationTransformNode {
         return new Vec3d(x,y,z);
     }
 
-    private Vec3d[] getControlPoints(LocationKeyFrame p0Key, LocationKeyFrame p3Key){
+    private Vec3d[] getControlPoints(LocationTransformNode.LocationKeyFrame p0Key, LocationTransformNode.LocationKeyFrame p3Key){
         Vec3d[] centers = {p0Key.curPos,getCenterPoint(p0Key.curPos,p3Key.curPos),p3Key.curPos};
         line.getPreFrame(p0Key).ifPresent(new Consumer<KeyFrame>() {
             @Override
             public void accept(KeyFrame frame) {
-                LocationKeyFrame bezierKeyFrame = (LocationKeyFrame) frame;
+                LocationTransformNode.LocationKeyFrame bezierKeyFrame = (LocationTransformNode.LocationKeyFrame) frame;
                 centers[0] = getCenterPoint(bezierKeyFrame.curPos,p0Key.curPos);
             }
         });
@@ -48,7 +48,7 @@ public final class BezierTransformNode extends LocationTransformNode {
         line.getNextFrame(p3Key).ifPresent(new Consumer<KeyFrame>() {
             @Override
             public void accept(KeyFrame frame) {
-                LocationKeyFrame bezierKeyFrame = (LocationKeyFrame) frame;
+                LocationTransformNode.LocationKeyFrame bezierKeyFrame = (LocationTransformNode.LocationKeyFrame) frame;
                 centers[2] = getCenterPoint(bezierKeyFrame.curPos,p3Key.curPos);
             }
         });
@@ -72,10 +72,5 @@ public final class BezierTransformNode extends LocationTransformNode {
 
     private double pow2(double t){
         return t * t;
-    }
-
-    @Override
-    public void update(LocationKeyFrame list) {
-
     }
 }

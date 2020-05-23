@@ -29,11 +29,6 @@ public final class RootTransformNode extends AbstractTransformNode {
     }
 
     @Override
-    public void transformMatrix(Matrix4f renderer, float p, KeyFrame preKey, KeyFrame key) {
-
-    }
-
-    @Override
     protected void transformPost(Matrix4f renderer, float p, KeyFrame preKey, KeyFrame key) {
 
     }
