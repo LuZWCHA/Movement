@@ -24,28 +24,29 @@ public class SoundUtils {
         }
     }
 
+
+    // TODO: 2020/5/24 the volume is not right
     public static ByteBuffer shortToByteValue(ShortBuffer arr, float vol) {
         int len  = arr.capacity();
         ByteBuffer bb = ByteBuffer.allocate(len * 2);
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        for(int i = 0;i<len;i++){
-            bb.putShort(i*2,(short)((float)arr.get(i)*vol));
-        }
+        bb.asShortBuffer().put(arr);
+
         return bb;
     }
     public static ByteBuffer floatToByteValue(FloatBuffer arr, float vol){
         int len = arr.capacity();
         float f;
         float v;
-        ByteBuffer res = ByteBuffer.allocate(len*2);
+        ByteBuffer res = ByteBuffer.allocate(len * 2);
         res.order(ByteOrder.LITTLE_ENDIAN);
 
         v = 32768.0f * vol;
-        for(int i=0;i<len;i++){
-            f = arr.get(i)*v;//Ref：https://stackoverflow.com/questions/15087668/how-to-convert-pcm-samples-in-byte-array-as-floating-point-numbers-in-the-range
-            if(f>v) f = v;
-            if(f<-v) f = v;
-            res.putShort(i*2,(short)f);
+        for(int i=0;i < len;i++){
+            f = arr.get(i) * v;//Ref：https://stackoverflow.com/questions/15087668/how-to-convert-pcm-samples-in-byte-array-as-floating-point-numbers-in-the-range
+            if(f > v) f = v;
+            if(f < -v) f = v;
+            res.putShort(i * 2,(short)f);
         }
         return res;
     }
@@ -148,7 +149,7 @@ public class SoundUtils {
     }
 
 
-    public static byte[] getMonoAudio(final Buffer[] samples,float vol,int sampleFormat){
+    public static byte[][] getMonoAudio(final Buffer[] samples,float vol,int sampleFormat){
 
         Buffer[] buf;
         FloatBuffer leftData,rightData;
@@ -159,7 +160,7 @@ public class SoundUtils {
         int k;
         buf = samples;
         switch(sampleFormat){
-            case avutil.AV_SAMPLE_FMT_FLTP://平面型左右声道分开。
+            case avutil.AV_SAMPLE_FMT_FLTP:
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
                 rightData = (FloatBuffer)buf[1];
@@ -167,16 +168,18 @@ public class SoundUtils {
                 tl = TLData.array();
                 tr = TRData.array();
                 break;
-            case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
+            case avutil.AV_SAMPLE_FMT_S16:
                 ILData = (ShortBuffer)buf[0];
-                short[] mono = new short[ILData.capacity()/2];
+                short[][] mono = new short[2][ILData.capacity()/2];
                 for(int i = 0; i < mono.length;i++){
-                        mono[i] = (short) (((int)ILData.get(2 * i) + ILData.get(2 * i + 1))/2);
+                        mono[0][i] = (short) ((int)ILData.get(2 * i));
+                        mono[1][i] = (short) ((int)ILData.get(2 * i + 1));
                 }
-                ByteBuffer mono2 = shortToByteValue(ShortBuffer.wrap(mono),vol);
+                ByteBuffer monoLeft = shortToByteValue(ShortBuffer.wrap(mono[0]),vol);
+                ByteBuffer monoRight = shortToByteValue(ShortBuffer.wrap(mono[1]),vol);
 //                mono2.order();
-                return mono2.array();
-            case avutil.AV_SAMPLE_FMT_FLT://float非平面型
+                return new byte[][]{monoLeft.array(),monoRight.array()};
+            case avutil.AV_SAMPLE_FMT_FLT:
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
                 tl = TLData.array();
@@ -206,7 +209,7 @@ public class SoundUtils {
         int k;
         buf = samples;
         switch(sampleFormat){
-            case avutil.AV_SAMPLE_FMT_FLTP://平面型左右声道分开。
+            case avutil.AV_SAMPLE_FMT_FLTP:
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
                 rightData = (FloatBuffer)buf[1];
@@ -215,25 +218,25 @@ public class SoundUtils {
                 tr = TRData.array();
                 combine = new byte[tl.length + tr.length];
                 k = 0;
-                for(int i=0;i<tl.length;i=i+2) {//混合两个声道。
+                for(int i=0;i<tl.length;i=i+2) {
                     for (int j = 0; j < 2; j++) {
-                        combine[j+4*k] = tl[i + j];
+                        combine[j + 4*k] = tl[i + j];
                         combine[j + 2+4*k] = tr[i + j];
                     }
                     k++;
                 }
                 return combine;
-            case avutil.AV_SAMPLE_FMT_S16://非平面型左右声道在一个buffer中。
+            case avutil.AV_SAMPLE_FMT_S16:
                 ILData = (ShortBuffer)buf[0];
                 TLData = shortToByteValue(ILData,vol);
                 tl = TLData.array();
                 return tl;
-            case avutil.AV_SAMPLE_FMT_FLT://float非平面型
+            case avutil.AV_SAMPLE_FMT_FLT:
                 leftData = (FloatBuffer)buf[0];
                 TLData = floatToByteValue(leftData,vol);
                 tl = TLData.array();
                 return tl;
-            case avutil.AV_SAMPLE_FMT_S16P://平面型左右声道分开
+            case avutil.AV_SAMPLE_FMT_S16P:
                 ILData = (ShortBuffer)buf[0];
                 IRData = (ShortBuffer)buf[1];
                 TLData = shortToByteValue(ILData,vol);
@@ -244,7 +247,7 @@ public class SoundUtils {
                 k = 0;
                 for(int i=0;i<tl.length;i=i+2) {
                     for (int j = 0; j < 2; j++) {
-                        combine[j+4*k] = tl[i + j];
+                        combine[j + 4*k] = tl[i + j];
                         combine[j + 2+4*k] = tr[i + j];
                     }
                     k++;

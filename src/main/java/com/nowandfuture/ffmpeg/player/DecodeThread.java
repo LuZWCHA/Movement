@@ -84,6 +84,9 @@ public class DecodeThread extends Thread {
                     imageCache.put(frame);
                     if(!grabber.hasAudio()){
                         curFrameTimestamp = frame.timestamp;
+                        Frame fakeAudioFrame = new Frame();
+                        fakeAudioFrame.timestamp = curFrameTimestamp;
+                        audioCache.put(fakeAudioFrame);
                     }
                 }else if(grabber.hasAudio()&& frame.samples != null) {
                     audioCache.put(frame);

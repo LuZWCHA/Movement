@@ -15,7 +15,7 @@ public class AudioPlayThread extends Thread {
     private PlayHandler.SoundPlayHandler playHandler;
     private long baseDelay;
 
-    float vol = 1;
+    private float vol = 1;
 
     private long factor = 0;
 
@@ -41,18 +41,6 @@ public class AudioPlayThread extends Thread {
                             syncInfo.wait();
                         }
                     }
-
-//                if(!grabber.hasAudio()){
-//                    long timestamp = System.currentTimeMillis() * avutil.AV_TIME_BASE / 1000;
-//
-//                    if(syncInfo.sysStartTime == -1) {
-//                        syncInfo.sysStartTime = System.currentTimeMillis() - timestamp * 1000 / avutil.AV_TIME_BASE;
-//                    }
-//                    long time  = (System.currentTimeMillis() - syncInfo.sysStartTime) * avutil.AV_TIME_BASE / 1000;
-//                    setting(time);
-//                    sleep(baseDelay);
-//                    continue;
-//                }
 
                     frame = audioCache.poll();
                     if (frame == null) {
@@ -89,7 +77,10 @@ public class AudioPlayThread extends Thread {
                     if (factor > IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF) factor = IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF;
 
                     setting(timestamp);
-                    play(frame);
+
+                    if(grabber.hasAudio())
+                        play(frame);
+
                     sleep(baseDelay + factor);
                 }
 
@@ -106,7 +97,7 @@ public class AudioPlayThread extends Thread {
 
     protected void init() {
         baseDelay = grabber.hasAudio() ? (avutil.AV_TIME_BASE/ grabber.getSampleRate()) :
-                (long) (avutil.AV_TIME_BASE / grabber.getFrameRate());
+                (long) (avutil.AV_TIME_BASE / grabber.getFrameRate()) / 1000;
         if(playHandler!= null){
             playHandler.init(syncInfo);
         }

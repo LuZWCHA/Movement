@@ -180,7 +180,7 @@ public class FileViewerView extends FrameLayout {
             @Override
             public void onClicked(View v) {
                 if(actionListener != null){
-                    actionListener.onAcceptFile(fileList);
+                    actionListener.onAcceptFile(selectFiles);
                 }
             }
         });

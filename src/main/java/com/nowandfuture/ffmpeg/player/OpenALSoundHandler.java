@@ -60,7 +60,8 @@ public class OpenALSoundHandler implements PlayHandler.SoundPlayHandler {
         audioChannels = frame.audioChannels;
 
         byte[] mono = SoundUtils.getAudio(frame.samples,1f,sampleFormat);
-        AudioFormat format = SoundUtils.getAudioFormat(sampleFormat,sampleRate, audioChannels,sampleRate);
+
+        AudioFormat format = SoundUtils.getAudioFormat(sampleFormat, sampleRate, audioChannels, sampleRate);
 
         //+1 is unneccessary, but is not wrong! when a piece of sound is playing, the hardware may play the Nth byte
         //in the array,so the operation of +1 is just believe the sound played by your machine will take more time than
@@ -78,7 +79,7 @@ public class OpenALSoundHandler implements PlayHandler.SoundPlayHandler {
         //discard this frame if the queue of sound arrays is too long
         if(queued > OpenAlQueueMaxSize) return;
         //input new sound bytes
-        soundManager.feedRawData(name,mono,format);
+        soundManager.feedRawData(name, mono, format);
 
         lastTime = System.currentTimeMillis();
     }
