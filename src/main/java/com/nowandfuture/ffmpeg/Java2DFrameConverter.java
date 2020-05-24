@@ -676,9 +676,7 @@ public class Java2DFrameConverter extends FrameConverter<BufferedImage> {
             bufferedImage = new BufferedImage(cm, wr, false, null);
         }
 
-        if (bufferedImage != null) {
-            copy(frame, bufferedImage, gamma, flipChannels, null);
-        }
+        copy(frame, bufferedImage, gamma, flipChannels, null);
 
         return bufferedImage;
     }

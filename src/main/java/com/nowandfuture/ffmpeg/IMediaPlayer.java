@@ -46,14 +46,16 @@ public interface IMediaPlayer {
             isPause = false;
         }
 
-        public boolean isVideoFrameGet;
-        public boolean isAudioFrameGet;
+        public volatile boolean isVideoFrameGet;
+        public volatile boolean isAudioFrameGet;
 
         public volatile long offset;
 
         private long audioClock;
         private long lastTime;
-        public long sysStartTime;
+        //only used at audio thread and main thread
+        //do assignment only
+        public volatile long sysStartTime;
         private boolean isPause;
         private boolean decodeFinished;
 
@@ -73,6 +75,10 @@ public interface IMediaPlayer {
             isAudioFrameGet =false;
             isPause = false;
             decodeFinished = true;
+        }
+
+        public boolean isStreamGet(){
+            return isAudioFrameGet || isVideoFrameGet;
         }
 
         public synchronized void setAudioClock(long audioClock) {

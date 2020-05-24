@@ -1,5 +1,6 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
+import com.nowandfuture.ffmpeg.FFmpegFrameGrabber;
 import com.nowandfuture.ffmpeg.player.SimplePlayer;
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renders.videorenderer.FrameTexture;
@@ -16,6 +17,7 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -24,13 +26,14 @@ import net.minecraft.util.math.Vec3i;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
 
 //PBO is supported
 public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePlayer> {
@@ -109,26 +112,32 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         MinecraftOpenGLDisplayHandler.ImageFrame frame = (MinecraftOpenGLDisplayHandler.ImageFrame) simplePlayer.getCurImageObj();
 
         BufferedImage image = (frame == null ? null : frame.getCloneImage());
+        ByteBuffer byteBuffer = (frame == null ? null : frame.audioData);
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+        IResourceManager resourceManager =  Minecraft.getMinecraft().getResourceManager();
         if(image == null){
+
             try {
-                if(simplePlayer.getGrabber() != null && simplePlayer.getGrabber().getFormatContext() != null)
-                {
-                    if(loadingTexture == null){
-                        IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(LOADING_GUI_TEXTURE);
+                FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
+                if(grabber != null && grabber.getFormatContext() != null &&
+                        !simplePlayer.getSyncInfo().isStreamGet()) {
+
+                    if (loadingTexture == null) {
+                        IResource iresource = resourceManager.getResource(LOADING_GUI_TEXTURE);
                         BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
 
-                        loadingTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
-                        loadingTexture.updateBufferedImage(bufferedimage,0);
+                        loadingTexture = new FrameTexture(bufferedimage.getWidth(), bufferedimage.getHeight());
+                        loadingTexture.updateBufferedImage(bufferedimage, 0);
                         bufferedimage.getGraphics().dispose();
                     }
 
                     ResourceLocation location =
-                            textureManager.getDynamicTextureLocation("loading",loadingTexture);
-                    drawFrameWithAutoScale(location,te,x,y,z);
+                            textureManager.getDynamicTextureLocation("loading", loadingTexture);
+                    drawFrameWithAutoScale(location, te, x, y, z);
+
                 }else{
                     if(backgroundTexture == null){
-                        IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(BACKGROUND_GUI_TEXTURE);
+                        IResource iresource = resourceManager.getResource(BACKGROUND_GUI_TEXTURE);
                         BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
 
                         backgroundTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
@@ -137,14 +146,21 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
                     }
                     ResourceLocation location =
                             textureManager.getDynamicTextureLocation("background",backgroundTexture);
-                    drawFrameWithAutoScale(location,te,x,y,z);
+
+                    if(byteBuffer != null){
+                        drawAudio(byteBuffer,x,y,z,te);
+                        byteBuffer.clear();
+                        byteBuffer = null;
+                    }else{
+                        drawFrameWithAutoScale(location,te,x,y,z);
+                    }
                 }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        }else {
+        } else {
             Integer frameLimit = ClientHandler.getScores().get(te.getPos());
             if(frameLimit == null) frameLimit = 0;
 
@@ -309,6 +325,53 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         this.setLightmapDisabled(true);
     }
 
+    private void drawAudio(ByteBuffer byteBuffer, double x, double y, double z, TileEntitySimplePlayer te){
+//        Vec3d[] panel = new Vec3d[4];
+//        panel[0] = new Vec3d(0,0,0);
+//        panel[1] = new Vec3d(0,te.getHeight(),0);
+//        panel[2] = new Vec3d(te.getWidth(),te.getHeight(),0);
+//        panel[3] = new Vec3d(te.getWidth(),0,0);
+
+        byte[] bytes = byteBuffer.array();
+
+        this.setLightmapDisabled(false);
+        RenderHelper.disableStandardItemLighting();
+
+        BufferBuilder var2 = Tessellator.getInstance().getBuffer();
+        Tessellator tessellator = Tessellator.getInstance();
+        GlStateManager.disableTexture2D();
+        GlStateManager.resetColor();
+        GlStateManager.color(255,255,255,255);
+//        GlStateManager.disableAlpha();
+        GlStateManager.pushMatrix();
+        //-w/2,-h * scale/2
+        GlStateManager.translate(x,y + 1,z);
+        var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+
+        transform(te.getFacing());
+
+        double startY = 0,step = (double) (te.getWidth()) / (bytes.length + 1),startX = step / 2;
+        double padding = step / 5;
+
+        for (int i = bytes.length - 1; i >= 0; i--) {
+            double height = bytes[i] / 127d;
+            var2.pos(startX + padding,startY,0).tex(1,1).endVertex();
+            var2.pos(startX + padding,startY + height,0).tex(1,0).endVertex();
+            var2.pos(startX + step - padding,startY + height,0).tex(0,0).endVertex();
+            var2.pos(startX + step - padding,startY,0).tex(0,1).endVertex();
+            startX += step;
+        }
+
+        tessellator.draw();
+        GlStateManager.popMatrix();
+        GlStateManager.enableTexture2D();
+        RenderHelper.enableStandardItemLighting();
+
+//        GlStateManager.enableAlpha();
+        this.setLightmapDisabled(true);
+    }
+
     private void drawFrameAtCenter(ResourceLocation location,double width,double height, TileEntitySimplePlayer te, double x, double y, double z){
 
         Vec3d[] panel = new Vec3d[4];
@@ -321,7 +384,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         panel[1] = new Vec3d(ox,height + oy,0);
         panel[2] = new Vec3d(width + ox,height + oy,0);
         panel[3] = new Vec3d(width + ox,0 + oy,0);
-
         transformPanel(panel,te.getFacing());
 
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
@@ -352,6 +414,26 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
 //        GlStateManager.enableAlpha();
         this.setLightmapDisabled(true);
+    }
+
+    private void transform(EnumFacing facing){
+        GlStateManager.translate(.5,.5,.5);
+        switch (facing){
+            case NORTH:
+            case DOWN:
+            case UP:
+                break;
+            case EAST:
+                GlStateManager.rotate(-90,0,1,0);
+                break;
+            case WEST:
+                GlStateManager.rotate(90,0,1,0);
+                break;
+            case SOUTH:
+                GlStateManager.rotate(180,0,1,0);
+                break;
+        }
+        GlStateManager.translate(-.5,-.5,-.5);
     }
 
     private void transformPanel(Vec3d[] panel, EnumFacing facing){

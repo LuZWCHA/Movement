@@ -222,7 +222,7 @@ public class TileEntitySimplePlayer extends TileEntity implements ITickable,ICli
             Movement.proxy.addScheduledTaskClient(new Runnable() {
                 @Override
                 public void run() {
-                    ((SimplePlayer)simplePlayer).setHandlers(new MinecraftOpenGLDisplayHandler(),
+                    ((SimplePlayer)simplePlayer).setHandlers(new MinecraftOpenGLDisplayHandler((SimplePlayer) simplePlayer),
                             new MinecraftOpenALSoundHandler((SimplePlayer) simplePlayer,getPos().toString(),getPos()));//new MinecraftJavaSoundHandler(simplePlayer,Movement.proxy.getClientPlayer(),getPos())new MinecraftOpenALSoundHandler((SimplePlayer) simplePlayer,getPos().toString(),getPos())
                     prepare();
                 }

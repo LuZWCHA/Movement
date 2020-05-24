@@ -10,15 +10,12 @@ public class DisplayThread extends Thread{
     private long baseDelay;
     private BlockingQueue<Frame> imageCache;
 
-    private long lastTime;
-    private Frame curFrame;
     private final IMediaPlayer.SyncInfo syncInfo;
 
     private PlayHandler playHandler;
 
     DisplayThread(IMediaPlayer.SyncInfo syncInfo){
         this.syncInfo = syncInfo;
-        lastTime = -1;
         factor = 0;
     }
 
@@ -43,7 +40,7 @@ public class DisplayThread extends Thread{
                 }
 
                 frame = imageCache.poll();
-//          if(syncInfo.isAudioFrameGet)
+
                 render(frame);
 
                 if(frame != null)
@@ -68,15 +65,12 @@ public class DisplayThread extends Thread{
         if(playHandler != null){
             playHandler.destroy();
         }
-        curFrame = null;
     }
 
     private void checkDiff(Frame frame,long time) throws InterruptedException {
-        long diff = time - (lastTime == -1? time : lastTime);
+        final long timestamp = frame.timestamp;
 
-        long timestamp = frame.timestamp;
-
-        long diff2 = timestamp - syncInfo.getRealAudioClock(time);
+        final long diff2 = timestamp - syncInfo.getRealAudioClock(time);
         long delay2 = Math.floorDiv(diff2,1000);
 
         if(diff2 > 0) {
@@ -87,36 +81,23 @@ public class DisplayThread extends Thread{
             factor = delay2;
         }
 
-//        if(diff - baseDelay > SimplePlayer.SyncInfo.MAX_VIDEO_DIFF){
-//            factor --;
-//        }else if(diff - baseDelay < -SimplePlayer.SyncInfo.MAX_VIDEO_DIFF){
-//            factor ++;
-//        }
-
         if(factor < -baseDelay) factor = -baseDelay;
-//        if(factor > baseDelay) factor = baseDelay;
     }
 
     protected void render(Frame frame) throws InterruptedException {
-
-            long time = System.currentTimeMillis();
-            if(frame == null){
-                if(!syncInfo.isDecodeFinished())
-                    return;
-                else {
-                    syncInfo.setPause(true);
-                    return;
-                }
+        final long time = System.currentTimeMillis();
+        if(frame == null){
+            if(!syncInfo.isDecodeFinished())
+                return;
+            else {
+                syncInfo.setPause(true);
+                return;
             }
-            curFrame = frame;
-            checkDiff(frame,time);
-            time = System.currentTimeMillis();
-//            System.out.println("av diff:" + frame.timestamp + "," + syncInfo.getRealAudioClock(time) + "," + (syncInfo.getAudioClock()));
+        }
+        checkDiff(frame,time);
 
-            draw(frame);
-            Thread.sleep(baseDelay + factor);
-            lastTime = time;
-
+        draw(frame);
+        Thread.sleep(baseDelay + factor);
     }
 
     protected void draw(Frame frame) throws InterruptedException {

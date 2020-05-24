@@ -15,7 +15,7 @@ public class AudioPlayThread extends Thread {
     private PlayHandler.SoundPlayHandler playHandler;
     private long baseDelay;
 
-    private float vol = 1;
+    private  float vol = 1;
 
     private long factor = 0;
 
@@ -45,9 +45,7 @@ public class AudioPlayThread extends Thread {
                     frame = audioCache.poll();
                     if (frame == null) {
 
-                        if (!syncInfo.isDecodeFinished()) {
-//                        sleep(baseDelay);
-                        } else {
+                        if (syncInfo.isDecodeFinished()) {
                             syncInfo.setPause(true);
                         }
                         continue;
@@ -74,12 +72,16 @@ public class AudioPlayThread extends Thread {
                     }
 
                     if (factor < -baseDelay) factor = -baseDelay;
-                    if (factor > IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF) factor = IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF;
+                    if (factor > IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF)
+                        factor = IMediaPlayer.SyncInfo.MAX_AUDIO_DIFF;
 
                     setting(timestamp);
 
-                    if(grabber.hasAudio())
+                    //for no audio video we provide a fake frame, so we don't process it
+                    if (grabber.hasAudio())
                         play(frame);
+
+                    SoundUtils.cloneFrameDeallocate(frame);
 
                     sleep(baseDelay + factor);
                 }

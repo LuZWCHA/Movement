@@ -5,7 +5,7 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.FrameGrabber;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
 
 public class DecodeThread extends Thread {
 
@@ -66,6 +66,7 @@ public class DecodeThread extends Thread {
                             syncInfo.setDecodeFinished(false);
                             break;
                         }
+                        continue;
                     }
                     else{
                         syncInfo.setDecodeFinished(true);
@@ -76,21 +77,30 @@ public class DecodeThread extends Thread {
                     frame = frame.clone();
                 }
 
-
                 if(grabber.hasVideo() && frame.image != null) {
                     if(!syncInfo.isVideoFrameGet){
                         syncInfo.isVideoFrameGet = true;
                     }
                     imageCache.put(frame);
+                    curFrameTimestamp = frame.timestamp;
                     if(!grabber.hasAudio()){
-                        curFrameTimestamp = frame.timestamp;
                         Frame fakeAudioFrame = new Frame();
                         fakeAudioFrame.timestamp = curFrameTimestamp;
                         audioCache.put(fakeAudioFrame);
                     }
                 }else if(grabber.hasAudio()&& frame.samples != null) {
+                    if(!syncInfo.isAudioFrameGet){
+                        syncInfo.isAudioFrameGet = true;
+                    }
                     audioCache.put(frame);
                     curFrameTimestamp = frame.timestamp;
+                    if(!grabber.hasVideo()){
+                        Frame fakeVideoFrame = new Frame();
+                        fakeVideoFrame.timestamp = curFrameTimestamp;
+                        fakeVideoFrame.samples = frame.samples.clone();
+                        fakeVideoFrame.image = null;
+                        imageCache.put(fakeVideoFrame);
+                    }
                 }
             }
         } catch (Exception e) {

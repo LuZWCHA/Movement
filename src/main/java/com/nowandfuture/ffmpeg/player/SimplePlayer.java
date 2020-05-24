@@ -28,7 +28,7 @@ public class SimplePlayer implements IMediaPlayer{
     private PlayHandler.DisplayHandler videoHandler;
     private PlayHandler.SoundPlayHandler audioHandler;
 
-    private boolean isLoading;
+    private volatile boolean isLoading;
     private float volume;
 
     public SimplePlayer(){
@@ -87,6 +87,8 @@ public class SimplePlayer implements IMediaPlayer{
     }
 
     public boolean touchSource(String url) {
+
+        lastException = null;
         //check grabber
         if(grabber != null) {
             try {
@@ -100,15 +102,17 @@ public class SimplePlayer implements IMediaPlayer{
         }
         cleanup();
 
+        isLoading = true;
         try {
-            isLoading = true;
             grabber = FFmpegFrameGrabber.createDefault(url);
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
             lastException = e;
             isLoading = false;
-            return false;
         }
+
+        if(lastException != null) return false;
+
         grabber.setVideoOption("threads", "0");
         grabber.setAudioOption("threads", "0");
         grabber.setOption("hwaccel", "videotoolbox");
@@ -117,13 +121,14 @@ public class SimplePlayer implements IMediaPlayer{
 
         try {
             grabber.start();
-            isLoading = false;
         } catch (FrameGrabber.Exception e) {
             e.printStackTrace();
             lastException = e;
+        }finally {
             isLoading = false;
-            return false;
         }
+
+        if(lastException != null) return false;
 
         info(grabber);
         updateTotalTime(getTotalTime());
@@ -142,7 +147,9 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setGrabber(grabber);
         audioPlayThread.start();
 
-        displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
+        displayThread.setBaseDelay(!grabber.hasVideo()? (long)(1000d / grabber.getAudioFrameRate()) : (long) (1000d / grabber.getVideoFrameRate()));
+
+//        displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
         displayThread.start();
     }
 
@@ -175,9 +182,7 @@ public class SimplePlayer implements IMediaPlayer{
         syncInfo.setAudioClock(0);
         syncInfo.sysStartTime = -1;
 
-        if(isLoading){
-            isLoading = false;
-        }
+        isLoading = false;
     }
 
     private void cleanup(){

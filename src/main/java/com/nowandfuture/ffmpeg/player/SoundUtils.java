@@ -17,7 +17,7 @@ public class SoundUtils {
             Pointer[] pointers = (Pointer[]) frame.opaque;
             for (Pointer p :
                     pointers) {
-                if(p != null && !p.isNull()){
+                if (p != null && !p.isNull()) {
                     p.deallocate();
                 }
             }
@@ -30,10 +30,12 @@ public class SoundUtils {
         int len  = arr.capacity();
         ByteBuffer bb = ByteBuffer.allocate(len * 2);
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.asShortBuffer().put(arr);
-
+        for(int i = 0;i<len;i++){
+            bb.putShort(i * 2,(short)((float)arr.get(i) * vol));
+        }
         return bb;
     }
+
     public static ByteBuffer floatToByteValue(FloatBuffer arr, float vol){
         int len = arr.capacity();
         float f;

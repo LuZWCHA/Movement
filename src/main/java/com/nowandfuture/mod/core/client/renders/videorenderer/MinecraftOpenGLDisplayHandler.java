@@ -4,10 +4,10 @@ import com.nowandfuture.ffmpeg.Frame;
 import com.nowandfuture.ffmpeg.IMediaPlayer;
 import com.nowandfuture.ffmpeg.Java2DFrameConverter;
 import com.nowandfuture.ffmpeg.player.OpenGLDisplayHandler;
-import com.nowandfuture.mod.Movement;
-import net.minecraft.client.renderer.GlStateManager;
+import com.nowandfuture.ffmpeg.player.SimplePlayer;
 
 import java.awt.image.BufferedImage;
+import java.nio.ByteBuffer;
 
 public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
@@ -15,8 +15,8 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     private long last = -1;
     private Java2DFrameConverter java2DFrameConverter = new Java2DFrameConverter();
 
-    public MinecraftOpenGLDisplayHandler(){
-
+    public MinecraftOpenGLDisplayHandler(SimplePlayer simplePlayer){
+        super(simplePlayer);
     }
 
     @Override
@@ -29,9 +29,16 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
     @Override
     public void handle(Frame frame) {
-        if(frame != null && frame.timestamp != last){
+        super.handle(frame);
+
+        if(frame != null && frame.image != null && frame.timestamp != last){
             if (imageFrame.image != null) imageFrame.image.getGraphics().dispose();
             imageFrame.image = java2DFrameConverter.getBufferedImage(frame);
+            imageFrame.timestamp = frame.timestamp;
+            last = frame.timestamp;
+        }else if(frame != null && frame.image == null && frame.data != null){
+            if (imageFrame.image != null) imageFrame.image.getGraphics().dispose();
+            imageFrame.audioData = frame.data;
             imageFrame.timestamp = frame.timestamp;
             last = frame.timestamp;
         }
@@ -40,7 +47,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
     @Override
     public void destroy() {
-
+        super.destroy();
     }
 
     @Override
@@ -51,6 +58,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     public static class ImageFrame{
         private boolean isDisposed;
         public BufferedImage image;
+        public ByteBuffer audioData;
         public long timestamp;
 
         public ImageFrame(){
