@@ -4,7 +4,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
-import sun.nio.ch.DirectBuffer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -29,13 +28,12 @@ public class PBOFrameTexture extends FrameTexture {
 
     public void updateBufferedImage(BufferedImage image,long id){
         pbo.setTag(id);
-        BufferedImage bufferedimage = new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
-        DataBufferByte buffer = (DataBufferByte) bufferedimage.getRaster().getDataBuffer();
-        ByteBuffer byteBuffer = BufferUtils.createByteBuffer(bufferedimage.getWidth() * bufferedimage.getHeight() * 4).put(buffer.getData());
+//        BufferedImage bufferedimage = new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
+        DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
+        ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4).put(buffer.getData());
         byteBuffer.flip();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, bufferedimage.getWidth(), bufferedimage.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
-        ((DirectBuffer)byteBuffer).cleaner().clean();
-        bufferedimage.getGraphics().dispose();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
+//        bufferedimage.getGraphics().dispose();
     }
 
     @Override

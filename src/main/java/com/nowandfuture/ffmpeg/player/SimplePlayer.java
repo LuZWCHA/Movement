@@ -147,6 +147,9 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setGrabber(grabber);
         audioPlayThread.start();
 
+//        if(grabber.getLengthInVideoFrames() == 1)
+//            displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
+//        else
         displayThread.setBaseDelay(!grabber.hasVideo()? (long)(1000d / grabber.getAudioFrameRate()) : (long) (1000d / grabber.getVideoFrameRate()));
 
 //        displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));

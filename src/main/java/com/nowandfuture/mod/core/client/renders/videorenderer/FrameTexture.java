@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import sun.nio.ch.DirectBuffer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -46,12 +45,11 @@ public class FrameTexture extends DynamicTexture {
 
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
         ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * BYTES_PER_PIXEL)
-                .put(buffer.getData().clone());
+                .put(buffer.getData());
         byteBuffer.flip();
 
         //Send texel data to OpenGL
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
-        ((DirectBuffer)byteBuffer).cleaner().clean();
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){
@@ -66,13 +64,11 @@ public class FrameTexture extends DynamicTexture {
 
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
         ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * BYTES_PER_PIXEL)
-                .put(buffer.getData().clone());
+                .put(buffer.getData());
         byteBuffer.flip();
 
         //Send texel data to OpenGL
         glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX,offsetY, image.getWidth(), image.getHeight(), GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
-
-        ((DirectBuffer)byteBuffer).cleaner().clean();
 
         int error = GL11.glGetError();
         if(error != GL_NO_ERROR){

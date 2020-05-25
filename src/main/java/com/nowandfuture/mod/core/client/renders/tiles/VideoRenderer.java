@@ -9,7 +9,6 @@ import com.nowandfuture.mod.core.client.renders.videorenderer.PBOFrameTexture;
 import com.nowandfuture.mod.core.client.renders.videorenderer.VideoRendererUtil;
 import com.nowandfuture.mod.core.common.entities.TileEntitySimplePlayer;
 import com.nowandfuture.mod.handler.ClientHandler;
-import com.nowandfuture.mod.utils.math.MathHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -188,8 +187,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
                 GlStateManager.pushMatrix();
                 Vec3i vec3i = te.getFacing().getDirectionVec();
-                GlStateManager.translate(vec3i.getX() * 0.01,vec3i.getY() * 0.01,vec3i.getZ() * 0.01);
-                drawFrameAtCenter(PAUSE_GUI_TEXTURE,size * 2,size * 2,te,x,y,z);
+                GlStateManager.translate(vec3i.getX() * 0.01d,vec3i.getY() * 0.01d,vec3i.getZ() * 0.01d);
+                drawFrameAtCenter(PAUSE_GUI_TEXTURE,size * 2d,size * 2d,te,x,y,z);
                 GlStateManager.popMatrix();
             }
         }
@@ -293,8 +292,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         panel[2] = new Vec3d(te.getWidth(),te.getHeight(),0);
         panel[3] = new Vec3d(te.getWidth(),0,0);
 
-        transformPanel(panel,te.getFacing());
-
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
 
         this.setLightmapDisabled(false);
@@ -308,6 +305,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         GlStateManager.pushMatrix();
         //-w/2,-h * scale/2
         GlStateManager.translate(x,y + 1,z);
+        transform(te.getFacing());
         var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
 
@@ -326,11 +324,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
     }
 
     private void drawAudio(ByteBuffer byteBuffer, double x, double y, double z, TileEntitySimplePlayer te){
-//        Vec3d[] panel = new Vec3d[4];
-//        panel[0] = new Vec3d(0,0,0);
-//        panel[1] = new Vec3d(0,te.getHeight(),0);
-//        panel[2] = new Vec3d(te.getWidth(),te.getHeight(),0);
-//        panel[3] = new Vec3d(te.getWidth(),0,0);
 
         byte[] bytes = byteBuffer.array();
 
@@ -353,9 +346,9 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         double startY = 0,step = (double) (te.getWidth()) / (bytes.length + 1),startX = step / 2;
         double padding = step / 5;
-
+        double factor = te.getHeight() / 128d;
         for (int i = bytes.length - 1; i >= 0; i--) {
-            double height = bytes[i] / 127d;
+            double height = bytes[i] * factor;
             var2.pos(startX + padding,startY,0).tex(1,1).endVertex();
             var2.pos(startX + padding,startY + height,0).tex(1,0).endVertex();
             var2.pos(startX + step - padding,startY + height,0).tex(0,0).endVertex();
@@ -384,7 +377,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         panel[1] = new Vec3d(ox,height + oy,0);
         panel[2] = new Vec3d(width + ox,height + oy,0);
         panel[3] = new Vec3d(width + ox,0 + oy,0);
-        transformPanel(panel,te.getFacing());
+//        transformPanel(panel,te.getFacing());
 
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
 
@@ -399,6 +392,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         GlStateManager.pushMatrix();
         //-w/2,-h * scale/2
         GlStateManager.translate(x,y + 1,z);
+        transform(te.getFacing());
         var2.begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
 
@@ -436,35 +430,36 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         GlStateManager.translate(-.5,-.5,-.5);
     }
 
-    private void transformPanel(Vec3d[] panel, EnumFacing facing){
-        switch (facing){
-            case NORTH:
-            case DOWN:
-            case UP:
-                break;
-            case EAST:
-                for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].add(-0.5,0,-0.5);
-                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
-                    panel[i] = panel[i].add(0.5,0,0.5);
-                }
-                break;
-            case WEST:
-                for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].add(-0.5,0,-0.5);
-                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
-                    panel[i] = panel[i].add(0.5,0,0.5);
-                }
-                break;
-            case SOUTH:
-                for (int i = 0;i < 4;i++) {
-                    panel[i] = panel[i].add(-0.5,0,-0.5);
-                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
-                    panel[i] = panel[i].add(0.5,0,0.5);
-                }
-                break;
-        }
-    }
+//
+//    private void transformPanel(Vec3d[] panel, EnumFacing facing){
+//        switch (facing){
+//            case NORTH:
+//            case DOWN:
+//            case UP:
+//                break;
+//            case EAST:
+//                for (int i = 0;i < 4;i++) {
+//                    panel[i] = panel[i].add(-0.5,0,-0.5);
+//                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,90 * 0.017453292F);
+//                    panel[i] = panel[i].add(0.5,0,0.5);
+//                }
+//                break;
+//            case WEST:
+//                for (int i = 0;i < 4;i++) {
+//                    panel[i] = panel[i].add(-0.5,0,-0.5);
+//                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,-90 * 0.017453292F);
+//                    panel[i] = panel[i].add(0.5,0,0.5);
+//                }
+//                break;
+//            case SOUTH:
+//                for (int i = 0;i < 4;i++) {
+//                    panel[i] = panel[i].add(-0.5,0,-0.5);
+//                    panel[i] = MathHelper.rotateAroundVector(panel[i],0,1,0,180 * 0.017453292F);
+//                    panel[i] = panel[i].add(0.5,0,0.5);
+//                }
+//                break;
+//        }
+//    }
 
     @Override
     public boolean isGlobalRenderer(TileEntitySimplePlayer te) {

@@ -28,10 +28,10 @@ public class SoundUtils {
     // TODO: 2020/5/24 the volume is not right
     public static ByteBuffer shortToByteValue(ShortBuffer arr, float vol) {
         int len  = arr.capacity();
-        ByteBuffer bb = ByteBuffer.allocate(len * 2);
+        ByteBuffer bb = ByteBuffer.allocate(len << 1);
         bb.order(ByteOrder.LITTLE_ENDIAN);
-        for(int i = 0;i<len;i++){
-            bb.putShort(i * 2,(short)((float)arr.get(i) * vol));
+        for(int i = 0; i<len; i++){
+            bb.putShort(i << 1,(short)((float)arr.get(i) * vol));
         }
         return bb;
     }
@@ -40,7 +40,7 @@ public class SoundUtils {
         int len = arr.capacity();
         float f;
         float v;
-        ByteBuffer res = ByteBuffer.allocate(len * 2);
+        ByteBuffer res = ByteBuffer.allocate(len << 1);
         res.order(ByteOrder.LITTLE_ENDIAN);
 
         v = 32768.0f * vol;
@@ -48,7 +48,7 @@ public class SoundUtils {
             f = arr.get(i) * v;//Ref：https://stackoverflow.com/questions/15087668/how-to-convert-pcm-samples-in-byte-array-as-floating-point-numbers-in-the-range
             if(f > v) f = v;
             if(f < -v) f = v;
-            res.putShort(i * 2,(short)f);
+            res.putShort(i << 1,(short)f);
         }
         return res;
     }

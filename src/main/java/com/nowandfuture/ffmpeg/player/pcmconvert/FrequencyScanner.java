@@ -16,7 +16,7 @@ public class FrequencyScanner {
         /* sampleData + zero padding */
         int len = sampleData.length + 24 * sampleData.length;
         DoubleFFT_1D fft = new DoubleFFT_1D(len);
-        double[] a = new double[len * 2];
+        double[] a = new double[len << 1];
 
         System.arraycopy(applyWindow(sampleData), 0, a, 0, sampleData.length);
         fft.realForward(a);
@@ -24,9 +24,9 @@ public class FrequencyScanner {
         /* find the peak magnitude and it's index */
         double maxMag = Double.NEGATIVE_INFINITY;
 
-        for (int i = 0; i < a.length / 2; ++i) {
-            double re = a[2 * i];
-            double im = a[2 * i + 1];
+        for (int i = 0; i < a.length >> 1; ++i) {
+            double re = a[i << 1];
+            double im = a[(i << 1) + 1];
             double mag = Math.sqrt(re * re + im * im);
 
             if (mag > maxMag) {
