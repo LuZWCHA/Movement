@@ -75,7 +75,7 @@ public class LightWorld implements IBlockAccess {
 
         double dis = pos.getDistance(this.pos.getX(),this.pos.getY(),this.pos.getZ());
 
-        //because of the light-rerender in the backed consumer(processor)
+        //because of the light-render in the backed consumer(processor)
         //the light packets around the block,for example,the 3 * 3 * 3 - 1 (=26)blocks around this
         //block, that will affect the light values(on 6 faces), so to refine the brightness, we have to
         //get a transformed position based on the BlockPos#pos.

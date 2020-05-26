@@ -2,6 +2,7 @@ package com.nowandfuture.mod.handler;
 
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
+import com.nowandfuture.mod.core.common.Items.ModuleLinkWatcherItem;
 import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.Items.TimelineItem;
 import com.nowandfuture.mod.core.common.MovementCreativeTab;
@@ -36,6 +37,7 @@ public final class RegisterHandler {
     public static Item prefabItem = new PrefabItem();
     public static Item timelineItem = new TimelineItem();
     public static Item copyItem = new BlockInfoCopyItem();
+    public static Item linkWatcherItem = new ModuleLinkWatcherItem();
     public static CreativeTabs creativeTab = new MovementCreativeTab(Movement.NAME);
 
     @SubscribeEvent
@@ -139,6 +141,13 @@ public final class RegisterHandler {
                         .setCreativeTab(creativeTab)
 
         );
+
+        registry.register(
+                linkWatcherItem.setRegistryName(new ResourceLocation(MODID,"item_link_watcher"))
+                        .setTranslationKey("linkWatcher")
+                        .setCreativeTab(creativeTab)
+
+        );
     }
 
     @SubscribeEvent
@@ -152,6 +161,7 @@ public final class RegisterHandler {
         registerModel(prefabItem,0,"inventory");
         registerModel(timelineItem,0,"inventory");
         registerModel(copyItem,0,"inventory");
+        registerModel(linkWatcherItem,0,"inventory");
     }
 
     public static void registerModel(Block block,int metadata){

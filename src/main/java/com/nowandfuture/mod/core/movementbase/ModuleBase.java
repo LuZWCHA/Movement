@@ -1,4 +1,4 @@
-package com.nowandfuture.mod.core.movecontrol;
+package com.nowandfuture.mod.core.movementbase;
 
 import com.nowandfuture.mod.api.IModule;
 import com.nowandfuture.mod.api.Unstable;

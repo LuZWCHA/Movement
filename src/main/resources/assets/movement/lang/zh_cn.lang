@@ -52,6 +52,7 @@ item.timeline.name=时间线
 item.prefab.empty.name=空白预制件
 item.prefab.complete.name=预制件
 item.blockCopier.name=方块拷贝器
+item.linkWatcher.name=模块链接显示器
 
 itemGroup.Movement Mod=运动渲染
 

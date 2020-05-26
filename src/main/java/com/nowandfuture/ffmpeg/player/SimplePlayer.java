@@ -87,7 +87,6 @@ public class SimplePlayer implements IMediaPlayer{
     }
 
     public boolean touchSource(String url) {
-
         lastException = null;
         //check grabber
         if(grabber != null) {
@@ -147,12 +146,7 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setGrabber(grabber);
         audioPlayThread.start();
 
-//        if(grabber.getLengthInVideoFrames() == 1)
-//            displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
-//        else
         displayThread.setBaseDelay(!grabber.hasVideo()? (long)(1000d / grabber.getAudioFrameRate()) : (long) (1000d / grabber.getVideoFrameRate()));
-
-//        displayThread.setBaseDelay((long) (1000d / grabber.getVideoFrameRate()));
         displayThread.start();
     }
 

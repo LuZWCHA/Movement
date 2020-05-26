@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.core.common.entities.TileEntityModule;
-import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.movementbase.ModuleNode;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;

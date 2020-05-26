@@ -1,9 +1,12 @@
 package com.nowandfuture.mod.core.client.renders.tiles;
 
 import com.nowandfuture.mod.core.client.renders.CubesRenderer;
+import com.nowandfuture.mod.core.client.renders.IParticularTarget;
 import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
+import com.nowandfuture.mod.core.client.renders.ParticularManager;
+import com.nowandfuture.mod.core.common.Items.ModuleLinkWatcherItem;
 import com.nowandfuture.mod.core.common.entities.TileEntityCoreModule;
-import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.movementbase.ModuleNode;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.DrawHelper;
 import com.nowandfuture.mod.utils.math.Matrix4f;
@@ -14,6 +17,8 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
@@ -23,6 +28,7 @@ import java.util.Random;
 @SideOnly(Side.CLIENT)
 public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<TileEntityCoreModule>{
     private static Random RANDOM = new Random();
+    private Vec3d originPos;
 
     @Override
     public void render(TileEntityCoreModule te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
@@ -37,14 +43,42 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
                 te.doTransform(1, matrix4f);
             }
         }
-
+        depth = 0;
         renderModuleTree(te,x, y, z, partialTicks);
+
+        if(te.isEnable() && ModuleLinkWatcherItem.isPlayerWearing(Minecraft.getMinecraft().player))
+            spawnParticulars(te);
 
         if(te.isShowBlock()) {
             renderBlock(te, x, y, z);
         }
     }
 
+    public void spawnParticulars(TileEntityCoreModule te){
+        BlockPos blockPos = te.getPos();
+
+        if(originPos != null){
+            ParticularManager.INSTANCE.trailEffect(blockPos.add(originPos.x,originPos.y,originPos.z), getWorld(), new IParticularTarget() {
+                @Override
+                public Vec3d getPos() {
+                    BlockPos blockPos = te.getPos();
+                    return new Vec3d(blockPos);
+                }
+
+                @Override
+                public boolean isDead() {
+                    return !te.isEnable();
+                }
+
+                @Override
+                public boolean isMovable() {
+                    return true;
+                }
+            },2,24);
+        }
+    }
+
+    private int depth = 0;//record recursive depth
     @SideOnly(Side.CLIENT)
     public void renderModuleTree(ModuleNode node, double x, double y, double z, float partialTicks){
         if(node.getPrefab() != null) {
@@ -63,6 +97,10 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
 
                     renderer.resetMatrix();
                     renderer.getModelMatrix().load(node.getMatrix4f());
+
+                    if(depth == 0)
+                        originPos = OBBox.transformCoordinate(node.getMatrix4f(),Vec3d.ZERO);
+
                     renderer.renderTileEntity(partialTicks);
                     //RenderHook render it later
                     ModuleRenderManager.INSTANCE.getRenderQueue().add(renderer);
@@ -77,6 +115,7 @@ public class TileEntityCoreModuleRenderer extends TileEntitySpecialRenderer<Tile
                     }
                     GlStateManager.popMatrix();
 
+                    depth ++;
                     for (ModuleNode moduleNode :
                             node.getModuleMap().getModules()) {
                         renderModuleTree(moduleNode, x, y, z, partialTicks);

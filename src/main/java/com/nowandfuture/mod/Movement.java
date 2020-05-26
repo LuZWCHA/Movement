@@ -14,7 +14,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +25,7 @@ public class Movement implements IModPlugin {
 
     public static final String MODID = "movement";
     public static final String NAME = "Movement Mod";
-    public static final String VERSION = "0.2.1";
+    public static final String VERSION = "0.2.2";
 
     @Mod.Instance
     public static Movement instance;
@@ -56,11 +55,6 @@ public class Movement implements IModPlugin {
         proxy.init(event);
         NetworkRegistry.INSTANCE.registerGuiHandler(this,new GuiHandler());
 
-    }
-
-    @Mod.EventHandler
-    public void stop(FMLServerStoppedEvent event){
-//        CollisionHandler.modules.clear();
     }
 
     @Override

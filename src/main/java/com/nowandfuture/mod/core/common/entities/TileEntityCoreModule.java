@@ -3,7 +3,7 @@ package com.nowandfuture.mod.core.common.entities;
 import com.nowandfuture.mod.core.common.gui.ContainerModule;
 import com.nowandfuture.mod.core.common.gui.mygui.DynamicInventory;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IDynamicInventory;
-import com.nowandfuture.mod.core.movecontrol.ModuleNode;
+import com.nowandfuture.mod.core.movementbase.ModuleNode;
 import com.nowandfuture.mod.core.prefab.ModuleUtils;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;

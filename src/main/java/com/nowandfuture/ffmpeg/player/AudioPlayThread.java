@@ -60,8 +60,6 @@ public class AudioPlayThread extends Thread {
 
                     long time = (curTime - syncInfo.sysStartTime) * avutil.AV_TIME_BASE / 1000;
 
-//                    System.out.println(time + " ," + timestamp);
-
                     if (timestamp > time) {
                         if (timestamp - time > baseDelay * 1000 / avutil.AV_TIME_BASE ||
                                 timestamp - time > IMediaPlayer.SyncInfo.MAX_VIDEO_DIFF * 1000 / avutil.AV_TIME_BASE) {
