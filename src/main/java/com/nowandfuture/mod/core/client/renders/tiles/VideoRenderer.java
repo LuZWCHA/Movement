@@ -12,10 +12,8 @@ import com.nowandfuture.mod.handler.ClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -24,7 +22,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -116,47 +113,15 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         IResourceManager resourceManager =  Minecraft.getMinecraft().getResourceManager();
         if(image == null){
 
-            try {
-                FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
-                if(grabber != null && grabber.getFormatContext() != null &&
-                        !simplePlayer.getSyncInfo().isStreamGet()) {
-
-                    if (loadingTexture == null) {
-                        IResource iresource = resourceManager.getResource(LOADING_GUI_TEXTURE);
-                        BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
-
-                        loadingTexture = new FrameTexture(bufferedimage.getWidth(), bufferedimage.getHeight());
-                        loadingTexture.updateBufferedImage(bufferedimage, 0);
-                        bufferedimage.getGraphics().dispose();
-                    }
-
-                    ResourceLocation location =
-                            textureManager.getDynamicTextureLocation("loading", loadingTexture);
-                    drawFrameWithAutoScale(location, te, x, y, z);
-
-                }else{
-                    if(backgroundTexture == null){
-                        IResource iresource = resourceManager.getResource(BACKGROUND_GUI_TEXTURE);
-                        BufferedImage bufferedimage = TextureUtil.readBufferedImage(iresource.getInputStream());
-
-                        backgroundTexture = new FrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
-                        backgroundTexture.updateBufferedImage(bufferedimage,0);
-                        bufferedimage.getGraphics().dispose();
-                    }
-                    ResourceLocation location =
-                            textureManager.getDynamicTextureLocation("background",backgroundTexture);
-
-                    if(byteBuffer != null){
-                        drawAudio(byteBuffer,x,y,z,te);
-                        byteBuffer.clear();
-                        byteBuffer = null;
-                    }else{
-                        drawFrameWithAutoScale(location,te,x,y,z);
-                    }
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
+            if(grabber != null && grabber.getFormatContext() != null &&
+                    !simplePlayer.getSyncInfo().isStreamGet()) {
+                drawFrameWithAutoScale(LOADING_GUI_TEXTURE, te, x, y, z);
+            }else{
+                if(byteBuffer == null)
+                    drawFrameWithAutoScale(BACKGROUND_GUI_TEXTURE,te,x,y,z);
+                else
+                    drawAudio(byteBuffer,x,y,z,te);
             }
 
         } else {
@@ -230,7 +195,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
             PBOFrameTexture imageTexture = new PBOFrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
             bufferedimage.getGraphics().dispose();
-            imageTexture.updateBufferedImage(bufferedimage,frame.timestamp);
+            imageTexture.updateBufferedImage(image,frame.timestamp);
             imageTexture.setRealHeight(image.getHeight());
             imageTexture.setRealWidth(image.getWidth());
             frameCache2.put(te.getPos(),imageTexture);

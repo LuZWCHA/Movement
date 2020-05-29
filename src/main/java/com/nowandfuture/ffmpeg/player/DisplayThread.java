@@ -86,13 +86,12 @@ public class DisplayThread extends Thread{
 
     protected void render(Frame frame) throws InterruptedException {
         final long time = System.currentTimeMillis();
-        if(frame == null){
-            if(!syncInfo.isDecodeFinished())
-                return;
-            else {
+        if(frame == null) {
+            if (syncInfo.isDecodeFinished()) {
                 syncInfo.setPause(true);
-                return;
             }
+
+            return;
         }
         checkDiff(frame,time);
 

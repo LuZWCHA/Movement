@@ -30,14 +30,16 @@ public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
     }
 
     @Override
-    public void handle(Frame frame) {
+    public long handle(Frame frame) {
         if(frame != null && frame.image == null && frame.samples != null){
-            byte[] mono = SoundUtils.getAudio(frame.samples,1f,sampleFormat);
-            byte[] result = pcmConvert.readyDataByte(mono,mono.length / 32, sampleRate);
+            byte[] mono = SoundUtils.getCombinedMonoAudio(frame.samples,1f,sampleFormat);
+            byte[] result = pcmConvert.readyDataByte(mono,mono.length, sampleRate);
             frame.data = ByteBuffer.wrap(result);
         }
 
         this.frame = frame;
+
+        return 0;
     }
 
     @Override
@@ -48,6 +50,7 @@ public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
     @Override
     public void destroy() {
 //        GlStateManager.deleteTexture(id);
+        frame = null;
     }
 
     @Override

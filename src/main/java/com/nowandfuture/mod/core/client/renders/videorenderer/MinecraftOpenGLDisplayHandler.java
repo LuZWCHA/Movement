@@ -11,8 +11,8 @@ import java.nio.ByteBuffer;
 
 public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
-    private ImageFrame imageFrame = new ImageFrame();
-    private long last = -1;
+    private ImageFrame imageFrame;
+    private long last;
     private Java2DFrameConverter java2DFrameConverter = new Java2DFrameConverter();
 
     public MinecraftOpenGLDisplayHandler(SimplePlayer simplePlayer){
@@ -25,10 +25,12 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
         if(id <= 0){
             throw new RuntimeException("never gen a texture !");
         }
+        last = -1;
+        imageFrame = new ImageFrame();
     }
 
     @Override
-    public void handle(Frame frame) {
+    public long handle(Frame frame) {
         super.handle(frame);
 
         if(frame != null && frame.image != null && frame.timestamp != last){
@@ -39,19 +41,24 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
         }else if(frame != null && frame.image == null && frame.data != null){
             if (imageFrame.image != null) imageFrame.image.getGraphics().dispose();
             imageFrame.audioData = frame.data;
+            imageFrame.image =null;
             imageFrame.timestamp = frame.timestamp;
             last = frame.timestamp;
         }
 
+        return 0;
     }
 
     @Override
     public void destroy() {
+        last = -1;
         super.destroy();
+        if(imageFrame != null)
+            imageFrame.disposed();
     }
 
     @Override
-    public Object getFrameObj() {
+    public synchronized Object getFrameObj() {
         return imageFrame;
     }
 

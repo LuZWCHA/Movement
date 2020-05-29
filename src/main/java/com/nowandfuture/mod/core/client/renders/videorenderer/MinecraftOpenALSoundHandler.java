@@ -34,9 +34,9 @@ public class MinecraftOpenALSoundHandler extends OpenALSoundHandler {
     }
 
     @Override
-    public void handle(Frame frame) throws InterruptedException {
+    public long handle(Frame frame) throws InterruptedException {
         updateListener();
-        super.handle(frame);
+        return super.handle(frame);
     }
 
     private final Vector3f up = new Vector3f(0,1,0);

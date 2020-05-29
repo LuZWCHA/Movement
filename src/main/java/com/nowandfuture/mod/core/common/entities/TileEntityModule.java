@@ -41,8 +41,8 @@ public class TileEntityModule extends TileEntityLockable implements IInventory,I
     public final static String NBT_TICK = "Tick";
     public final static String NBT_ENABLE = "Enable";
     public final static String NBT_ENABLE_COLLISION = "EnableCollision";
+
     private final static String NBT_RENDER_REALTIME = "RenderRealtime";
-//    private final static String NBT_NODE_TYPES = "NodeTypes";
 
     private final static int FORCE_UPDATE_TIME = 20;
     private int tick = 0;

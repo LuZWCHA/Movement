@@ -23,7 +23,7 @@ public class Java2DDisplayHandler implements PlayHandler.DisplayHandler {
     }
 
     @Override
-    public void handle(Frame frame) {
+    public long handle(Frame frame) {
         image = new BufferedImage(frame.imageWidth,frame.imageHeight,BufferedImage.TYPE_3BYTE_BGR);
         Java2DFrameConverter.copy(frame,image);
 
@@ -39,6 +39,8 @@ public class Java2DDisplayHandler implements PlayHandler.DisplayHandler {
             ImageIcon imageIcon = new ImageIcon(image2);
             label.setIcon(imageIcon);
         }
+
+        return 0;
     }
 
     @Override

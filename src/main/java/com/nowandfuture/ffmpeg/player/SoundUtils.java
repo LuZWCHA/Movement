@@ -200,6 +200,54 @@ public class SoundUtils {
         return null;
     }
 
+    public static byte[] getCombinedMonoAudio(final Buffer[] samples,float vol,int sampleFormat){
+
+        Buffer[] buf;
+        FloatBuffer leftData,rightData;
+        ShortBuffer ILData,IRData;
+        ByteBuffer TLData,TRData;
+        byte[] tl = null;
+        byte[] tr = null;
+        int k;
+        buf = samples;
+        switch(sampleFormat){
+//            case avutil.AV_SAMPLE_FMT_FLTP:
+//                leftData = (FloatBuffer)buf[0];
+//                TLData = floatToByteValue(leftData,vol);
+//                rightData = (FloatBuffer)buf[1];
+//                TRData = floatToByteValue(rightData,vol);
+//                tl = TLData.array();
+//                tr = TRData.array();
+//                break;
+            case avutil.AV_SAMPLE_FMT_S16:
+                ILData = (ShortBuffer)buf[0];
+                short[] mono = new short[ILData.capacity()/2];
+                for(int i = 0; i < mono.length;i++){
+                    mono[i] = (short) (((int)ILData.get(2 * i) +
+                    (int)ILData.get(2 * i + 1))/2);
+                }
+                ByteBuffer combine = shortToByteValue(ShortBuffer.wrap(mono),vol);
+//                mono2.order();
+                return combine.array();
+//            case avutil.AV_SAMPLE_FMT_FLT:
+//                leftData = (FloatBuffer)buf[0];
+//                TLData = floatToByteValue(leftData,vol);
+//                tl = TLData.array();
+//                tr = tl.clone();
+//                break;
+//            case avutil.AV_SAMPLE_FMT_S16P://平面型左右声道分开
+//                ILData = (ShortBuffer)buf[0];
+//                IRData = (ShortBuffer)buf[1];
+//                TLData = shortToByteValue(ILData,vol);
+//                TRData = shortToByteValue(IRData,vol);
+//                tl = TLData.array();
+//                tr = TRData.array();
+            default:
+
+        }
+        return null;
+    }
+
     public static byte[] getAudio(final Buffer[] samples,float vol,int sampleFormat){
 
         Buffer[] buf;

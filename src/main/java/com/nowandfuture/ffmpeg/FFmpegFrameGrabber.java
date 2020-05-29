@@ -480,7 +480,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
                     return 0.0;
                 }
             }
-            if (samples_frame != null || samples_frame.nb_samples() != 0)
+            if (samples_frame != null && samples_frame.nb_samples() != 0)
                 return ((double) getSampleRate()) / samples_frame.nb_samples();
             else return 0.0;
 
@@ -495,6 +495,7 @@ public class FFmpegFrameGrabber extends FrameGrabber {
             if (r.num() == 0 && r.den() == 0) {
                 r = video_st.r_frame_rate();
             }
+            double num = r.num(), den = r.den();
             return (double)r.num() / r.den();
         }
     }

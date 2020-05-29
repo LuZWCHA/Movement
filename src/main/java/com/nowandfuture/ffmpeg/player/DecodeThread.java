@@ -83,6 +83,7 @@ public class DecodeThread extends Thread {
                     }
                     imageCache.put(frame);
                     curFrameTimestamp = frame.timestamp;
+                    //no valid audio stream
                     if(!grabber.hasAudio()){
                         Frame fakeAudioFrame = new Frame();
                         fakeAudioFrame.timestamp = curFrameTimestamp;
@@ -92,15 +93,12 @@ public class DecodeThread extends Thread {
                     if(!syncInfo.isAudioFrameGet){
                         syncInfo.isAudioFrameGet = true;
                     }
-                    audioCache.put(frame);
                     curFrameTimestamp = frame.timestamp;
-                    if(!grabber.hasVideo()){
-                        Frame fakeVideoFrame = new Frame();
-                        fakeVideoFrame.timestamp = curFrameTimestamp;
-                        fakeVideoFrame.samples = frame.samples.clone();
-                        fakeVideoFrame.image = null;
+                    if(!grabber.hasVideo() || !syncInfo.isVideoFrameGet){
+                        Frame fakeVideoFrame = frame.clone();
                         imageCache.put(fakeVideoFrame);
                     }
+                    audioCache.put(frame);
                 }
             }
         } catch (Exception e) {

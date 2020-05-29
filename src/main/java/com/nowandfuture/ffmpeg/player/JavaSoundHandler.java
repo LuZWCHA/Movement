@@ -36,9 +36,10 @@ public class JavaSoundHandler implements PlayHandler.SoundPlayHandler {
     }
 
     @Override
-    public void handle(Frame frame) {
+    public long handle(Frame frame) {
         if(channelJavaSound != null && channelJavaSound.sourceDataLine != null)
             channelJavaSound.queueBuffer(SoundUtils.getAudio(frame.samples,updateVolume(),sampleFormat));
+        return 0;
     }
 
     protected float updateVolume(){

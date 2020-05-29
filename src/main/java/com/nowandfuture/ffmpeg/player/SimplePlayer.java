@@ -146,7 +146,10 @@ public class SimplePlayer implements IMediaPlayer{
         audioPlayThread.setGrabber(grabber);
         audioPlayThread.start();
 
-        displayThread.setBaseDelay(!grabber.hasVideo()? (long)(1000d / grabber.getAudioFrameRate()) : (long) (1000d / grabber.getVideoFrameRate()));
+        double audioFrameRate = 1;
+        double videoFrameRate = grabber.getVideoFrameRate();
+
+        displayThread.setBaseDelay(!grabber.hasVideo()? (long)(1000d / audioFrameRate) : (long) (1000d / videoFrameRate));
         displayThread.start();
     }
 
@@ -156,7 +159,7 @@ public class SimplePlayer implements IMediaPlayer{
 
     @Override
     public void end() throws Exception {
-        syncInfo.setDecodeFinished(true);
+        syncInfo.end();
         resume();
 
         if(audioPlayThread != null) {

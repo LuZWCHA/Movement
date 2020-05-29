@@ -6,8 +6,6 @@ import com.nowandfuture.ffmpeg.player.JavaSoundHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 
-import javax.sound.sampled.FloatControl;
-
 public class MinecraftJavaSoundHandler extends JavaSoundHandler {
 
     private Entity listener;
@@ -27,10 +25,11 @@ public class MinecraftJavaSoundHandler extends JavaSoundHandler {
     }
 
     @Override
-    public void handle(Frame frame) {
+    public long handle(Frame frame) {
         final float distance = (float) pos.distanceSq(listener.getPosition());
-        if(distance < 256)
+        if(distance < 256d)
             super.handle(frame);
+        return 0;
     }
 
     @Override

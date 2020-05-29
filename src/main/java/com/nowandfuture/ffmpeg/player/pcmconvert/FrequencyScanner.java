@@ -23,7 +23,7 @@ public class FrequencyScanner {
 
         /* find the peak magnitude and it's index */
         double maxMag = Double.NEGATIVE_INFINITY;
-
+        double maxInd = -1;
         for (int i = 0; i < a.length >> 1; ++i) {
             double re = a[i << 1];
             double im = a[(i << 1) + 1];
@@ -31,10 +31,11 @@ public class FrequencyScanner {
 
             if (mag > maxMag) {
                 maxMag = mag;
+                maxInd = i;
             }
         }
 
-        return ((int)(maxMag / sampleRate) << 2);
+        return (maxInd / (double)(a.length >> 1));
     }
 
     /**
@@ -59,12 +60,60 @@ public class FrequencyScanner {
      * @param input an array containing unfiltered input data
      * @return a double array containing the filtered data
      */
-    private double[] applyWindow(short[] input) {
+    public double[] applyWindow(short[] input) {
         double[] res = new double[input.length];
 
         buildHammWindow(input.length);
         for (int i = 0; i < input.length; ++i) {
             res[i] = (double) input[i] * window[i];
+        }
+        return res;
+    }
+
+    /**
+     * apply a Hamming window filter to raw input data
+     *
+     * @param input an array containing unfiltered input data
+     * @return a double array containing the filtered data
+     */
+    public double[] applyWindow(byte[] input) {
+        double[] res = new double[input.length];
+
+        buildHammWindow(input.length);
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = (double) input[i] * window[i];
+        }
+        return res;
+    }
+
+    /**
+     * apply a Hamming window filter to raw input data
+     *
+     * @param input an array containing unfiltered input data
+     * @return a double array containing the filtered data
+     */
+    public double[] applyWindow(double[] input) {
+        double[] res = new double[input.length];
+
+        buildHammWindow(input.length);
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = input[i] * window[i];
+        }
+        return res;
+    }
+
+    public double[] toDouble(short[] input){
+        double[] res = new double[input.length];
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = input[i];
+        }
+        return res;
+    }
+
+    public double[] toDouble(byte[] input){
+        double[] res = new double[input.length];
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = input[i];
         }
         return res;
     }

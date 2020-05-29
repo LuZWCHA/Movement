@@ -157,7 +157,6 @@ public final class RegisterHandler {
         registerModel(moduleBlock,0);
         registerModel(transformedBlock,0);
         registerModel(videoBlock,0);
-//        registerModel(moduleBlock,8);
         registerModel(prefabItem,0,"inventory");
         registerModel(timelineItem,0,"inventory");
         registerModel(copyItem,0,"inventory");
