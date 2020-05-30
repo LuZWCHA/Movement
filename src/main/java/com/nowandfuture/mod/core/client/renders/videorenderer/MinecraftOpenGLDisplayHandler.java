@@ -22,6 +22,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     @Override
     public void init(IMediaPlayer.SyncInfo info) {
         super.init(info);
+//        id = GlStateManager.generateTexture();
         if(id <= 0){
             throw new RuntimeException("never gen a texture !");
         }
@@ -55,6 +56,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
         super.destroy();
         if(imageFrame != null)
             imageFrame.disposed();
+//        GlStateManager.deleteTexture(id);
     }
 
     @Override

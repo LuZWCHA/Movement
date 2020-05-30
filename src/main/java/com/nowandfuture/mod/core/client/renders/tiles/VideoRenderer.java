@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -47,6 +46,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             new ResourceLocation(Movement.MODID,"textures/gui/play.png");
     private static final ResourceLocation BACKGROUND_GUI_TEXTURE =
             new ResourceLocation(Movement.MODID,"textures/gui/background.png");
+    private static final ResourceLocation WITHE_TEXTURE =
+            new ResourceLocation(Movement.MODID,"textures/gui/withe_background.png");
 
     public VideoRenderer(){
     }
@@ -110,7 +111,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         BufferedImage image = (frame == null ? null : frame.getCloneImage());
         ByteBuffer byteBuffer = (frame == null ? null : frame.getAudioData());
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
-        IResourceManager resourceManager =  Minecraft.getMinecraft().getResourceManager();
         if(image == null){
 
             FFmpegFrameGrabber grabber = simplePlayer.getGrabber();
@@ -195,7 +195,8 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
             bufferedimage = new BufferedImage(((int) (w * scale)), ((int) (h * scale)),image.getType());
             PBOFrameTexture imageTexture = new PBOFrameTexture(bufferedimage.getWidth(),bufferedimage.getHeight());
             bufferedimage.getGraphics().dispose();
-            imageTexture.updateBufferedImage(image,frame.timestamp);
+            //every frame first upload with -1 timestamp to avoid that music's cover can't be update next
+            imageTexture.updateBufferedImage(bufferedimage,-1);
             imageTexture.setRealHeight(image.getHeight());
             imageTexture.setRealWidth(image.getWidth());
             frameCache2.put(te.getPos(),imageTexture);
@@ -292,13 +293,15 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         byte[] bytes = byteBuffer.array();
 
+        TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
+
         this.setLightmapDisabled(false);
+        textureManager.bindTexture(WITHE_TEXTURE);
         RenderHelper.disableStandardItemLighting();
 
         BufferBuilder var2 = Tessellator.getInstance().getBuffer();
         Tessellator tessellator = Tessellator.getInstance();
-        GlStateManager.disableTexture2D();
-        GlStateManager.resetColor();
+//        GlStateManager.resetColor();
         GlStateManager.color(255,255,255,255);
 //        GlStateManager.disableAlpha();
         GlStateManager.pushMatrix();
@@ -323,7 +326,6 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
 
         tessellator.draw();
         GlStateManager.popMatrix();
-        GlStateManager.enableTexture2D();
         RenderHelper.enableStandardItemLighting();
 
 //        GlStateManager.enableAlpha();

@@ -124,7 +124,7 @@ public class AudioPlayThread extends Thread {
         this.audioCache = audioCache;
     }
 
-    protected long play(Frame frame) throws InterruptedException {
+    protected long play(Frame frame) throws Exception {
         if(playHandler != null){
             return playHandler.handle(frame);
         }

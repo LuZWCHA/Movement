@@ -28,9 +28,10 @@ public class PBOFrameTexture extends FrameTexture {
 
     public void updateBufferedImage(BufferedImage image,long id){
         pbo.setTag(id);
+
 //        BufferedImage bufferedimage = new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-        ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 4).put(buffer.getData());
+        ByteBuffer byteBuffer = BufferUtils.createByteBuffer(image.getWidth() * image.getHeight() * 3).put(buffer.getData());
         byteBuffer.flip();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, image.getWidth(), image.getHeight(), 0, GL_BGR, GL_UNSIGNED_BYTE,byteBuffer);
 //        bufferedimage.getGraphics().dispose();
@@ -45,7 +46,7 @@ public class PBOFrameTexture extends FrameTexture {
         pbo.bindPBO(GL21.GL_PIXEL_UNPACK_BUFFER);
         DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
         pbo.pboByteData(GL21.GL_PIXEL_UNPACK_BUFFER,
-                image.getWidth() * image.getHeight() * BYTE_PER_PIXEL, GL15.GL_STREAM_DRAW);
+                image.getWidth() * image.getHeight() * 3, GL15.GL_STREAM_DRAW);
         ByteBuffer b = pbo.mapPBO(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, null);
         if (b != null && b.hasRemaining()) {
             b.put(buffer.getData());

@@ -46,9 +46,9 @@ public class DisplayThread extends Thread{
                 if(frame != null)
                     SoundUtils.cloneFrameDeallocate(frame);
             }
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if(frame != null)
                 SoundUtils.cloneFrameDeallocate(frame);
         }
@@ -84,13 +84,12 @@ public class DisplayThread extends Thread{
         if(factor < -baseDelay) factor = -baseDelay;
     }
 
-    protected void render(Frame frame) throws InterruptedException {
+    protected void render(Frame frame) throws Exception {
         final long time = System.currentTimeMillis();
         if(frame == null) {
             if (syncInfo.isDecodeFinished()) {
                 syncInfo.setPause(true);
             }
-
             return;
         }
         checkDiff(frame,time);
@@ -99,7 +98,7 @@ public class DisplayThread extends Thread{
         Thread.sleep(baseDelay + factor);
     }
 
-    protected void draw(Frame frame) throws InterruptedException {
+    protected void draw(Frame frame) throws Exception {
         if(playHandler != null){
             playHandler.handle(frame);
         }

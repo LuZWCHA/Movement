@@ -5,7 +5,7 @@ import com.nowandfuture.ffmpeg.IMediaPlayer;
 
 public interface PlayHandler {
     void init(IMediaPlayer.SyncInfo info);
-    long handle(Frame frame) throws InterruptedException;
+    long handle(Frame frame) throws Exception;
     @Deprecated
     void flush();
     void destroy();

@@ -35,7 +35,6 @@ public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
             byte[] mono = simplePlayer.getChannels() != 1 ? SoundUtils.getCombinedMonoAudio(frame.samples,1f,sampleFormat)
                     : SoundUtils.getAudio(frame.samples,1f,sampleFormat);
             byte[] result = pcmConvert.readyDataByte(mono,mono.length, sampleRate);
-
             frame.data = ByteBuffer.wrap(result);
         }
 
@@ -51,7 +50,6 @@ public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
 
     @Override
     public void destroy() {
-//        GlStateManager.deleteTexture(id);
         frame = null;
     }
 

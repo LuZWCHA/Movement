@@ -24,7 +24,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "0.2.3"
+version = "0.2.4-200530"
 group = "com.nowandfurure.movement"
 archivesBaseName = "Movement"
 
@@ -53,7 +53,7 @@ dependencies {
     shade files('libs/ffmpeg-windows-x86_64.jar')
     shade files('libs/javacpp.jar')
     shade files('libs/javacpp-windows-x86_64.jar')
-    shade files('libs/JTransforms-3.1-with-dependencies.jar')
+//    shade files('libs/JTransforms-3.1-with-dependencies.jar')
 
     provided('org.spongepowered:mixin:0.8') {
         exclude module: 'guava'
@@ -82,11 +82,11 @@ mixin {
     add sourceSets.main, "mixins.movement.refmap.json"
 }
 
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
-    }
-}
+//sourceSets {
+//    main {
+//        output.resourcesDir = output.classesDir
+//    }
+//}
 
 jar {
     manifest {

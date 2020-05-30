@@ -2,9 +2,6 @@ package com.nowandfuture.ffmpeg.player.pcmconvert;
 
 import org.jtransforms.fft.DoubleFFT_1D;
 
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-
 public class PCMConvert {
 
     private FrequencyScanner fftScanner;
@@ -23,10 +20,6 @@ public class PCMConvert {
     }
 
     public byte[] readyDataByte(byte[] data,int fftThruput,int sampleRate) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-        ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
-        short[] shorts = new short[data.length>>1];
-        shortBuffer.get(shorts);
         return getAmplitudes(data, sampleRate);
     }
 
@@ -53,7 +46,6 @@ public class PCMConvert {
     }
 
     private byte[] getAmplitudes(byte[] sampleData, int sampleRate) {
-
         double[] array = fftScanner.toDouble(sampleData);
 
         int N = 1024 * 4;
@@ -64,6 +56,7 @@ public class PCMConvert {
         System.arraycopy(array,0,zeroPadding,0,Math.min(array.length,N));
         zeroPadding = fftScanner.applyWindowBlackman(zeroPadding);
         DoubleFFT_1D fft = new DoubleFFT_1D(N);
+
         fft.realForward(zeroPadding);
 
         double[] fd = new double[N/2];
@@ -99,7 +92,7 @@ public class PCMConvert {
 
             long fre = (long) (N / count * (pos + .5f));
             double a = AWeightedFilter(fre);
-            System.out.println(fre + ", " + a + ", " + maxValue);
+//            System.out.println(fre + ", " + a + ", " + maxValue);
             result[pos++] = (byte) ((maxValue > Y0 ? (Math.log10(maxValue) * 20 - logY0) : 0) / maxDB * a * 128);
         }
 
