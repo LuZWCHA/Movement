@@ -108,7 +108,7 @@ public class VideoRenderer extends TileEntitySpecialRenderer<TileEntitySimplePla
         MinecraftOpenGLDisplayHandler.ImageFrame frame = (MinecraftOpenGLDisplayHandler.ImageFrame) simplePlayer.getCurImageObj();
 
         BufferedImage image = (frame == null ? null : frame.getCloneImage());
-        ByteBuffer byteBuffer = (frame == null ? null : frame.audioData);
+        ByteBuffer byteBuffer = (frame == null ? null : frame.getAudioData());
         TextureManager textureManager = Minecraft.getMinecraft().renderEngine;
         IResourceManager resourceManager =  Minecraft.getMinecraft().getResourceManager();
         if(image == null){

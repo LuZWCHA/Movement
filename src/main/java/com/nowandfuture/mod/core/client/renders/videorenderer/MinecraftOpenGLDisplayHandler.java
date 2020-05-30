@@ -65,7 +65,7 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
     public static class ImageFrame{
         private boolean isDisposed;
         public BufferedImage image;
-        public ByteBuffer audioData;
+        private ByteBuffer audioData;
         public long timestamp;
 
         public ImageFrame(){
@@ -85,6 +85,23 @@ public class MinecraftOpenGLDisplayHandler extends OpenGLDisplayHandler {
 
         public BufferedImage getCloneImage() {
             return Java2DFrameConverter.cloneBufferedImage(image);
+        }
+
+        // TODO: 2020/5/30 mean at player video thread
+        private byte[] lastAudioData = null;
+        private final double w = 0.5d;
+        public ByteBuffer getAudioData() {
+            if(audioData == null) return null;
+
+            byte[] result = audioData.array();
+            if(lastAudioData == null) lastAudioData = new byte[audioData.capacity()];
+
+            for (int i = 0; i < result.length; i++) {
+                result[i] = (byte) (result[i] * w + lastAudioData[i] * (1 - w));
+            }
+
+            lastAudioData = result;
+            return audioData;
         }
     }
 }

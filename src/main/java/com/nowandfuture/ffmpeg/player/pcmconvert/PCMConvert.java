@@ -27,13 +27,12 @@ public class PCMConvert {
         ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
         short[] shorts = new short[data.length>>1];
         shortBuffer.get(shorts);
-//        return fft(shorts,fftThruput,sampleRate);
-        return fft1(data);
+        return getAmplitudes(data, sampleRate);
     }
 
 
-    //spectrogram
-    private byte[] fft(short[] sampleData, int fftThruput,int sampleRate) {
+    //spectrogram of amg
+    private byte[] getMaxMagnitudes(short[] sampleData, int fftThruput, int sampleRate) {
         if(cacheData.length != fftThruput){
             cacheData = new short[fftThruput];
         }
@@ -53,7 +52,7 @@ public class PCMConvert {
         return result;
     }
 
-    private byte[] fft1(byte[] sampleData) {
+    private byte[] getAmplitudes(byte[] sampleData, int sampleRate) {
 
         double[] array = fftScanner.toDouble(sampleData);
 
@@ -63,7 +62,7 @@ public class PCMConvert {
         double[] zeroPadding = new double[N];
 
         System.arraycopy(array,0,zeroPadding,0,Math.min(array.length,N));
-        zeroPadding = fftScanner.applyWindow(zeroPadding);
+        zeroPadding = fftScanner.applyWindowBlackman(zeroPadding);
         DoubleFFT_1D fft = new DoubleFFT_1D(N);
         fft.realForward(zeroPadding);
 
@@ -80,8 +79,8 @@ public class PCMConvert {
         fd[fd.length / 2] = zeroPadding[1] / N;
 
         double maxDB = Math.log10(128) * 20;
-        double Y0 = 1 << ((int)((Math.log(N) / Math.log(2)) + 3) << 1);
-        double logY0 = Math.log10(Y0) * 20;
+        double Y0 = 0;
+        double logY0 = 0;
 
         fftThruput = fd.length / count / 2;
         byte[] result = new byte[count];
@@ -92,17 +91,26 @@ public class PCMConvert {
             if(i + fftThruput > fd.length / 2) break;
 
             double maxValue = Double.NEGATIVE_INFINITY;
-            double maxInd = -1;
             for (int j = 0; j < fftThruput; j++) {
                 if (fd[i + j] > maxValue) {
                     maxValue = fd[i + j];
-                    maxInd = i;
                 }
             }
 
-            result[pos++] = (byte) ((maxValue > 0 ? (Math.log10(maxValue) * 20 - 0) : 0) / maxDB * 128);
+            long fre = (long) (N / count * (pos + .5f));
+            double a = AWeightedFilter(fre);
+            System.out.println(fre + ", " + a + ", " + maxValue);
+            result[pos++] = (byte) ((maxValue > Y0 ? (Math.log10(maxValue) * 20 - logY0) : 0) / maxDB * a * 128);
         }
 
         return result;
+    }
+
+    //not real a weighted filter ,just use it to simulate human auditory system
+    //range 0-1
+    private double AWeightedFilter(long frequent){
+        long f2 = frequent * frequent;
+        return 148693636/
+                ((1 + 424.36 / f2) * Math.sqrt((1 + 11599.29 / f2) * (1 + 544496.41 / f2)) * (f2 + 148693636));
     }
 }

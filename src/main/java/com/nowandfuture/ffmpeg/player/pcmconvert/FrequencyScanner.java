@@ -1,12 +1,14 @@
 package com.nowandfuture.ffmpeg.player.pcmconvert;
 
+import net.minecraft.util.math.MathHelper;
 import org.jtransforms.fft.DoubleFFT_1D;
 
 public class FrequencyScanner {
-    private double[] window;
+    private double[] hammingWindow;
+    private double[] blackmanWindow;
 
     public FrequencyScanner() {
-        window = null;
+        hammingWindow = null;
     }
 
     public double getMaxFrequency(short[] sampleData, int sampleRate) {
@@ -18,7 +20,7 @@ public class FrequencyScanner {
         DoubleFFT_1D fft = new DoubleFFT_1D(len);
         double[] a = new double[len << 1];
 
-        System.arraycopy(applyWindow(sampleData), 0, a, 0, sampleData.length);
+        System.arraycopy(applyWindowHamming(sampleData), 0, a, 0, sampleData.length);
         fft.realForward(a);
 
         /* find the peak magnitude and it's index */
@@ -45,12 +47,22 @@ public class FrequencyScanner {
      * @param size the sample size for which the filter will be created
      */
     private void buildHammWindow(int size) {
-        if (window != null && window.length == size) {
+        if (hammingWindow != null && hammingWindow.length == size) {
             return;
         }
-        window = new double[size];
+        hammingWindow = new double[size];
         for (int i = 0; i < size; ++i) {
-            window[i] = .54 - .46 * Math.cos(2 * Math.PI * i / (size - 1.0));
+            hammingWindow[i] = .54 - .46 *MathHelper.cos((float) (2 * Math.PI * i / (size - 1.0)));
+        }
+    }
+
+    private void buildWindowBlackman(int size) {
+        if (blackmanWindow != null && blackmanWindow.length == size) {
+            return;
+        }
+        blackmanWindow = new double[size];
+        for (int i = 0; i < size; ++i) {
+            blackmanWindow[i] = .42 - .5 * MathHelper.cos((float) (2 * Math.PI * i / (size - 1.0))) + .08 * MathHelper.cos((float) (4 * Math.PI * i / (size - 1.0)));
         }
     }
 
@@ -60,28 +72,12 @@ public class FrequencyScanner {
      * @param input an array containing unfiltered input data
      * @return a double array containing the filtered data
      */
-    public double[] applyWindow(short[] input) {
+    public double[] applyWindowHamming(short[] input) {
         double[] res = new double[input.length];
 
         buildHammWindow(input.length);
         for (int i = 0; i < input.length; ++i) {
-            res[i] = (double) input[i] * window[i];
-        }
-        return res;
-    }
-
-    /**
-     * apply a Hamming window filter to raw input data
-     *
-     * @param input an array containing unfiltered input data
-     * @return a double array containing the filtered data
-     */
-    public double[] applyWindow(byte[] input) {
-        double[] res = new double[input.length];
-
-        buildHammWindow(input.length);
-        for (int i = 0; i < input.length; ++i) {
-            res[i] = (double) input[i] * window[i];
+            res[i] = (double) input[i] * hammingWindow[i];
         }
         return res;
     }
@@ -92,12 +88,38 @@ public class FrequencyScanner {
      * @param input an array containing unfiltered input data
      * @return a double array containing the filtered data
      */
-    public double[] applyWindow(double[] input) {
+    public double[] applyWindowHamming(byte[] input) {
         double[] res = new double[input.length];
 
         buildHammWindow(input.length);
         for (int i = 0; i < input.length; ++i) {
-            res[i] = input[i] * window[i];
+            res[i] = (double) input[i] * hammingWindow[i];
+        }
+        return res;
+    }
+
+    /**
+     * apply a Hamming window filter to raw input data
+     *
+     * @param input an array containing unfiltered input data
+     * @return a double array containing the filtered data
+     */
+    public double[] applyWindowHamming(double[] input) {
+        double[] res = new double[input.length];
+
+        buildHammWindow(input.length);
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = input[i] * hammingWindow[i];
+        }
+        return res;
+    }
+
+    public double[] applyWindowBlackman(double[] input) {
+        double[] res = new double[input.length];
+
+        buildWindowBlackman(input.length);
+        for (int i = 0; i < input.length; ++i) {
+            res[i] = input[i] * blackmanWindow[i];
         }
         return res;
     }

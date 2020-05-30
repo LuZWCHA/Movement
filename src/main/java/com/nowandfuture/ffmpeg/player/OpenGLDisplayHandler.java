@@ -32,8 +32,10 @@ public class OpenGLDisplayHandler implements PlayHandler.DisplayHandler {
     @Override
     public long handle(Frame frame) {
         if(frame != null && frame.image == null && frame.samples != null){
-            byte[] mono = SoundUtils.getCombinedMonoAudio(frame.samples,1f,sampleFormat);
+            byte[] mono = simplePlayer.getChannels() != 1 ? SoundUtils.getCombinedMonoAudio(frame.samples,1f,sampleFormat)
+                    : SoundUtils.getAudio(frame.samples,1f,sampleFormat);
             byte[] result = pcmConvert.readyDataByte(mono,mono.length, sampleRate);
+
             frame.data = ByteBuffer.wrap(result);
         }
 
