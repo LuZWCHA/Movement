@@ -4,7 +4,7 @@ import com.nowandfuture.mod.core.common.Items.PrefabItem;
 import com.nowandfuture.mod.core.common.gui.ContainerAnmEditor;
 import com.nowandfuture.mod.core.common.gui.mygui.api.IChangeListener;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
-import com.nowandfuture.mod.core.prefab.ModuleUtils;
+import com.nowandfuture.mod.core.common.modulebase.ModuleUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;

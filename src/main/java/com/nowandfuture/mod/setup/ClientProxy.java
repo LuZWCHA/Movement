@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.setup;
 
 
-import com.nowandfuture.mod.core.client.renders.tiles.*;
+import com.nowandfuture.mod.core.client.renderers.tiles.*;
 import com.nowandfuture.mod.core.common.entities.*;
 import com.nowandfuture.mod.handler.KeyBindHandler;
 import com.nowandfuture.mod.handler.ClientHandler;

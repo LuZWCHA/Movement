@@ -12,7 +12,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.MyAbstractList;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SlotView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
-import com.nowandfuture.mod.core.movementbase.ModuleNode;
+import com.nowandfuture.mod.core.common.modulebase.ModuleNode;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;

@@ -1,6 +1,6 @@
 package com.nowandfuture.mod.core.common.entities;
 
-import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
+import com.nowandfuture.mod.core.client.renderers.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.TransformedBlockWorld;
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
 import com.nowandfuture.mod.handler.IKeyListener;

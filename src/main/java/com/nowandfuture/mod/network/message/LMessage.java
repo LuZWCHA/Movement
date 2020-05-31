@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.network.message;
 
 import com.nowandfuture.mod.core.common.entities.*;
-import com.nowandfuture.mod.core.movementbase.ModuleNode;
-import com.nowandfuture.mod.core.prefab.ModuleNodeMap;
+import com.nowandfuture.mod.core.common.modulebase.ModuleNode;
+import com.nowandfuture.mod.core.common.modulebase.ModuleNodeMap;
 import com.nowandfuture.mod.core.transformers.TimeInterpolation;
 import com.nowandfuture.mod.core.transformers.animation.Timeline;
 import com.nowandfuture.mod.network.NetworkHandler;

@@ -68,8 +68,8 @@ public class BigNBTTagSplitPacketTool {
 
     public static byte[] NBTToByteArray(NBTTagCompound nbt){
         byte[] temp = null;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()){
             CompressedStreamTools.writeCompressed(nbt,outputStream);
             temp = outputStream.toByteArray();
         }catch (IOException e) {

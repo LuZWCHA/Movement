@@ -12,7 +12,6 @@ public abstract class TransPacket implements Opcodes {
 
     public abstract String[] getTargetClassName();
 
-    //public
     public FieldVisitor FieldAdapt(FieldVisitor fv, int access, String name , String desc, Object value){return fv;}
     public MethodVisitor MethodAdapt(MethodVisitor mv, String name, String desc){return null;}
     public void visitEnd(){visitor.visitEnd();}

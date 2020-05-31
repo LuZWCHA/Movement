@@ -2,7 +2,9 @@ package com.nowandfuture.mod.core.prefab;
 
 import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.api.Unstable;
-import com.nowandfuture.mod.core.client.renders.ModuleRenderManager;
+import com.nowandfuture.mod.core.client.renderers.ModuleRenderManager;
+import com.nowandfuture.mod.core.prefab.localworld.LocalWorld;
+import com.nowandfuture.mod.core.prefab.localworld.LocalWorldWrap;
 import com.nowandfuture.mod.utils.ByteZip;
 import joptsimple.internal.Strings;
 import net.minecraft.block.Block;

@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.Items;
 
 import com.nowandfuture.mod.core.common.blocks.TransformedBlock;
-import com.nowandfuture.mod.core.prefab.LocalWorld;
+import com.nowandfuture.mod.core.prefab.localworld.LocalWorld;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;

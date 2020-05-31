@@ -1,7 +1,7 @@
 package com.nowandfuture.mod.core.common.blocks;
 
 import com.google.common.base.Predicate;
-import com.nowandfuture.mod.core.client.renders.TransformedBlockRenderMap;
+import com.nowandfuture.mod.core.client.renderers.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.TransformedBlockWorld;
 import com.nowandfuture.mod.core.common.entities.TileEntityTransformedBlock;

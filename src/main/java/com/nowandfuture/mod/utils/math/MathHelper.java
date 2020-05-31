@@ -6,7 +6,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-
 import javax.vecmath.Quat4f;
 import java.util.Collection;
 import java.util.List;
@@ -362,10 +361,6 @@ public class MathHelper {
         mark >>>= (32 - bit);
         return data & mark;
     }
-
-//    public static Matrix4f noSmallMatrix(Matrix4f matrix4f){
-//
-//    }
 
     public static int getIntMiddleBits(int data,int bitStart ,int length){
         return getIntHighBits(data << bitStart,length);

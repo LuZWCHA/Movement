@@ -1,8 +1,8 @@
 package com.nowandfuture.mod.core.common.entities;
 
 import com.nowandfuture.mod.api.IModule;
-import com.nowandfuture.mod.core.movementbase.ModuleBase;
-import com.nowandfuture.mod.core.movementbase.ModuleNode;
+import com.nowandfuture.mod.core.common.modulebase.ModuleBase;
+import com.nowandfuture.mod.core.common.modulebase.ModuleNode;
 import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.core.transformers.AbstractTransformNode;
