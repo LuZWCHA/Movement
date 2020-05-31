@@ -1,6 +1,7 @@
 package com.nowandfuture.mod.core.common.blocks;
 
 import com.google.common.base.Predicate;
+import com.nowandfuture.mod.Movement;
 import com.nowandfuture.mod.core.client.renderers.TransformedBlockRenderMap;
 import com.nowandfuture.mod.core.common.Items.BlockInfoCopyItem;
 import com.nowandfuture.mod.core.common.TransformedBlockWorld;
@@ -382,6 +383,16 @@ public class TransformedBlock extends Block {
         else
             return block.removedByPlayer(transformedBlock.getLocalBlock().blockState, world, pos, player, willHarvest);
 
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        try {
+            return super.getMetaFromState(state);
+        }catch (IllegalArgumentException e){
+            Movement.logger.warn("transform block may have strange behavior!");
+        }
+        return 0;
     }
 
     @Override
