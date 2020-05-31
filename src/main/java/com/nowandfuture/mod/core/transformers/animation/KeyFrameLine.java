@@ -70,6 +70,8 @@ public class KeyFrameLine extends Timeline {
         final long begin = timeSection.begin == null ? 0 : timeSection.begin.getBeginTick();
         final long end = timeSection.end == null ? getTotalTick() : timeSection.end.getBeginTick();
 
+        if(end == begin) return 1d;
+
         double progress = (cur - begin)/(end - begin);
 
         return Math.min(1d,Math.max(0d,progress));

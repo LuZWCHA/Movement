@@ -32,7 +32,7 @@ import org.jtransforms.utils.ConcurrencyUtils;
 
 import java.util.concurrent.Future;
 
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.DoubleLargeArray;

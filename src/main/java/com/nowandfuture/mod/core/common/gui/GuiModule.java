@@ -22,8 +22,11 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.Optional;
 import org.lwjgl.util.Color;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -361,7 +364,7 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     @Override
-    protected List<GuiRegion> getExtraRegion() {
+    public List<GuiRegion> getExtraRegion() {
         List<GuiRegion> list = Lists.newArrayList();
         int left = guiLeft + xSize + 4;
         int top = guiTop + 4;
@@ -370,11 +373,30 @@ public class GuiModule extends AbstractGuiContainer {
     }
 
     @Override
-    public long getId() {
-        return GUI_ID;
+    @Optional.Method(modid = "jei")
+    public JEIGuiHandler<GuiModule> createJEIGuiHandler() {
+        return new JEIGuiHandler<GuiModule>() {
+            @Override
+            public Class<GuiModule> getGuiContainerClass() {
+                return GuiModule.class;
+            }
+
+            @Override
+            public List<Rectangle> getGuiExtraAreas(GuiModule guiContainer) {
+                List<Rectangle> list = new ArrayList<>();
+                list.add(new Rectangle(guiContainer.getGuiLeft() + guiContainer.getXSize() ,guiContainer.getGuiTop(),140,220));
+                return list;
+            }
+        };
     }
 
+    @Optional.Method(modid = "jei")
     public static JEIGuiHandler getJEIGuiHandler(){
         return new GuiModule().createJEIGuiHandler();
+    }
+
+    @Override
+    public long getId() {
+        return GUI_ID;
     }
 }

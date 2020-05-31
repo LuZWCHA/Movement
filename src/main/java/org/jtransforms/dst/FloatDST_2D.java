@@ -27,9 +27,6 @@
 package org.jtransforms.dst;
 
 import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jtransforms.utils.CommonUtils;
 import org.jtransforms.utils.ConcurrencyUtils;
@@ -37,7 +34,7 @@ import org.jtransforms.utils.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.FloatLargeArray;
 //import pl.edu.icm.jlargearrays.LargeArray;
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 /**
  * Computes 2D Discrete Sine Transform (DST) of single precision data. The sizes

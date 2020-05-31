@@ -24,7 +24,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "0.2.4-200530"
+version = "0.2.4-200531"
 group = "com.nowandfurure.movement"
 archivesBaseName = "Movement"
 
@@ -40,6 +40,7 @@ minecraft {
 //    serverJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
 
     mappings = "stable_39"
+    replace '@VERSION@', project.version
 //    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
@@ -48,11 +49,30 @@ configurations {
     compile.extendsFrom(shade)
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        name = "Progwml6 maven"
+        url = "http://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        name = "ModMaven"
+        url = "modmaven.k-4u.nl"
+    }
+    maven {
+        name 'Curseforge Maven'
+        url 'http://minecraft.curseforge.com/api/maven/'
+    }
+}
+
 dependencies {
     shade files('libs/ffmpeg.jar')
     shade files('libs/ffmpeg-windows-x86_64.jar')
     shade files('libs/javacpp.jar')
     shade files('libs/javacpp-windows-x86_64.jar')
+
+    deobfCompile "mezz.jei:jei_1.12.2:${project.jei_version}:api"
+    runtime "mezz.jei:jei_1.12.2:${project.jei_version}"
 
     provided('org.spongepowered:mixin:0.8') {
         exclude module: 'guava'

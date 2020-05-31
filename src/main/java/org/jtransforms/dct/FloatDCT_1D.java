@@ -32,16 +32,12 @@ import org.jtransforms.fft.FloatFFT_1D;
 import org.jtransforms.utils.CommonUtils;
 import org.jtransforms.utils.ConcurrencyUtils;
 
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.FloatLargeArray;
 //import pl.edu.icm.jlargearrays.LargeArray;
 //import pl.edu.icm.jlargearrays.LongLargeArray;
 //import pl.edu.icm.jlargearrays.LargeArrayUtils;
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 /**
  * Computes 1D Discrete Cosine Transform (DCT) of single precision data. The

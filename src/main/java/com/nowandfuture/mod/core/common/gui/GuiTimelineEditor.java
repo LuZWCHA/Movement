@@ -38,6 +38,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraftforge.fml.common.Optional;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -825,6 +826,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
     }
 
     @Override
+    @Optional.Method(modid = "jei")
     public JEIGuiHandler<GuiTimelineEditor> createJEIGuiHandler() {
         return new JEIGuiHandler<GuiTimelineEditor>() {
             @Override
@@ -841,6 +843,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
         };
     }
 
+    @Optional.Method(modid = "jei")
     public static JEIGuiHandler getJEIGuiHandler(){
         return new GuiTimelineEditor().createJEIGuiHandler();
     }

@@ -29,7 +29,7 @@ package org.jtransforms.fft;
 // @formatter:off
 //import pl.edu.icm.jlargearrays.DoubleLargeArray;
 //import pl.edu.icm.jlargearrays.FloatLargeArray;
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 /**
  *

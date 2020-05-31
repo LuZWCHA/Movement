@@ -21,6 +21,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraftforge.fml.common.Optional;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -545,6 +546,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
 
     protected abstract List<GuiRegion> getExtraRegion();
 
+    @Optional.Method(modid = "jei")
     protected JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler(){return null;}
 
     public static class GuiBuilder<T extends ViewGroup>{

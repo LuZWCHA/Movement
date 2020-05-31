@@ -111,18 +111,18 @@ public class ModuleCoreBlock extends BlockDirectional {
 
     private void updateState(World world, BlockPos pos, IBlockState state)
     {
-        boolean flag = world.isBlockPowered(pos);
-
         if(!world.isRemote) {
+            boolean isPowered = world.isBlockPowered(pos);
             TileEntity tileEntity = world.getTileEntity(pos);
-            state = state.withProperty(POWERED,flag);
-            world.setBlockState(pos, state, 3);
+
+            state = state.withProperty(POWERED,isPowered);
+            world.setBlockState(pos, state, 1|2);
 
             if (tileEntity instanceof TileEntityModule) {
-                if (flag && !((TileEntityModule) tileEntity).getLine().isEnable()) {
+                if (isPowered && !((TileEntityModule) tileEntity).getLine().isEnable()) {
                     ((TileEntityModule) tileEntity).getLine().start();
                     NetworkHandler.syncToTrackingClients(world,tileEntity,((TileEntityModule) tileEntity).getTimelineUpdatePacket(((TileEntityModule) tileEntity).getLine().getTick(),((TileEntityModule) tileEntity).getLine().isEnable()));
-                } else if(!flag && ((TileEntityModule) tileEntity).getLine().isEnable()){
+                } else if(!isPowered && ((TileEntityModule) tileEntity).getLine().isEnable()){
                     ((TileEntityModule) tileEntity).getLine().stop();
                     NetworkHandler.syncToTrackingClients(world,tileEntity,((TileEntityModule) tileEntity).getTimelineUpdatePacket(((TileEntityModule) tileEntity).getLine().getTick(),((TileEntityModule) tileEntity).getLine().isEnable()));
                 }

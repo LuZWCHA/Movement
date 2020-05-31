@@ -14,11 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.nowandfuture.mod.utils.math.apache;
 
-package org.apache.commons.math3.util;
+public class MathArithmeticException extends RuntimeException {
+    public MathArithmeticException(LocalizedFormats p0, long n, long i) {
+    }
 
-public class DimensionMismatchException extends RuntimeException {
-    public DimensionMismatchException(int actual, int expectedLen) {
+    public MathArithmeticException(LocalizedFormats zeroDenominator) {
+
+    }
+
+    public MathArithmeticException() {
 
     }
 }

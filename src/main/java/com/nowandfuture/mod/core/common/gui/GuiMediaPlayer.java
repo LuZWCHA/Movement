@@ -17,6 +17,7 @@ import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.SyncTasks;
 import joptsimple.internal.Strings;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.fml.common.Optional;
 import org.lwjgl.util.Color;
 
 import java.io.File;
@@ -335,6 +336,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
     }
 
     @Override
+    @Optional.Method(modid = "jei")
     public JEIGuiHandler<? extends AbstractGuiContainer> createJEIGuiHandler() {
         return new JEIGuiHandler<GuiMediaPlayer>() {
             @Override

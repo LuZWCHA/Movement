@@ -14,17 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.math3.util;
+package com.nowandfuture.mod.utils.math.apache;
 
-public class MathArithmeticException extends RuntimeException {
-    public MathArithmeticException(LocalizedFormats p0, long n, long i) {
-    }
-
-    public MathArithmeticException(LocalizedFormats zeroDenominator) {
-
-    }
-
-    public MathArithmeticException() {
-
-    }
+public enum LocalizedFormats {
+    OVERFLOW_IN_ADDITION,
+    OVERFLOW_IN_SUBTRACTION,
+    OVERFLOW_IN_MULTIPLICATION,
+    ZERO_DENOMINATOR,
+    OVERFLOW,
+    INVALID_ROUNDING_METHOD
 }

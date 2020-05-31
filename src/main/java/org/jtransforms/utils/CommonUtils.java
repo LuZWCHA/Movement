@@ -28,7 +28,7 @@ package org.jtransforms.utils;
 
 import java.util.concurrent.Future;
 
-import static java.lang.Math.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.DoubleLargeArray;

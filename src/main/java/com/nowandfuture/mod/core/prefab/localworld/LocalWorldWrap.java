@@ -1193,7 +1193,7 @@ public class LocalWorldWrap extends World {
     }
 
 
-    protected LocalWorldWrap(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client) {
+    public LocalWorldWrap(ISaveHandler saveHandlerIn, WorldInfo info, WorldProvider providerIn, Profiler profilerIn, boolean client) {
         super(saveHandlerIn, info, providerIn, profilerIn, client);
     }
 

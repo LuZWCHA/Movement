@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.math3.util;
+package com.nowandfuture.mod.utils.math.apache;
 
 import java.io.PrintStream;
 

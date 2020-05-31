@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.commons.math3.util;
+package com.nowandfuture.mod.utils.math.apache;
 
 /**
  * Utility class for loading tabulated data used by {@link FastMath}.

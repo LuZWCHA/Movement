@@ -35,7 +35,7 @@ import org.jtransforms.utils.CommonUtils;
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.FloatLargeArray;
 //import pl.edu.icm.jlargearrays.LargeArray;
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 import org.jtransforms.utils.ConcurrencyUtils;
 
 /**

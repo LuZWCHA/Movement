@@ -1,14 +1,10 @@
 package com.nowandfuture.mod;
 
-import com.nowandfuture.mod.core.common.gui.GuiTimelineEditor;
 import com.nowandfuture.mod.handler.CollisionHandler;
 import com.nowandfuture.mod.handler.GuiHandler;
 import com.nowandfuture.mod.handler.PlayerActionHandler;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.setup.IProxy;
-import mezz.jei.api.IModPlugin;
-import mezz.jei.api.IModRegistry;
-import mezz.jei.api.JEIPlugin;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -20,8 +16,7 @@ import org.apache.logging.log4j.Logger;
 import static com.nowandfuture.mod.Movement.*;
 
 @Mod(modid = MODID,name = NAME,version = VERSION,acceptedMinecraftVersions = "(1.8,1.12.2]")
-@JEIPlugin
-public class Movement implements IModPlugin {
+public class Movement{
 
     public static final String MODID = "movement";
     public static final String NAME = "Movement Mod";
@@ -55,10 +50,5 @@ public class Movement implements IModPlugin {
         proxy.init(event);
         NetworkRegistry.INSTANCE.registerGuiHandler(this,new GuiHandler());
 
-    }
-
-    @Override
-    public void register(IModRegistry registry) {
-        registry.addAdvancedGuiHandlers(GuiTimelineEditor.getJEIGuiHandler());
     }
 }

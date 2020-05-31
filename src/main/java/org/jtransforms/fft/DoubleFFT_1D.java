@@ -2,7 +2,10 @@
  * JTransforms
  * Copyright (c) 2007 onward, Piotr Wendykier
  * All rights reserved.
- * 
+ *
+ * modify
+ * remove the dependency of libs: jlargearrays and fastmath
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 
@@ -31,7 +34,7 @@ import org.jtransforms.utils.ConcurrencyUtils;
 
 import java.util.concurrent.Future;
 
-import static java.lang.Math.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 //import pl.edu.icm.jlargearrays.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.DoubleLargeArray;

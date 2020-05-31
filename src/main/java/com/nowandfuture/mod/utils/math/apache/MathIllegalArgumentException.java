@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.math3.util;
+package com.nowandfuture.mod.utils.math.apache;
 
-public enum LocalizedFormats {
-    OVERFLOW_IN_ADDITION,
-    OVERFLOW_IN_SUBTRACTION,
-    OVERFLOW_IN_MULTIPLICATION,
-    ZERO_DENOMINATOR,
-    OVERFLOW,
-    INVALID_ROUNDING_METHOD
+public class MathIllegalArgumentException extends RuntimeException {
+    public MathIllegalArgumentException(LocalizedFormats invalidRoundingMethod, int roundingMethod, String round_ceiling, int roundCeiling, String round_down, int roundDown, String round_floor, int roundFloor, String round_half_down, int roundHalfDown, String round_half_even, int roundHalfEven, String round_half_up, int roundHalfUp, String round_unnecessary, int roundUnnecessary, String round_up, int roundUp) {
+
+    }
 }

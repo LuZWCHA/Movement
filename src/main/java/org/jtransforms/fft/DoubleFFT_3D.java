@@ -27,9 +27,6 @@
 package org.jtransforms.fft;
 
 import java.util.concurrent.Future;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jtransforms.utils.CommonUtils;
 import org.jtransforms.utils.ConcurrencyUtils;
@@ -38,7 +35,7 @@ import org.jtransforms.utils.ConcurrencyUtils;
 //import pl.edu.icm.jlargearrays.DoubleLargeArray;
 //import pl.edu.icm.jlargearrays.LargeArray;
 //import pl.edu.icm.jlargearrays.LargeArrayUtils;
-import static org.apache.commons.math3.util.FastMath.*;
+import static com.nowandfuture.mod.utils.math.apache.FastMath.*;
 
 /**
  * Computes 3D Discrete Fourier Transform (DFT) of complex and real, double

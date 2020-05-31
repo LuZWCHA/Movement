@@ -14,10 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.commons.math3.util;
 
-public class MathIllegalArgumentException extends RuntimeException {
-    public MathIllegalArgumentException(LocalizedFormats invalidRoundingMethod, int roundingMethod, String round_ceiling, int roundCeiling, String round_down, int roundDown, String round_floor, int roundFloor, String round_half_down, int roundHalfDown, String round_half_even, int roundHalfEven, String round_half_up, int roundHalfUp, String round_unnecessary, int roundUnnecessary, String round_up, int roundUp) {
+package com.nowandfuture.mod.utils.math.apache;
+
+public class DimensionMismatchException extends RuntimeException {
+    public DimensionMismatchException(int actual, int expectedLen) {
 
     }
 }
