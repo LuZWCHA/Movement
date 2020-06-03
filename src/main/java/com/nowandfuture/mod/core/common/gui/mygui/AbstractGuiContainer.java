@@ -21,7 +21,11 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Optional;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -112,6 +116,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
             onLoad();
             rootView.onLoad();
             isFirstInit = false;
+            MinecraftForge.EVENT_BUS.register(this);
         }
     }
 
@@ -450,14 +455,32 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         rootView.update();
     }
 
-    @Override
-    public void handleMouseInput() throws IOException {
-        super.handleMouseInput();
+    private boolean handle = false;
+    //avoid of cancel by other mod's logical
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void handleMouseInputEvent(GuiScreenEvent.MouseInputEvent event){
+        handle = false;
+        if(handleMouseInputIn()){
+            event.setCanceled(true);
+        }
+        try {
+            handleMouseInput();
+        }catch (Exception e){
 
+        }
+        handle = true;
+    }
+
+//    @Override
+//    public void handleMouseInput() throws IOException {
+//        super.handleMouseInput();
+//    }
+
+    public boolean handleMouseInputIn(){
         int i = Mouse.getEventX() * this.width / this.mc.displayWidth;
         int j = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
         //handle mouse other behaves
-        rootView.handleMouseInput(i,j);
+        return rootView.handleMouseInput(i,j);
     }
 
     protected void childLoseFocus(MyGui gui){
@@ -486,6 +509,7 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         onDestroy();
         super.onGuiClosed();
         isFirstInit = true;
+        MinecraftForge.EVENT_BUS.unregister(this);
     }
 
     public void onDestroy(){

@@ -103,6 +103,7 @@ public class GuiTimelineEditor extends AbstractGuiContainer{
 
     public GuiTimelineEditor(InventoryPlayer playerInv, TileEntityTimelineEditor tileMovementModule){
         super(new ContainerAnmEditor(playerInv,tileMovementModule));
+        this.allowUserInput = true;
         this.tileMovementModule = tileMovementModule;
         this.inventoryPlayer = playerInv;
         timeLine = new KeyFrameLine();

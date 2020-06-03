@@ -15,6 +15,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -185,6 +186,15 @@ public class PreviewView extends View {
         reload();
     }
 
+    private float getMaxEdgeLength(@Nonnull AxisAlignedBB axisAlignedBB){
+
+        float lx = (float) Math.abs(axisAlignedBB.maxX - axisAlignedBB.minX);
+        float ly = (float) Math.abs(axisAlignedBB.maxY - axisAlignedBB.minY);
+        float lz = (float) Math.abs(axisAlignedBB.maxZ - axisAlignedBB.minZ);
+
+        return Math.max(lx,Math.max(ly,lz));
+    }
+
     public void reload(){
         if(checkNotNull()) {
             blockRenderHelper = new BlockRenderHelper(prefab.getLocalWorld());
@@ -194,6 +204,7 @@ public class PreviewView extends View {
                 preKeyFrame = new RotationTransformNode.RotationKeyFrame();
             }
             resetModel(preKeyFrame);
+            oZ = getMaxEdgeLength(prefab.getMinAABB());
         }
     }
 
@@ -244,6 +255,10 @@ public class PreviewView extends View {
 
     @Override
     protected boolean onPressed(int mouseX, int mouseY, int state) {
+        x = (2 * mouseX - getWidth()) / (float)getWidth();
+        y = (getHeight() - 2 * mouseY) / (float)getHeight();
+        z = trackball.projectToSphere(trackball.trackballSize,x,y);
+
         lastX = mouseX;
         lastY = mouseY;
         trackball.mousePressed(state,mouseX,mouseY);
@@ -259,8 +274,8 @@ public class PreviewView extends View {
         x = mouseX;
         y = mouseY;
 
-        x = (2.0f * x - getWidth()) / getWidth();
-        y = (getHeight() - 2.0f * y) / getHeight();
+        x = (2 * x - getWidth()) / (float)getWidth();
+        y = (getHeight() - 2 * y) / (float)getHeight();
 
         z = trackball.projectToSphere(trackball.trackballSize,x,y);
 
@@ -271,9 +286,11 @@ public class PreviewView extends View {
     @Override
     public boolean handleMouseInput(int mouseX, int mouseY) {
         float scroll = (float)Mouse.getEventDWheel() / 128f;
+
         oZ += scroll;
         if(oZ < 1) oZ = 1f;
-        trackball.trackballSize = oZ / 2;
+        trackball.trackballSize = oZ / 1.5f;
+
         return true;
     }
 
@@ -287,8 +304,8 @@ public class PreviewView extends View {
         x = mouseX;
         y = mouseY;
 
-        x = (2.0f * x - getWidth()) / getWidth();
-        y = (getHeight() - 2.0f * y) / getHeight();
+        x = (2 * x - getWidth()) / (float)getWidth();
+        y = (getHeight() - 2 * y) / (float)getHeight();
 
         z = trackball.projectToSphere(trackball.trackballSize,x,y);
 
