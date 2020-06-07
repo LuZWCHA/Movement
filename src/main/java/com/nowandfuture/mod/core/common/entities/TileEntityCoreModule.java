@@ -8,6 +8,7 @@ import com.nowandfuture.mod.core.common.modulebase.ModuleUtils;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,6 +19,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -34,17 +36,25 @@ public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
             NonNullList.withSize(2, ItemStack.EMPTY);
 
     public final static String NBT_SHOW_BLOCK = "ShowBlock";
+    public final static String NBT_FACING = "Facing";
+
     public final static int BLOCK_VISIBLE_PACKET = 0x14;
     private final static int NODE_NUMBER_LIMIT = 16;
 
     private boolean showBlock = true;
 
     private Stack<ModuleNode> nodeStack;
+    private EnumFacing facing;
 
     public TileEntityCoreModule(){
         super();
+        facing = EnumFacing.NORTH;
         nodeStack = new Stack<>();
         nodeStack.push(this);
+    }
+
+    public void setFacing(EnumFacing facing) {
+        this.facing = facing;
     }
 
     @Override
@@ -130,6 +140,31 @@ public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
         Stack<ModuleNode> newStack = new Stack<>();
         updateStackByPathString(pathString,newStack);
         return newStack.peek();
+    }
+
+    @Override
+    public void doTransform(double p, Matrix4f parentMatrix) {
+//        if(facing != null)
+//            transform(facing,parentMatrix);
+        super.doTransform(p, parentMatrix);
+    }
+
+    private void transform(EnumFacing facing, Matrix4f parentMatrix){
+        Vector3f vector3f = new Vector3f(-.5,-.5,-.5);
+        Vector3f y = new Vector3f(0,1,0);
+        parentMatrix.translate(vector3f);
+        switch (facing){
+            case NORTH:
+            case DOWN:
+            case UP:
+                break;
+            case EAST:
+            case WEST:
+            case SOUTH:
+                parentMatrix.rotate(facing.getHorizontalAngle(),y);
+                break;
+        }
+        parentMatrix.translate(vector3f.negate());
     }
 
     @Override
@@ -377,7 +412,7 @@ public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
 
     @Override
     public Vec3d getClickableFaceNormal() {
-        return new Vec3d(0,0,0);
+        return Vec3d.ZERO;
     }
 
     @Override
@@ -415,4 +450,5 @@ public class TileEntityCoreModule extends ModuleNode implements IClickableTile{
     public IBox getExtentBox() {
         return null;
     }
+
 }

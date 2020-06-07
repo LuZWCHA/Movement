@@ -15,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -32,7 +31,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TileEntityModule extends TileEntityLockable implements IInventory,IModule{
+public class TileEntityModule extends TileEntityLockable implements IModule{
 
     protected final static int TIMELINE_UPDATE_PACKET = 0x11;
     protected final static int TIMELINE_MODIFY_PACKET = 0x12;

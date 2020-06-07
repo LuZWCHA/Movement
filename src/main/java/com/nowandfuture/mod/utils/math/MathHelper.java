@@ -1,16 +1,14 @@
 package com.nowandfuture.mod.utils.math;
 
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 import javax.vecmath.Quat4f;
 import java.util.Collection;
-import java.util.List;
 
 public class MathHelper {
+    private static final double FACTOR = Math.PI / 180;
 
     public static class Vec4f {
         float x; float y; float z; float w;
@@ -76,7 +74,7 @@ public class MathHelper {
                 vecIn.getZ() >= min.getZ() && vecIn.getZ() < max.getZ();
     }
 
-    public static Vec3d Lerp(float t, Vec3d base, Vec3d next)
+    public static Vec3d lerp(float t, Vec3d base, Vec3d next)
     {
         return new Vec3d(
                 base.x*(1-t)+next.x*t,
@@ -87,10 +85,10 @@ public class MathHelper {
 
     public static double angleTwoVec3(Vec3d a, Vec3d b)
     {
-        return Math.acos( clamp(a.normalize().dotProduct(b.normalize())) );
+        return Math.acos( clampN1ToP1(a.normalize().dotProduct(b.normalize())) );
     }
 
-    public static double clamp(double a)
+    private static double clampN1ToP1(double a)
     {
         return a>1d?1d:(Math.max(a, -1d));
     }
@@ -102,7 +100,7 @@ public class MathHelper {
         return a;
     }
 
-    public static float Lerp(float t, float a1, float a2)
+    public static float lerp(float t, float a1, float a2)
     {
         return a1*(1-t) + a2*t;
     }
@@ -122,11 +120,11 @@ public class MathHelper {
     public static Vec3d rotateAroundVector(Vec3d vecIn, double x, double y, double z, float radian)
     {
         radian *= 0.5;
-        Vec4f Qsrc = new Vec4f(0d,vecIn.x,vecIn.y,vecIn.z);
-        Vec4f Q1 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian), x*net.minecraft.util.math.MathHelper.sin(radian), y*net.minecraft.util.math.MathHelper.sin(radian), z*net.minecraft.util.math.MathHelper.sin(radian));
-        Vec4f Q2 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian),-x*net.minecraft.util.math.MathHelper.sin(radian),-y*net.minecraft.util.math.MathHelper.sin(radian),-z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f srcQ = new Vec4f(0d,vecIn.x,vecIn.y,vecIn.z);
+        Vec4f q1 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian), x*net.minecraft.util.math.MathHelper.sin(radian), y*net.minecraft.util.math.MathHelper.sin(radian), z*net.minecraft.util.math.MathHelper.sin(radian));
+        Vec4f q2 = new Vec4f(net.minecraft.util.math.MathHelper.cos(radian),-x*net.minecraft.util.math.MathHelper.sin(radian),-y*net.minecraft.util.math.MathHelper.sin(radian),-z*net.minecraft.util.math.MathHelper.sin(radian));
 
-        Vec4f ans = mulQuaternion(mulQuaternion(Q2, Qsrc), Q1);
+        Vec4f ans = mulQuaternion(mulQuaternion(q2, srcQ), q1);
 
         return new Vec3d(ans.y,ans.z,ans.w);
 
@@ -156,18 +154,18 @@ public class MathHelper {
     public static Quaternion inverse(Quaternion quaternion) {
         float length = quaternion.lengthSquared();
         if (length != 1f && length != 0f) {
-            length = (float) (1.0 / net.minecraft.util.math.MathHelper.sqrt(length));
+            length = (float) (1.0 / Math.sqrt(length));
             return new Quaternion(-quaternion.x * length, -quaternion.y * length, -quaternion.z * length, quaternion.w * length);
         }
         return new Quaternion(-quaternion.x, -quaternion.y, -quaternion.z, quaternion.w);
     }
 
-    public static Vector3f mul(Vector3f v, Quaternion quaternion) {
-        if (v.x == 0 && v.y == 0 && v.z == 0) {
+    public static Vector3f mulQuaternion(Vector3f point, Quaternion quaternion) {
+        if (point.x == 0 && point.y == 0 && point.z == 0) {
             return new Vector3f(0, 0, 0);
         } else {
             float w = quaternion.w,x = quaternion.x,y = quaternion.y ,z = quaternion.z;
-            float vx = v.x, vy = v.y, vz = v.z;
+            float vx = point.x, vy = point.y, vz = point.z;
             float rx = w * w * vx + 2 * y * w * vz - 2 * z * w * vy + x * x * vx + 2 * y * x * vy + 2 * z * x * vz
                     - z * z * vx - y * y * vx;
             float ry = 2 * x * y * vx + y * y * vy + 2 * z * y * vz + 2 * w * z * vx - z * z * vy + w * w * vy
@@ -183,7 +181,7 @@ public class MathHelper {
      * @param quaternion the quaternion that will be applied in the original matrix
      * @return the matrix after rotation
      */
-    public static Matrix4f mul(Matrix4f org, Quaternion quaternion) {
+    public static Matrix4f mulQuaternion(Matrix4f org, Quaternion quaternion) {
         float x = quaternion.x;
         float y = quaternion.y;
         float z = quaternion.z;
@@ -223,7 +221,7 @@ public class MathHelper {
      */
     public static Vec3d slerp(float t, Vec3d base, Vec3d goal)
     {
-        float theta = (float) Math.acos(clamp(base.dotProduct(goal)));
+        float theta = (float) Math.acos(clampN1ToP1(base.dotProduct(goal)));
         if(theta == 0 || theta == 1d)return base;
         double sinTh = net.minecraft.util.math.MathHelper.sin(theta);
         double Pb = net.minecraft.util.math.MathHelper.sin(theta*(1-t));
@@ -238,10 +236,9 @@ public class MathHelper {
     //x-y-z
     public static Quaternion eulerAnglesToQuaternion(float roll,float pitch,float hdg)
     {
-        final double factor = Math.PI / 180;
-        roll *= factor;
-        pitch *= factor;
-        hdg *= factor;
+        roll *= FACTOR;
+        pitch *= FACTOR;
+        hdg *= FACTOR;
 
         float cosRoll = net.minecraft.util.math.MathHelper.cos(roll * 0.5f);
         float sinRoll = net.minecraft.util.math.MathHelper.sin(roll * 0.5f);
@@ -272,10 +269,9 @@ public class MathHelper {
         float pitch = (float) Math.asin(2.f * (q0 * q2 - q1 * q3));
         float yaw = (float) net.minecraft.util.math.MathHelper.atan2(2.f * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3);
 
-        final double factor =  180 / Math.PI;
-        roll *= factor;
-        pitch *= factor;
-        yaw *= factor;
+        roll *= FACTOR;
+        pitch *= FACTOR;
+        yaw *= FACTOR;
 
         return new Vector3f(roll,pitch,yaw);
     }
@@ -292,7 +288,7 @@ public class MathHelper {
     //z+
     public static int getRelativePos2D(BlockPos fixedPos,BlockPos observerPos,Quaternion q){
         BlockPos pos = observerPos.subtract(fixedPos);
-        Vector3f v = MathHelper.mul(new Vector3f(pos),q);
+        Vector3f v = MathHelper.mulQuaternion(new Vector3f(pos),q);
         int x = (int) v.getX();
         int z = (int) v.getZ();
         int y = (int) v.getY();
@@ -305,11 +301,6 @@ public class MathHelper {
         }else {
             return y <= 0 ? 0 : 2;
         }
-    }
-
-    public static List<Vector3f> getAABBFaceClockwiseArray(EnumFacing facing, AxisAlignedBB axisAlignedBB,BlockPos headVec){
-
-        return null;
     }
 
     public static double invSqrt(float x)
@@ -367,266 +358,265 @@ public class MathHelper {
     }
 
     private static double[] ExpAdjustment = new double[]{
-        1.040389835,
-                1.039159306,
-                1.037945888,
-                1.036749401,
-                1.035569671,
-                1.034406528,
-                1.033259801,
-                1.032129324,
-                1.031014933,
-                1.029916467,
-                1.028833767,
-                1.027766676,
-                1.02671504,
-                1.025678708,
-                1.02465753,
-                1.023651359,
-                1.022660049,
-                1.021683458,
-                1.020721446,
-                1.019773873,
-                1.018840604,
-                1.017921503,
-                1.017016438,
-                1.016125279,
-                1.015247897,
-                1.014384165,
-                1.013533958,
-                1.012697153,
-                1.011873629,
-                1.011063266,
-                1.010265947,
-                1.009481555,
-                1.008709975,
-                1.007951096,
-                1.007204805,
-                1.006470993,
-                1.005749552,
-                1.005040376,
-                1.004343358,
-                1.003658397,
-                1.002985389,
-                1.002324233,
-                1.001674831,
-                1.001037085,
-                1.000410897,
-                0.999796173,
-                0.999192819,
-                0.998600742,
-                0.998019851,
-                0.997450055,
-                0.996891266,
-                0.996343396,
-                0.995806358,
-                0.995280068,
-                0.99476444,
-                0.994259393,
-                0.993764844,
-                0.993280711,
-                0.992806917,
-                0.992343381,
-                0.991890026,
-                0.991446776,
-                0.991013555,
-                0.990590289,
-                0.990176903,
-                0.989773325,
-                0.989379484,
-                0.988995309,
-                0.988620729,
-                0.988255677,
-                0.987900083,
-                0.987553882,
-                0.987217006,
-                0.98688939,
-                0.98657097,
-                0.986261682,
-                0.985961463,
-                0.985670251,
-                0.985387985,
-                0.985114604,
-                0.984850048,
-                0.984594259,
-                0.984347178,
-                0.984108748,
-                0.983878911,
-                0.983657613,
-                0.983444797,
-                0.983240409,
-                0.983044394,
-                0.982856701,
-                0.982677276,
-                0.982506066,
-                0.982343022,
-                0.982188091,
-                0.982041225,
-                0.981902373,
-                0.981771487,
-                0.981648519,
-                0.981533421,
-                0.981426146,
-                0.981326648,
-                0.98123488,
-                0.981150798,
-                0.981074356,
-                0.981005511,
-                0.980944219,
-                0.980890437,
-                0.980844122,
-                0.980805232,
-                0.980773726,
-                0.980749562,
-                0.9807327,
-                0.9807231,
-                0.980720722,
-                0.980725528,
-                0.980737478,
-                0.980756534,
-                0.98078266,
-                0.980815817,
-                0.980855968,
-                0.980903079,
-                0.980955475,
-                0.981017942,
-                0.981085714,
-                0.981160303,
-                0.981241675,
-                0.981329796,
-                0.981424634,
-                0.981526154,
-                0.981634325,
-                0.981749114,
-                0.981870489,
-                0.981998419,
-                0.982132873,
-                0.98227382,
-                0.982421229,
-                0.982575072,
-                0.982735318,
-                0.982901937,
-                0.983074902,
-                0.983254183,
-                0.983439752,
-                0.983631582,
-                0.983829644,
-                0.984033912,
-                0.984244358,
-                0.984460956,
-                0.984683681,
-                0.984912505,
-                0.985147403,
-                0.985388349,
-                0.98563532,
-                0.98588829,
-                0.986147234,
-                0.986412128,
-                0.986682949,
-                0.986959673,
-                0.987242277,
-                0.987530737,
-                0.987825031,
-                0.988125136,
-                0.98843103,
-                0.988742691,
-                0.989060098,
-                0.989383229,
-                0.989712063,
-                0.990046579,
-                0.990386756,
-                0.990732574,
-                0.991084012,
-                0.991441052,
-                0.991803672,
-                0.992171854,
-                0.992545578,
-                0.992924825,
-                0.993309578,
-                0.993699816,
-                0.994095522,
-                0.994496677,
-                0.994903265,
-                0.995315266,
-                0.995732665,
-                0.996155442,
-                0.996583582,
-                0.997017068,
-                0.997455883,
-                0.99790001,
-                0.998349434,
-                0.998804138,
-                0.999264107,
-                0.999729325,
-                1.000199776,
-                1.000675446,
-                1.001156319,
-                1.001642381,
-                1.002133617,
-                1.002630011,
-                1.003131551,
-                1.003638222,
-                1.00415001,
-                1.004666901,
-                1.005188881,
-                1.005715938,
-                1.006248058,
-                1.006785227,
-                1.007327434,
-                1.007874665,
-                1.008426907,
-                1.008984149,
-                1.009546377,
-                1.010113581,
-                1.010685747,
-                1.011262865,
-                1.011844922,
-                1.012431907,
-                1.013023808,
-                1.013620615,
-                1.014222317,
-                1.014828902,
-                1.01544036,
-                1.016056681,
-                1.016677853,
-                1.017303866,
-                1.017934711,
-                1.018570378,
-                1.019210855,
-                1.019856135,
-                1.020506206,
-                1.02116106,
-                1.021820687,
-                1.022485078,
-                1.023154224,
-                1.023828116,
-                1.024506745,
-                1.025190103,
-                1.02587818,
-                1.026570969,
-                1.027268461,
-                1.027970647,
-                1.02867752,
-                1.029389072,
-                1.030114973,
-                1.030826088,
-                1.03155163,
-                1.032281819,
-                1.03301665,
-                1.033756114,
-                1.034500204,
-                1.035248913,
-                1.036002235,
-                1.036760162,
-                1.037522688,
-                1.038289806,
-                1.039061509,
-                1.039837792,
-                1.040618648
+            1.040389835,
+            1.039159306,
+            1.037945888,
+            1.036749401,
+            1.035569671,
+            1.034406528,
+            1.033259801,
+            1.032129324,
+            1.031014933,
+            1.029916467,
+            1.028833767,
+            1.027766676,
+            1.02671504,
+            1.025678708,
+            1.02465753,
+            1.023651359,
+            1.022660049,
+            1.021683458,
+            1.020721446,
+            1.019773873,
+            1.018840604,
+            1.017921503,
+            1.017016438,
+            1.016125279,
+            1.015247897,
+            1.014384165,
+            1.013533958,
+            1.012697153,
+            1.011873629,
+            1.011063266,
+            1.010265947,
+            1.009481555,
+            1.008709975,
+            1.007951096,
+            1.007204805,
+            1.006470993,
+            1.005749552,
+            1.005040376,
+            1.004343358,
+            1.003658397,
+            1.002985389,
+            1.002324233,
+            1.001674831,
+            1.001037085,
+            1.000410897,
+            0.999796173,
+            0.999192819,
+            0.998600742,
+            0.998019851,
+            0.997450055,
+            0.996891266,
+            0.996343396,
+            0.995806358,
+            0.995280068,
+            0.99476444,
+            0.994259393,
+            0.993764844,
+            0.993280711,
+            0.992806917,
+            0.992343381,
+            0.991890026,
+            0.991446776,
+            0.991013555,
+            0.990590289,
+            0.990176903,
+            0.989773325,
+            0.989379484,
+            0.988995309,
+            0.988620729,
+            0.988255677,
+            0.987900083,
+            0.987553882,
+            0.987217006,
+            0.98688939,
+            0.98657097,
+            0.986261682,
+            0.985961463,
+            0.985670251,
+            0.985387985,
+            0.985114604,
+            0.984850048,
+            0.984594259,
+            0.984347178,
+            0.984108748,
+            0.983878911,
+            0.983657613,
+            0.983444797,
+            0.983240409,
+            0.983044394,
+            0.982856701,
+            0.982677276,
+            0.982506066,
+            0.982343022,
+            0.982188091,
+            0.982041225,
+            0.981902373,
+            0.981771487,
+            0.981648519,
+            0.981533421,
+            0.981426146,
+            0.981326648,
+            0.98123488,
+            0.981150798,
+            0.981074356,
+            0.981005511,
+            0.980944219,
+            0.980890437,
+            0.980844122,
+            0.980805232,
+            0.980773726,
+            0.980749562,
+            0.9807327,
+            0.9807231,
+            0.980720722,
+            0.980725528,
+            0.980737478,
+            0.980756534,
+            0.98078266,
+            0.980815817,
+            0.980855968,
+            0.980903079,
+            0.980955475,
+            0.981017942,
+            0.981085714,
+            0.981160303,
+            0.981241675,
+            0.981329796,
+            0.981424634,
+            0.981526154,
+            0.981634325,
+            0.981749114,
+            0.981870489,
+            0.981998419,
+            0.982132873,
+            0.98227382,
+            0.982421229,
+            0.982575072,
+            0.982735318,
+            0.982901937,
+            0.983074902,
+            0.983254183,
+            0.983439752,
+            0.983631582,
+            0.983829644,
+            0.984033912,
+            0.984244358,
+            0.984460956,
+            0.984683681,
+            0.984912505,
+            0.985147403,
+            0.985388349,
+            0.98563532,
+            0.98588829,
+            0.986147234,
+            0.986412128,
+            0.986682949,
+            0.986959673,
+            0.987242277,
+            0.987530737,
+            0.987825031,
+            0.988125136,
+            0.98843103,
+            0.988742691,
+            0.989060098,
+            0.989383229,
+            0.989712063,
+            0.990046579,
+            0.990386756,
+            0.990732574,
+            0.991084012,
+            0.991441052,
+            0.991803672,
+            0.992171854,
+            0.992545578,
+            0.992924825,
+            0.993309578,
+            0.993699816,
+            0.994095522,
+            0.994496677,
+            0.994903265,
+            0.995315266,
+            0.995732665,
+            0.996155442,
+            0.996583582,
+            0.997017068,
+            0.997455883,
+            0.99790001,
+            0.998349434,
+            0.998804138,
+            0.999264107,
+            0.999729325,
+            1.000199776,
+            1.000675446,
+            1.001156319,
+            1.001642381,
+            1.002133617,
+            1.002630011,
+            1.003131551,
+            1.003638222,
+            1.00415001,
+            1.004666901,
+            1.005188881,
+            1.005715938,
+            1.006248058,
+            1.006785227,
+            1.007327434,
+            1.007874665,
+            1.008426907,
+            1.008984149,
+            1.009546377,
+            1.010113581,
+            1.010685747,
+            1.011262865,
+            1.011844922,
+            1.012431907,
+            1.013023808,
+            1.013620615,
+            1.014222317,
+            1.014828902,
+            1.01544036,
+            1.016056681,
+            1.016677853,
+            1.017303866,
+            1.017934711,
+            1.018570378,
+            1.019210855,
+            1.019856135,
+            1.020506206,
+            1.02116106,
+            1.021820687,
+            1.022485078,
+            1.023154224,
+            1.023828116,
+            1.024506745,
+            1.025190103,
+            1.02587818,
+            1.026570969,
+            1.027268461,
+            1.027970647,
+            1.02867752,
+            1.029389072,
+            1.030114973,
+            1.030826088,
+            1.03155163,
+            1.032281819,
+            1.03301665,
+            1.033756114,
+            1.034500204,
+            1.035248913,
+            1.036002235,
+            1.036760162,
+            1.037522688,
+            1.038289806,
+            1.039061509,
+            1.039837792,
+            1.040618648
     };
 
-    public static double fastExp(double x)
-    {
+    public static double fastExp(double x) {
         long tmp = (long)(1512775 * x + 1072632447);
         int index = (int)(tmp >> 12) & 0xFF;
         return Double.longBitsToDouble(tmp << 32) * ExpAdjustment[index];

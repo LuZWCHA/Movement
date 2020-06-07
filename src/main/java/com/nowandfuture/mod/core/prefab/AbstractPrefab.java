@@ -447,7 +447,7 @@ public abstract class AbstractPrefab implements ITickable {
         byteZip.compress();
 
         nbt.setInteger(NBT_DECOMPRESS_SIZE, byteZip.getOrgSize());
-        nbt.setByteArray(NBT_COMPRESSED_BYTE_ARRAY, byteZip.getOutput());
+        nbt.setByteArray(NBT_COMPRESSED_BYTE_ARRAY, byteZip.getOutputArray());
     }
 
     //invalid recipe and delete build;

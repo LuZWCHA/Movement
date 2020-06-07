@@ -94,7 +94,7 @@ public class ClientHandler {
             Utils.mapCache = null;
             ModuleRenderManager.INSTANCE.invalid();
 
-            SyncTasks.INSTANCE.showdownNow();
+            SyncTasks.INSTANCE.shutdownNow();
             SyncTasks.INSTANCE.init();
             unload.getWorld().loadedTileEntityList
                     .forEach(new Consumer<TileEntity>() {

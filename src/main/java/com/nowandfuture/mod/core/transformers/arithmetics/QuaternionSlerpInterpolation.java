@@ -30,7 +30,7 @@ public class QuaternionSlerpInterpolation implements IInterpolationAlgorithm<Rot
             res = MathHelper.interpolate(MathHelper.eulerAnglesToQuaternion(preKey.rotX, preKey.rotY, preKey.rotZ),
                     MathHelper.eulerAnglesToQuaternion(key.rotX, key.rotY, key.rotZ), p);
         }
-        MathHelper.mul(renderer, res);
+        MathHelper.mulQuaternion(renderer, res);
 
         renderer.translate(vector3f.negate());
     }

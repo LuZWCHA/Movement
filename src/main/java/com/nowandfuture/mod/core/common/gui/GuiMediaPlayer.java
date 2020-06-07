@@ -141,7 +141,7 @@ public class GuiMediaPlayer extends AbstractGuiContainer {
         channelsTv.setY(0);
         channelsTv.setWidth(30);
         channelsTv.setHeight(14);
-        channelsTv.setText(R.name((R.id.text_player_tv_channeltip_id)));
+        channelsTv.setText(R.name((R.id.text_player_tv_channel_tip_id)));
         channelNum.setX(156);
         channelNum.setY(0);
         channelNum.setWidth(48);

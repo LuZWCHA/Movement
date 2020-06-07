@@ -24,7 +24,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = "0.2.4-200531"
+version = "0.2.4-200603"
 group = "com.nowandfurure.movement"
 archivesBaseName = "Movement"
 
@@ -34,6 +34,7 @@ compileJava {
 }
 
 minecraft {
+    coreMod = 'com.nowandfuture.mod.MovementCore'
     version = "1.12.2-14.23.5.2836"
     runDir = "run"
     clientJvmArgs += "-Dfml.coreMods.load=com.nowandfuture.mod.MovementCore"
@@ -111,7 +112,9 @@ jar {
     manifest {
         attributes([
                 "FMLCorePlugin": "com.nowandfuture.mod.MovementCore",
-                "FMLCorePluginContainsFMLMod": true
+                "FMLCorePluginContainsFMLMod": true,
+                'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+                'TweakOrder': 0
         ])
     }
 

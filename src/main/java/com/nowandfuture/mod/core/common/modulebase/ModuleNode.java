@@ -13,6 +13,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.api.IInventorySlotChangedListe
 import com.nowandfuture.mod.core.common.gui.mygui.api.SerializeWrapper;
 import com.nowandfuture.mod.core.selection.OBBox;
 import com.nowandfuture.mod.utils.math.Matrix4f;
+import com.nowandfuture.mod.utils.math.Quaternion;
 import com.nowandfuture.mod.utils.math.Vector3f;
 import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
@@ -34,12 +35,19 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     private final static String NBT_OFFSET_X = "OffsetX";
     private final static String NBT_OFFSET_Y = "OffsetY";
     private final static String NBT_OFFSET_Z = "OffsetZ";
+
+    private final static String NBT_ROTATION_X = "RotationX";
+    private final static String NBT_ROTATION_Y = "RotationY";
+    private final static String NBT_ROTATION_Z = "RotationZ";
+    private final static String NBT_ROTATION_W = "RotationW";
+
     private final static int INVENTORY_CHANGED_PACKET = 0x16;
     public final static int OFFSET_PACKET = 0x15;
 
     private ModuleNode parent;
     private int depth;
     protected BlockPos offset = new BlockPos(0,0,0);
+    protected Quaternion quaternion = new Quaternion(0,0,0,1);
     private long prefabId;
     private long timelineId;
     protected DynamicInventory dynamicInventory = new DynamicInventory();
@@ -51,7 +59,6 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
     public ModuleNode(){
         super();
         map = new ModuleNodeMap();
-//        matrix4f = new Matrix4f();
         dynamicInventory.setCreator(new IDynamicInventory.SlotCreator() {
             @Override
             public AbstractContainer.ProxySlot create(IDynamicInventory inventory, long index, int type) {
@@ -120,7 +127,6 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
                 node.doTransform(p, new Matrix4f(getMatrix4f()));
                 node.setModulePos(getModulePos());
             }
-
     }
 
     protected boolean isPrefabRenderEnable(){
@@ -151,17 +157,6 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
         }
     }
 
-//    public void setChildrenStep(boolean positive){
-//        System.out.println(getLine().getStep());
-//
-//        for (ModuleNode node:
-//                map.getModules()) {
-//            if(!positive)
-//                node.getLine().reverse();
-//            node.setChildrenStep(node.getLine().getStep() > 0);
-//        }
-//    }
-
     public void setTimelineEnable(boolean enable){
         getLine().setEnable(enable);
         for (ModuleNode node:
@@ -172,8 +167,6 @@ public class ModuleNode extends TileEntityModule implements IDynInventoryHolder<
 
     @Override
     public void update() {
-//        moduleBase.updateLine();
-//        moduleBase.update();
         moduleBase.updateEntities();
 
         for (ModuleNode node:

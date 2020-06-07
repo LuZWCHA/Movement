@@ -21,11 +21,9 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Optional;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
@@ -455,28 +453,52 @@ public abstract class AbstractGuiContainer extends MCGuiContainer {
         rootView.update();
     }
 
-    private boolean handle = false;
-    //avoid of cancel by other mod's logical
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void handleMouseInputEvent(GuiScreenEvent.MouseInputEvent event){
-        handle = false;
-        if(handleMouseInputIn()){
-            event.setCanceled(true);
-        }
-        try {
-            handleMouseInput();
-        }catch (Exception e){
-
-        }
-        handle = true;
-    }
-
-//    @Override
-//    public void handleMouseInput() throws IOException {
-//        super.handleMouseInput();
+//    private boolean handle = false;
+//    //avoid of cancel by other mod's logical
+//    @SubscribeEvent(priority = EventPriority.HIGHEST)
+//    public void handleMouseInputEvent(GuiScreenEvent.MouseInputEvent event){
+//        if(Loader.isModLoaded("jei")) {
+//            handle = false;
+//            if (handleMouseInputIn()) {
+//                event.setCanceled(true);
+//            }
+//            try {
+//                handleMouseInput();
+//            } catch (Exception e) {
+//
+//            }
+//            handle = true;
+//        }
 //    }
 
-    public boolean handleMouseInputIn(){
+
+    @Override
+    public void handleInput() throws IOException {
+        if (Mouse.isCreated())
+        {
+            while (Mouse.next())
+            {
+                this.mouseHandled = false;
+                this.mouseHandled = handleMouseInputIn();
+                if (!this.mouseHandled && net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.MouseInputEvent.Pre(this))) continue;
+                this.handleMouseInput();
+                if (this.equals(this.mc.currentScreen) && !this.mouseHandled) net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.MouseInputEvent.Post(this));
+            }
+        }
+
+        if (Keyboard.isCreated())
+        {
+            while (Keyboard.next())
+            {
+                this.keyHandled = false;
+                if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.KeyboardInputEvent.Pre(this))) continue;
+                this.handleKeyboardInput();
+                if (this.equals(this.mc.currentScreen) && !this.keyHandled) net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.GuiScreenEvent.KeyboardInputEvent.Post(this));
+            }
+        }
+    }
+
+    protected boolean handleMouseInputIn(){
         int i = Mouse.getEventX() * this.width / this.mc.displayWidth;
         int j = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
         //handle mouse other behaves

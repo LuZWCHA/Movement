@@ -16,10 +16,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -60,7 +60,6 @@ public class ModuleCoreBlock extends BlockDirectional {
         if(!worldIn.isRemote){
             updateState(worldIn,pos,state);
         }
-        super.onBlockAdded(worldIn, pos, state);
     }
 
     @Override
@@ -87,6 +86,14 @@ public class ModuleCoreBlock extends BlockDirectional {
     }
 
     @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        TileEntity tileEntity = source.getTileEntity(pos);
+        if(tileEntity instanceof TileEntityCoreModule)
+            return ((TileEntityCoreModule) tileEntity).isShowBlock() ? FULL_BLOCK_AABB : NULL_AABB;
+        return super.getBoundingBox(state, source, pos);
+    }
+
+    @Override
     public int getMetaFromState(IBlockState state) {
         int i = 0;
         i = i | state.getValue(FACING).getIndex();
@@ -104,6 +111,16 @@ public class ModuleCoreBlock extends BlockDirectional {
         return this.getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer).getOpposite());
     }
 
+    public IBlockState withRotation(IBlockState state, Rotation rot)
+    {
+        return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+    }
+
+    public IBlockState withMirror(IBlockState state, Mirror mirrorIn)
+    {
+        return state.withRotation(mirrorIn.toRotation(state.getValue(FACING)));
+    }
+
     @Override
     public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
         this.updateState(worldIn, pos, state);
@@ -115,8 +132,10 @@ public class ModuleCoreBlock extends BlockDirectional {
             boolean isPowered = world.isBlockPowered(pos);
             TileEntity tileEntity = world.getTileEntity(pos);
 
-            state = state.withProperty(POWERED,isPowered);
-            world.setBlockState(pos, state, 1|2);
+            if(state.getValue(POWERED) != isPowered) {
+                state = state.withProperty(POWERED, isPowered);
+                world.setBlockState(pos, state, 2);
+            }
 
             if (tileEntity instanceof TileEntityModule) {
                 if (isPowered && !((TileEntityModule) tileEntity).getLine().isEnable()) {
@@ -139,7 +158,9 @@ public class ModuleCoreBlock extends BlockDirectional {
     @Nullable
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        return new TileEntityCoreModule();
+        TileEntityCoreModule coreModule = new TileEntityCoreModule();
+        coreModule.setFacing(state.getValue(FACING));
+        return coreModule;
     }
 
     @Override

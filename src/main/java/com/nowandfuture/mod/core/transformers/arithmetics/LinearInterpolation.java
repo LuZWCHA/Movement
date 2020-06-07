@@ -17,7 +17,7 @@ public class LinearInterpolation implements IInterpolationAlgorithm<LocationTran
 
     @Override
     public void calculate(Matrix4f renderer, KeyFrameLine line, float p, LocationTransformNode.LocationKeyFrame preKey, LocationTransformNode.LocationKeyFrame key) {
-        temp = MathHelper.Lerp(p,preKey.curPos, key.curPos);
+        temp = MathHelper.lerp(p,preKey.curPos, key.curPos);
         renderer.translate(new Vector3f((float) temp.x,(float)temp.y,(float)temp.z));
     }
 }

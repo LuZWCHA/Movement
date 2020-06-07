@@ -401,7 +401,7 @@ public class GuiConstructor extends AbstractGuiContainer implements IContainerLi
                 nameEv.setEnabled(true);
                 nameEv.setVisible(true);
                 nameEv.setText(Strings.isNullOrEmpty(s) ?
-                        R.name(R.id.text_constructor_editview_rename_hint_id) : s);
+                        R.name(R.id.text_constructor_edit_view_rename_hint_id) : s);
 
             } else {
                 nameEv.setText(Strings.EMPTY);

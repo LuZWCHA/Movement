@@ -344,7 +344,7 @@ public class PreviewView extends View {
 
         Vector3f p1 = new Vector3f(x, y, z);
         Quaternion inverseQ = MathHelper.inverse(trackball.curquat);
-        p1 = MathHelper.mul(p1,inverseQ);
+        p1 = MathHelper.mulQuaternion(p1,inverseQ);
 
         GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
         GlStateManager.enableDepth();

@@ -14,7 +14,7 @@ public class ScaleLinearInterpolation implements IInterpolationAlgorithm<ScaleTr
 
     @Override
     public void calculate(Matrix4f renderer, KeyFrameLine line, float p, ScaleTransformNode.ScaleKeyFrame preKey, ScaleTransformNode.ScaleKeyFrame key) {
-        final float s = MathHelper.Lerp(p,preKey.scale,key.scale);
+        final float s = MathHelper.lerp(p,preKey.scale,key.scale);
         renderer.scale(new Vector3f(s,s,s));
     }
 }

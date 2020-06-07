@@ -25,7 +25,7 @@ public enum SyncTasks {
         return executor.submit(callable);
     }
 
-    public List<Runnable> showdownNow(){
+    public List<Runnable> shutdownNow(){
         return executor.shutdownNow();
     }
 

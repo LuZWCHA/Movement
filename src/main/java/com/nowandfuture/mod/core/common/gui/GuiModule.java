@@ -15,6 +15,7 @@ import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.Button;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.SliderView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.TextView;
 import com.nowandfuture.mod.core.common.gui.mygui.compounds.complete.layouts.FrameLayout;
+import com.nowandfuture.mod.core.prefab.AbstractPrefab;
 import com.nowandfuture.mod.network.NetworkHandler;
 import com.nowandfuture.mod.network.message.LMessage;
 import com.nowandfuture.mod.utils.DrawHelper;
@@ -148,6 +149,10 @@ public class GuiModule extends AbstractGuiContainer {
                 positionEditorView.setY(12);
                 positionEditorView.setWidth(92);
                 positionEditorView.setHeight(16);
+
+                // TODO: 2020/6/5 add inital posture
+                AbstractPrefab prefab = tileEntityCoreModule.getCurModuleNode().getPrefab();
+
 
                 Button confirmBtn = new Button(getRootView());
                 confirmBtn.setVanillaStyle(false);
@@ -312,7 +317,6 @@ public class GuiModule extends AbstractGuiContainer {
         NetworkHandler.INSTANCE.sendMessageToServer(voidMessage);
     }
 
-    // TODO: 2019/7/30 modify to even-notify-mode
     @Override
     public void updateScreen() {
         super.updateScreen();

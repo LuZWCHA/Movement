@@ -12,7 +12,7 @@ public class ByteZip {
 
     private int index;
     private int outSize;
-    private ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    private ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     private ByteArrayOutputStream orgByteArray = new ByteArrayOutputStream();
 
     public ByteZip()
@@ -23,7 +23,7 @@ public class ByteZip {
 
     public void clear()
     {
-        bos.reset();
+        byteArrayOutputStream.reset();
         index = 0;
     }
 
@@ -41,7 +41,7 @@ public class ByteZip {
     {
         int arraySize = Short.SIZE / Byte.SIZE;
         ByteBuffer buffer = ByteBuffer.allocate(arraySize);
-        setByteArray(buffer.putShort(value).array() );
+        setByteArray(buffer.putShort(value).array());
     }
 
     public void setInt(int value)
@@ -60,13 +60,13 @@ public class ByteZip {
 
     public void compress()
     {
-        Deflater compresser = new Deflater();
-        compresser.setInput(orgByteArray.toByteArray());
-        compresser.finish();
+        Deflater compressor = new Deflater();
+        compressor.setInput(orgByteArray.toByteArray());
+        compressor.finish();
         byte[] outBuf = new byte[orgByteArray.size()];
-        outSize = compresser.deflate(outBuf);
-        bos.write(outBuf, 0, outSize);
-        compresser.end();
+        outSize = compressor.deflate(outBuf);
+        byteArrayOutputStream.write(outBuf, 0, outSize);
+        compressor.end();
     }
 
     public static int decompress(byte[] out, byte[] in) {
@@ -88,11 +88,11 @@ public class ByteZip {
         return outnum;
     }
 
-    public byte[] getOutput()
+    public byte[] getOutputArray()
     {
-        return bos.toByteArray();
+        return byteArrayOutputStream.toByteArray();
     }
-    public int getOutputLength()
+    public int getOutputSize()
     {
         return outSize;
     }
